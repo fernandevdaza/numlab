@@ -1,0 +1,33 @@
+{
+  "name": "numlab",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Laboratorio interactivo de Métodos Numéricos: métodos del curso con paso a paso, gráficas, análisis de error y código Scilab.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test:graficas": "node --experimental-strip-types --no-warnings scripts/fidelidad-graficas.ts",
+    "test:metodos": "node --experimental-strip-types --no-warnings scripts/verificar-metodos.ts",
+    "test": "pnpm test:graficas && pnpm test:metodos"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "@types/plotly.js-dist-min": "^2.3.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "katex": "^0.18.7",
+    "mathjs": "^15.2.0",
+    "nerdamer": "^1.1.13",
+    "plotly.js-dist-min": "^4.1.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

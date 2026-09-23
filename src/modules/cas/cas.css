@@ -1,0 +1,62 @@
+/* Estilos de Herramientas (CAS y graficador). Usa sólo variables de styles.css. */
+
+.cas-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+.cas-help { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
+@media (max-width: 1100px) {
+  .cas-grid { grid-template-columns: 1fr; }
+  .cas-help { position: static; max-height: none; }
+}
+
+/* ── Notebook ── */
+.nb { display: flex; flex-direction: column; gap: 0; }
+.nb-empty { color: var(--muted); padding: 18px 4px; font-size: 13.5px; }
+.cell { border-bottom: 1px dashed var(--border); padding: 10px 2px 12px; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 4px 10px; }
+.cell:last-child { border-bottom: 0; }
+.cell-n { font: 600 11px var(--mono); color: var(--faint); padding-top: 3px; text-align: right; }
+.cell-in { font: 13px/1.5 var(--mono); color: var(--accent); cursor: pointer; white-space: pre-wrap; word-break: break-word; }
+.cell-in:hover { text-decoration: underline dotted; }
+.cell-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.12s; }
+.cell:hover .cell-actions { opacity: 1; }
+.cell-actions button { background: none; border: 0; color: var(--faint); font-size: 13px; padding: 0 5px; border-radius: 5px; }
+.cell-actions button:hover { color: var(--danger); background: var(--panel-2); }
+.cell-out { grid-column: 2 / 4; min-width: 0; }
+.cell-out .tex-block { font-size: 1.04em; padding: 6px 0 2px; }
+.cell-note { font-size: 12px; color: var(--faint); margin-top: 2px; }
+.cell-err { color: var(--danger); font-size: 13px; font-family: var(--mono); }
+.cell-text { font-size: 13.5px; color: var(--text); }
+
+.prompt { display: flex; gap: 8px; align-items: flex-end; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+.prompt-sign { font: 600 15px var(--mono); color: var(--accent); padding: 8px 0 9px; }
+.prompt textarea { flex: 1; resize: none; min-height: 38px; font: 13.5px/1.5 var(--mono); }
+.prompt-preview { font-size: 13px; color: var(--muted); min-height: 22px; padding: 6px 0 0 22px; overflow-x: auto; }
+.nb-toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Ayuda ── */
+.help-group { margin-bottom: 14px; }
+.help-group h4 { margin: 0 0 6px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+.help-item { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.help-item:last-child { border-bottom: 0; }
+.help-cmd { font: 600 12.5px var(--mono); color: var(--text); }
+.help-desc { font-size: 12px; color: var(--muted); margin: 2px 0 5px; }
+.help-ex { display: flex; flex-wrap: wrap; gap: 4px; }
+.help-ex button {
+  font: 11.5px var(--mono); border: 1px solid var(--border-2); background: var(--panel-2); color: var(--text);
+  border-radius: 6px; padding: 1px 7px; transition: all 0.12s; text-align: left;
+}
+.help-ex button:hover { border-color: var(--accent); color: var(--accent); }
+.help-search { margin-bottom: 10px; }
+
+/* ── Graficador ── */
+.fn-row { display: grid; grid-template-columns: 14px 22px minmax(0, 1fr) 26px; gap: 6px; align-items: center; }
+.fn-swatch { width: 12px; height: 12px; border-radius: 50%; }
+.fn-row .input { padding: 5px 8px; }
+.fn-row .fn-del { background: none; border: 0; color: var(--faint); font-size: 14px; border-radius: 5px; }
+.fn-row .fn-del:hover { color: var(--danger); background: var(--panel-2); }
+.fn-err { font-size: 11.5px; color: var(--danger); padding-left: 42px; }
+.fn-tex { font-size: 12.5px; padding-left: 42px; color: var(--muted); overflow-x: auto; }
+.param { display: grid; grid-template-columns: 28px 1fr 64px; gap: 8px; align-items: center; }
+.param-name { font: 600 13px var(--mono); color: var(--accent-2); }
+.param input[type='range'] { width: 100%; accent-color: var(--accent-2); }
+.param-val { font: 12px var(--mono); text-align: right; }
+.param-lims { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding-left: 36px; }
+.param-lims .input { padding: 2px 6px; font-size: 11.5px; }

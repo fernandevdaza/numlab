@@ -1,0 +1,85 @@
+/* Estilos del Tema 1 (números y errores). Usa sólo variables de styles.css. */
+
+.err-sign { --c: #ec4899; }
+.err-exp { --c: var(--accent-2); }
+.err-man { --c: var(--accent); }
+:root[data-theme='light'] .err-sign { --c: #db2777; }
+
+/* ── Cajas de bits ── */
+.bitrow { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-start; }
+.bitgroup { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.bitgroup.grow { flex: 1 1 320px; }
+.bitcells { display: flex; flex-wrap: wrap; gap: 3px; }
+.bit {
+  width: 22px; height: 30px; border-radius: 5px; display: grid; place-items: center;
+  font: 600 13px var(--mono); padding: 0; user-select: none;
+  border: 1px solid color-mix(in srgb, var(--c) 45%, var(--border));
+  background: color-mix(in srgb, var(--c) 6%, var(--panel-2));
+  color: color-mix(in srgb, var(--c) 55%, var(--muted));
+  transition: transform 0.08s, background 0.12s, box-shadow 0.12s;
+}
+.bit.on {
+  background: color-mix(in srgb, var(--c) 78%, var(--panel));
+  border-color: var(--c);
+  color: #06121a;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent), 0 2px 8px color-mix(in srgb, var(--c) 25%, transparent);
+}
+:root[data-theme='light'] .bit.on { color: #fff; }
+.bit:hover { transform: translateY(-2px); border-color: var(--c); }
+.bit:focus-visible { outline: 2px solid var(--c); outline-offset: 1px; }
+.bitcells.compact .bit { width: 17px; height: 26px; font-size: 11.5px; border-radius: 4px; }
+.bitcells .nib { margin-right: 5px; }
+.bitlabel { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.bitlabel .sub { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 500; font-family: var(--mono); }
+.bithint { font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+
+/* ── Números exactos largos ── */
+.exact {
+  font: 13px/1.65 var(--mono); word-break: break-all; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+}
+.exact .ok { color: var(--ok); }
+.exact .bad { color: var(--danger); }
+.exact .dim { color: var(--faint); }
+.kv { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 6px 14px; align-items: baseline; font-size: 13.5px; }
+.kv > .k { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.kv > .v { font-family: var(--mono); font-size: 12.5px; word-break: break-all; min-width: 0; }
+
+.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid; }
+.pill.normal { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.pill.subnormal { color: var(--info); border-color: color-mix(in srgb, var(--info) 40%, transparent); }
+.pill.cero { color: var(--muted); border-color: var(--border-2); }
+.pill.infinito, .pill.NaN { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+
+.seg { display: inline-flex; border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.seg button { background: var(--panel-2); border: 0; padding: 6px 12px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--border-2); }
+.seg button.active { background: var(--accent-soft); color: var(--accent); }
+
+/* ── Tabla pequeña de teoría ── */
+table.err-mini { border-collapse: collapse; font-size: 12.5px; margin: 8px 0; width: 100%; }
+table.err-mini th, table.err-mini td { border: 1px solid var(--border); padding: 4px 8px; text-align: center; }
+table.err-mini th { background: var(--panel-2); font-weight: 600; }
+
+/* dígitos de mantisa (sistema F) */
+.digits { display: inline-flex; gap: 3px; flex-wrap: wrap; align-items: center; }
+.digit { min-width: 22px; height: 28px; display: grid; place-items: center; border-radius: 5px; font: 600 13px var(--mono); border: 1px solid var(--border-2); background: var(--panel-2); padding: 0 4px; }
+.digit.keep { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.digit.drop { color: var(--faint); border-style: dashed; }
+.digit.guard { border-color: var(--accent-2); color: var(--accent-2); }
+
+.lost { font-weight: 600; }
+.lost.hi { color: var(--danger); }
+.lost.mid { color: var(--warn); }
+.lost.lo { color: var(--ok); }
+
+/* ── Palabra numerada (máquina de 16 bits) ── */
+.word { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; }
+.word-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.word-cell .bit { cursor: default; }
+.word-cell .bit:hover { transform: none; }
+.word-cell.err-sign + .word-cell.err-exp, .word-cell.err-exp + .word-cell.err-man { margin-left: 8px; }
+.word-idx { font: 10px var(--mono); color: var(--faint); }
+.word-legend { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 14px; font-size: 11.5px; margin-top: 6px; }
+.word-legend span { color: var(--c); }
+.dit-var { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; }

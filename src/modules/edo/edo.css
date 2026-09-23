@@ -1,0 +1,10 @@
+/* Estilos propios del Tema 6 (EDO) */
+.edo-axes { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 8px; }
+.edo-note { font-size: 12.5px; margin: 6px 0 0; }
+.edo-eqs { display: flex; flex-direction: column; gap: 10px; }
+.edo-eq { border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--panel-2); }
+.edo-eq-head { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
+.edo-anim { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; flex-wrap: wrap; }
+.edo-anim input[type='range'] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+.edo-anim .mono { color: var(--muted); min-width: 110px; }
+.edo-reduction { display: flex; flex-direction: column; gap: 4px; }
