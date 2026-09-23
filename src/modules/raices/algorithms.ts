@@ -1,6 +1,8 @@
 // Algoritmos para ecuaciones no lineales f(x) = 0 (Tema 2).
 // Todas las funciones son puras y devuelven la tabla completa de iteraciones.
 
+import { L } from '../../i18n.ts'
+
 /**
  * Criterio de parada (relación 2.3 del texto). 'o' es el del texto: se detiene cuando se cumple
  * |f(xₙ)| ≤ EPS **o** |xₙ − xₙ₋₁| ≤ EPS. 'abs', 'rel' y 'f' usan una sola de las condiciones.
@@ -58,8 +60,10 @@ function bad(x: number) {
 function estancado(err: number, errPrev: number, fx: number, f0: number) {
   return Number.isFinite(errPrev) && err >= errPrev && Math.abs(fx) <= 1e-10 * Math.max(Math.abs(f0), 1e-300)
 }
-const MSG_ESTANCADO =
-  'Se alcanzó el límite de precisión de la máquina: |xₙ₊₁ − xₙ| dejó de disminuir por errores de redondeo (es normal cerca de una raíz de multiplicidad m: sólo se obtiene ≈ 1/m de las cifras significativas de la máquina). Se devuelve la mejor aproximación.'
+const MSG_ESTANCADO = L(
+  'Se alcanzó el límite de precisión de la máquina: |xₙ₊₁ − xₙ| dejó de disminuir por errores de redondeo (es normal cerca de una raíz de multiplicidad m: sólo se obtiene ≈ 1/m de las cifras significativas de la máquina). Se devuelve la mejor aproximación.',
+  'Machine precision limit reached: |xₙ₊₁ − xₙ| stopped decreasing because of round-off errors (this is normal near a root of multiplicity m: only ≈ 1/m of the machine\'s significant digits can be obtained). The best approximation is returned.',
+)
 
 /* ─────────────── Bisección ─────────────── */
 export function biseccion(f: Fn, a0: number, b0: number, o: Opts): RootResult {
@@ -69,10 +73,10 @@ export function biseccion(f: Fn, a0: number, b0: number, o: Opts): RootResult {
   const fb0 = f(b)
   const rows: Row[] = []
   const iterates: number[] = []
-  if (fa === 0) return { rows, root: a, converged: true, message: 'a ya es raíz exacta', iterates: [a] }
-  if (fb0 === 0) return { rows, root: b, converged: true, message: 'b ya es raíz exacta', iterates: [b] }
+  if (fa === 0) return { rows, root: a, converged: true, message: L('a ya es raíz exacta', 'a is already an exact root'), iterates: [a] }
+  if (fb0 === 0) return { rows, root: b, converged: true, message: L('b ya es raíz exacta', 'b is already an exact root'), iterates: [b] }
   if (fa * fb0 > 0)
-    return { rows, root: NaN, converged: false, message: 'f(a) y f(b) tienen el mismo signo: el teorema de Bolzano no garantiza una raíz en [a, b].', iterates }
+    return { rows, root: NaN, converged: false, message: L('f(a) y f(b) tienen el mismo signo: el teorema de Bolzano no garantiza una raíz en [a, b].', 'f(a) and f(b) have the same sign: Bolzano\'s theorem does not guarantee a root in [a, b].'), iterates }
   let c = a
   for (let n = 1; n <= o.maxIter; n++) {
     const cOld = c
@@ -85,7 +89,7 @@ export function biseccion(f: Fn, a0: number, b0: number, o: Opts): RootResult {
       o.criterion === 'f' ? Math.abs(fc) : o.criterion === 'o' ? Math.min(Math.abs(fc), half) : o.criterion === 'rel' ? half / Math.max(Math.abs(c), 1e-300) : half
     rows.push({ n, a, b, c, fa, fb, fc, err, dx: n > 1 ? Math.abs(c - cOld) : NaN })
     iterates.push(c)
-    if (fc === 0 || err <= o.tol) return { rows, root: c, converged: true, message: `Convergió en ${n} iteraciones`, iterates }
+    if (fc === 0 || err <= o.tol) return { rows, root: c, converged: true, message: L(`Convergió en ${n} iteraciones`, `Converged in ${n} iterations`), iterates }
     if (fa * fc < 0) {
       b = c
     } else {
@@ -93,7 +97,7 @@ export function biseccion(f: Fn, a0: number, b0: number, o: Opts): RootResult {
       fa = fc
     }
   }
-  return { rows, root: c, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: c, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /** Número mínimo de iteraciones de bisección para error absoluto < tol. */
@@ -116,10 +120,10 @@ export function posicionFalsa(f: Fn, a0: number, b0: number, o: Opts, modificada
   let fb = f(b)
   const rows: Row[] = []
   const iterates: number[] = []
-  if (fa === 0) return { rows, root: a, converged: true, message: 'a ya es raíz exacta', iterates: [a] }
-  if (fb === 0) return { rows, root: b, converged: true, message: 'b ya es raíz exacta', iterates: [b] }
+  if (fa === 0) return { rows, root: a, converged: true, message: L('a ya es raíz exacta', 'a is already an exact root'), iterates: [a] }
+  if (fb === 0) return { rows, root: b, converged: true, message: L('b ya es raíz exacta', 'b is already an exact root'), iterates: [b] }
   if (fa * fb > 0)
-    return { rows, root: NaN, converged: false, message: 'f(a) y f(b) tienen el mismo signo: el teorema de Bolzano no garantiza una raíz en [a, b].', iterates }
+    return { rows, root: NaN, converged: false, message: L('f(a) y f(b) tienen el mismo signo: el teorema de Bolzano no garantiza una raíz en [a, b].', 'f(a) and f(b) have the same sign: Bolzano\'s theorem does not guarantee a root in [a, b].'), iterates }
   // valores de f usados en la fórmula (pueden estar divididos entre 2 en la variante modificada)
   let Fa = fa, Fb = fb
   let fijoA = 0, fijoB = 0
@@ -127,12 +131,12 @@ export function posicionFalsa(f: Fn, a0: number, b0: number, o: Opts, modificada
   for (let n = 1; n <= o.maxIter; n++) {
     const cOld = c
     c = b - (Fb * (b - a)) / (Fb - Fa)
-    if (bad(c)) return { rows, root: cOld, converged: false, message: 'La iteración produjo un valor no finito.', iterates }
+    if (bad(c)) return { rows, root: cOld, converged: false, message: L('La iteración produjo un valor no finito.', 'The iteration produced a non-finite value.'), iterates }
     const fc = f(c)
     const err = o.criterion === 'f' || (o.criterion === 'o' && n === 1) ? Math.abs(fc) : n === 1 ? NaN : stopValue(o.criterion, c, cOld, fc)
     rows.push({ n, a, b, fa: Fa, fb: Fb, c, fc, err, mod: Fa !== fa || Fb !== fb ? 1 : 0 })
     iterates.push(c)
-    if (fc === 0 || err <= o.tol) return { rows, root: c, converged: true, message: `Convergió en ${n} iteraciones`, iterates }
+    if (fc === 0 || err <= o.tol) return { rows, root: c, converged: true, message: L(`Convergió en ${n} iteraciones`, `Converged in ${n} iterations`), iterates }
     if (fa * fc < 0) {
       b = c
       fb = fc
@@ -151,7 +155,7 @@ export function posicionFalsa(f: Fn, a0: number, b0: number, o: Opts, modificada
       if (fijoB >= 2) Fb /= 2
     }
   }
-  return { rows, root: c, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: c, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Punto fijo ─────────────── */
@@ -162,16 +166,16 @@ export function puntoFijo(g: Fn, x0: number, o: Opts, f?: Fn): RootResult {
   for (let n = 0; n < o.maxIter; n++) {
     const gx = g(x)
     if (bad(gx))
-      return { rows, root: x, converged: false, message: `g(x${n}) no es un número real finito (p. ej. raíz de un número negativo ⇒ número complejo): la iteración no puede continuar.`, iterates }
+      return { rows, root: x, converged: false, message: L(`g(x${n}) no es un número real finito (p. ej. raíz de un número negativo ⇒ número complejo): la iteración no puede continuar.`, `g(x${n}) is not a finite real number (e.g. the root of a negative number ⇒ complex number): the iteration cannot continue.`), iterates }
     const fx = f ? f(gx) : gx - g(gx)
     const err = stopValue(o.criterion, gx, x, fx)
     rows.push({ n, x, gx, err })
     iterates.push(gx)
     x = gx
-    if (err <= o.tol) return { rows, root: x, converged: true, message: `Convergió en ${n + 1} iteraciones`, iterates }
-    if (Math.abs(x) > 1e12) return { rows, root: x, converged: false, message: 'La sucesión diverge (|x| > 10¹²). Revisa que |g′(x)| < 1 cerca de la raíz.', iterates }
+    if (err <= o.tol) return { rows, root: x, converged: true, message: L(`Convergió en ${n + 1} iteraciones`, `Converged in ${n + 1} iterations`), iterates }
+    if (Math.abs(x) > 1e12) return { rows, root: x, converged: false, message: L('La sucesión diverge (|x| > 10¹²). Revisa que |g′(x)| < 1 cerca de la raíz.', 'The sequence diverges (|x| > 10¹²). Check that |g′(x)| < 1 near the root.'), iterates }
   }
-  return { rows, root: x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: x, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Aitken Δ² ─────────────── */
@@ -184,7 +188,7 @@ export function aitken(g: Fn, x0: number, o: Opts): RootResult {
   for (let n = 0; n < o.maxIter; n++) {
     while (xs.length < n + 3) {
       const v = g(xs[xs.length - 1])
-      if (bad(v)) return { rows, root: prevHat, converged: false, message: 'g(x) no es un número real finito: la sucesión de punto fijo no puede continuar.', iterates }
+      if (bad(v)) return { rows, root: prevHat, converged: false, message: L('g(x) no es un número real finito: la sucesión de punto fijo no puede continuar.', 'g(x) is not a finite real number: the fixed-point sequence cannot continue.'), iterates }
       xs.push(v)
     }
     const [x0n, x1n, x2n] = [xs[n], xs[n + 1], xs[n + 2]]
@@ -193,10 +197,10 @@ export function aitken(g: Fn, x0: number, o: Opts): RootResult {
     const err = n === 0 ? Math.abs(hat - x0n) : stopValue(o.criterion, hat, prevHat, hat - g(hat))
     rows.push({ n, x: x0n, x1: x1n, x2: x2n, hat, err })
     iterates.push(hat)
-    if (d2 === 0 || (n > 0 && err <= o.tol)) return { rows, root: hat, converged: true, message: `Convergió en ${n + 1} términos acelerados`, iterates }
+    if (d2 === 0 || (n > 0 && err <= o.tol)) return { rows, root: hat, converged: true, message: L(`Convergió en ${n + 1} términos acelerados`, `Converged in ${n + 1} accelerated terms`), iterates }
     prevHat = hat
   }
-  return { rows, root: prevHat, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: prevHat, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Steffensen ─────────────── */
@@ -210,16 +214,16 @@ export function steffensen(g: Fn, x0: number, o: Opts): RootResult {
     const den = g2 - 2 * g1 + x
     if (den === 0 || bad(den)) {
       const ok = Math.abs(g1 - x) < o.tol
-      return { rows, root: ok ? g1 : x, converged: ok, message: ok ? `Convergió en ${n} iteraciones (Δ² = 0)` : 'Denominador nulo o no finito', iterates }
+      return { rows, root: ok ? g1 : x, converged: ok, message: ok ? L(`Convergió en ${n} iteraciones (Δ² = 0)`, `Converged in ${n} iterations (Δ² = 0)`) : L('Denominador nulo o no finito', 'Zero or non-finite denominator'), iterates }
     }
     const xn = x - (g1 - x) ** 2 / den
     const err = stopValue(o.criterion, xn, x, xn - g(xn))
     rows.push({ n, x, g1, g2, xn, err })
     iterates.push(xn)
     x = xn
-    if (err <= o.tol) return { rows, root: x, converged: true, message: `Convergió en ${n + 1} iteraciones`, iterates }
+    if (err <= o.tol) return { rows, root: x, converged: true, message: L(`Convergió en ${n + 1} iteraciones`, `Converged in ${n + 1} iterations`), iterates }
   }
-  return { rows, root: x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: x, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Newton-Raphson ─────────────── */
@@ -231,11 +235,11 @@ export function newton(f: Fn, df: Fn, x0: number, o: Opts): RootResult {
   let dPrev = NaN
   for (let n = 0; n < o.maxIter; n++) {
     const fx = f(x)
-    if (fx === 0) return { rows, root: x, converged: true, message: `f(x${n}) = 0: raíz exacta.`, iterates }
+    if (fx === 0) return { rows, root: x, converged: true, message: L(`f(x${n}) = 0: raíz exacta.`, `f(x${n}) = 0: exact root.`), iterates }
     const dfx = df(x)
-    if (dfx === 0 || bad(dfx)) return { rows, root: x, converged: false, message: `f′(x${n}) = 0: la tangente es horizontal, Newton no puede continuar.`, iterates }
+    if (dfx === 0 || bad(dfx)) return { rows, root: x, converged: false, message: L(`f′(x${n}) = 0: la tangente es horizontal, Newton no puede continuar.`, `f′(x${n}) = 0: the tangent line is horizontal, Newton's method cannot continue.`), iterates }
     const xn = x - fx / dfx
-    if (bad(xn)) return { rows, root: x, converged: false, message: 'La iteración produjo un valor no finito.', iterates }
+    if (bad(xn)) return { rows, root: x, converged: false, message: L('La iteración produjo un valor no finito.', 'The iteration produced a non-finite value.'), iterates }
     const d = Math.abs(xn - x)
     if (n >= 1 && estancado(d, dPrev, fx, f0)) return { rows, root: x, converged: true, message: MSG_ESTANCADO, iterates }
     dPrev = d
@@ -243,9 +247,9 @@ export function newton(f: Fn, df: Fn, x0: number, o: Opts): RootResult {
     rows.push({ n, x, fx, dfx, xn, err })
     iterates.push(xn)
     x = xn
-    if (err <= o.tol) return { rows, root: x, converged: true, message: `Convergió en ${n + 1} iteraciones`, iterates }
+    if (err <= o.tol) return { rows, root: x, converged: true, message: L(`Convergió en ${n + 1} iteraciones`, `Converged in ${n + 1} iterations`), iterates }
   }
-  return { rows, root: x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: x, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Secante ─────────────── */
@@ -259,10 +263,10 @@ export function secante(f: Fn, x0: number, x1: number, o: Opts): RootResult {
   for (let n = 1; n <= o.maxIter; n++) {
     const fa = f(a)
     const fb = f(b)
-    if (fb === 0) return { rows, root: b, converged: true, message: 'f(xₙ) = 0: raíz exacta.', iterates }
-    if (fb === fa) return { rows, root: b, converged: false, message: 'f(xₙ) = f(xₙ₋₁): la secante es horizontal.', iterates }
+    if (fb === 0) return { rows, root: b, converged: true, message: L('f(xₙ) = 0: raíz exacta.', 'f(xₙ) = 0: exact root.'), iterates }
+    if (fb === fa) return { rows, root: b, converged: false, message: L('f(xₙ) = f(xₙ₋₁): la secante es horizontal.', 'f(xₙ) = f(xₙ₋₁): the secant line is horizontal.'), iterates }
     const xn = b - (fb * (b - a)) / (fb - fa)
-    if (bad(xn)) return { rows, root: b, converged: false, message: 'La iteración produjo un valor no finito.', iterates }
+    if (bad(xn)) return { rows, root: b, converged: false, message: L('La iteración produjo un valor no finito.', 'The iteration produced a non-finite value.'), iterates }
     const d = Math.abs(xn - b)
     if (n >= 3 && estancado(d, dPrev, fb, f0)) return { rows, root: b, converged: true, message: MSG_ESTANCADO, iterates }
     dPrev = d
@@ -271,9 +275,9 @@ export function secante(f: Fn, x0: number, x1: number, o: Opts): RootResult {
     iterates.push(xn)
     a = b
     b = xn
-    if (err <= o.tol) return { rows, root: b, converged: true, message: `Convergió en ${n} iteraciones`, iterates }
+    if (err <= o.tol) return { rows, root: b, converged: true, message: L(`Convergió en ${n} iteraciones`, `Converged in ${n} iterations`), iterates }
   }
-  return { rows, root: b, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: b, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /* ─────────────── Newton modificado (raíces múltiples) ─────────────── */
@@ -288,7 +292,7 @@ export function newtonModificado(f: Fn, df: Fn, d2f: Fn, x0: number, o: Opts, va
     const fx = f(x)
     const dfx = df(x)
     const d2fx = d2f(x)
-    if (fx === 0) return { rows, root: x, converged: true, message: `Raíz exacta en la iteración ${n}`, iterates }
+    if (fx === 0) return { rows, root: x, converged: true, message: L(`Raíz exacta en la iteración ${n}`, `Exact root at iteration ${n}`), iterates }
     let xn: number
     if (variant === 'm') {
       if (dfx === 0) return { rows, root: x, converged: false, message: 'f′(x) = 0', iterates }
@@ -298,7 +302,7 @@ export function newtonModificado(f: Fn, df: Fn, d2f: Fn, x0: number, o: Opts, va
       if (den === 0) return { rows, root: x, converged: false, message: "f′² − f·f″ = 0", iterates }
       xn = x - (fx * dfx) / den
     }
-    if (bad(xn)) return { rows, root: x, converged: false, message: 'La iteración produjo un valor no finito.', iterates }
+    if (bad(xn)) return { rows, root: x, converged: false, message: L('La iteración produjo un valor no finito.', 'The iteration produced a non-finite value.'), iterates }
     const d = Math.abs(xn - x)
     if (n >= 1 && estancado(d, dPrev, fx, f0)) return { rows, root: x, converged: true, message: MSG_ESTANCADO, iterates }
     dPrev = d
@@ -306,9 +310,9 @@ export function newtonModificado(f: Fn, df: Fn, d2f: Fn, x0: number, o: Opts, va
     rows.push({ n, x, fx, dfx, d2fx, xn, err })
     iterates.push(xn)
     x = xn
-    if (err <= o.tol) return { rows, root: x, converged: true, message: `Convergió en ${n + 1} iteraciones`, iterates }
+    if (err <= o.tol) return { rows, root: x, converged: true, message: L(`Convergió en ${n + 1} iteraciones`, `Converged in ${n + 1} iterations`), iterates }
   }
-  return { rows, root: x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, root: x, converged: false, message: L(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Did not reach the tolerance in ${o.maxIter} iterations`), iterates }
 }
 
 /**

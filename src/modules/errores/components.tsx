@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import './errores.css'
 import { FORMATS, type Prec } from './float'
+import { L } from '../../i18n'
 
 /** Cajas de bits coloreadas (signo / exponente / fracción). Clic para invertir un bit. */
 export function Bits({ bits, prec, onToggle, labels }: { bits: string; prec: Prec; onToggle?: (i: number) => void; labels?: { sign?: ReactNode; exp?: ReactNode; man?: ReactNode } }) {
@@ -12,35 +13,41 @@ export function Bits({ bits, prec, onToggle, labels }: { bits: string; prec: Pre
       key={i}
       type="button"
       className={'bit ' + cls + (bits[i] === '1' ? ' on' : '') + (nib ? ' nib' : '')}
-      title={`bit ${F.bits - 1 - i} · ${weight}${onToggle ? ' · clic para invertir' : ''}`}
+      title={`bit ${F.bits - 1 - i} · ${weight}${onToggle ? L(' · clic para invertir', ' · click to flip') : ''}`}
       onClick={() => onToggle?.(i)}
       disabled={!onToggle}
     >
       {bits[i]}
     </button>
   )
-  const exp = Array.from({ length: F.w }, (_, k) => cell(1 + k, 'err-exp', `exponente, peso 2^${F.w - 1 - k}`, (F.w - k - 1) % 4 === 0 && k < F.w - 1))
-  const man = Array.from({ length: F.m }, (_, k) => cell(1 + F.w + k, 'err-man', `fracción, peso 2^-${k + 1}`, (F.m - k - 1) % 4 === 0 && k < F.m - 1))
+  const exp = Array.from({ length: F.w }, (_, k) => cell(1 + k, 'err-exp', L(`exponente, peso 2^${F.w - 1 - k}`, `exponent, weight 2^${F.w - 1 - k}`), (F.w - k - 1) % 4 === 0 && k < F.w - 1))
+  const man = Array.from({ length: F.m }, (_, k) => cell(1 + F.w + k, 'err-man', L(`fracción, peso 2^-${k + 1}`, `fraction, weight 2^-${k + 1}`), (F.m - k - 1) % 4 === 0 && k < F.m - 1))
   return (
     <div className="bitrow">
       <div className="bitgroup err-sign">
-        <div className={'bitcells' + (compact ? ' compact' : '')}>{cell(0, 'err-sign', 'signo')}</div>
-        <div className="bitlabel">Signo {labels?.sign && <span className="sub">{labels.sign}</span>}</div>
+        <div className={'bitcells' + (compact ? ' compact' : '')}>{cell(0, 'err-sign', L('signo', 'sign'))}</div>
+        <div className="bitlabel">{L('Signo', 'Sign')} {labels?.sign && <span className="sub">{labels.sign}</span>}</div>
       </div>
       <div className="bitgroup err-exp">
         <div className={'bitcells' + (compact ? ' compact' : '')}>{exp}</div>
         <div className="bitlabel">
-          Exponente ({F.w} bits) {labels?.exp && <span className="sub">{labels.exp}</span>}
+          {L('Exponente', 'Exponent')} ({F.w} bits) {labels?.exp && <span className="sub">{labels.exp}</span>}
         </div>
       </div>
       <div className="bitgroup grow err-man">
         <div className={'bitcells' + (compact ? ' compact' : '')}>{man}</div>
         <div className="bitlabel">
-          Fracción / mantisa ({F.m} bits) {labels?.man && <span className="sub">{labels.man}</span>}
+          {L('Fracción / mantisa', 'Fraction / mantissa')} ({F.m} bits) {labels?.man && <span className="sub">{labels.man}</span>}
         </div>
       </div>
     </div>
   )
+}
+
+/** Nombre visible del tipo de flotante (las claves internas están en español). */
+export function kindLabel(k: string): string {
+  const en: Record<string, string> = { cero: 'zero', infinito: 'infinity', normal: 'normal', subnormal: 'subnormal', NaN: 'NaN' }
+  return L(k, en[k] ?? k)
 }
 
 /** Control segmentado simple. */
@@ -67,7 +74,7 @@ export function ExactDigits({ exact, intended, max = 400 }: { exact: string; int
     shown = shown.slice(0, max)
     cut = true
   }
-  if (!intended) return <div className="exact">{shown}{cut && <span className="dim">… ({exact.length} caracteres)</span>}</div>
+  if (!intended) return <div className="exact">{shown}{cut && <span className="dim">… ({exact.length} {L('caracteres', 'characters')})</span>}</div>
   // alinear: comparar carácter a carácter (ambos en notación posicional)
   const a = shown
   const b = intended.includes('.') || !a.includes('.') ? intended : intended + '.'
@@ -78,7 +85,7 @@ export function ExactDigits({ exact, intended, max = 400 }: { exact: string; int
     <div className="exact">
       <span className="ok">{a.slice(0, k)}</span>
       <span className="bad">{a.slice(k)}</span>
-      {cut && <span className="dim">… ({exact.length} caracteres)</span>}
+      {cut && <span className="dim">… ({exact.length} {L('caracteres', 'characters')})</span>}
     </div>
   )
 }

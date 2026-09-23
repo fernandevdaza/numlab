@@ -1,45 +1,55 @@
-# Cómo contribuir a NumLab
+<p align="right"><b>English</b> · <a href="CONTRIBUTING.es.md">Español</a></p>
 
-¡Gracias por querer mejorar NumLab! Es una herramienta hecha por y para estudiantes de Métodos Numéricos.
+# Contributing to NumLab
 
-## Preparar el entorno
+Thanks for helping improve NumLab! It is made by and for students of numerical methods.
 
-Requisitos: Node.js 22 o superior y [pnpm](https://pnpm.io).
+## Setup
+
+Requirements: Node.js 22+ and [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install
-pnpm dev          # abre http://localhost:5173
+pnpm dev          # opens http://localhost:5173
 ```
 
-Antes de enviar cambios:
+Before sending changes:
 
 ```bash
-pnpm build          # comprueba tipos (tsc) y compila
-pnpm test:graficas  # fidelidad del muestreo de gráficas
+pnpm build        # type-checks (tsc) and builds
+pnpm test         # TeX formulas, plot fidelity and numerical verification
 ```
 
-## Estructura
+## Structure
 
-| Carpeta | Contenido |
+| Folder | Contents |
 |---|---|
-| `src/modules/<tema>/` | Un módulo por tema del curso. Cada uno exporta un `topic` (ver `src/modules/types.ts`) con sus métodos. |
-| `src/modules/<tema>/algorithms.ts` | Algoritmos **puros** (sin React): fáciles de probar con Node. |
-| `src/components/` | Componentes compartidos de interfaz (`MethodPage`, `DataTable`, `ScilabCode`, `Plot`…). |
-| `src/lib/` | Utilidades: expresiones (mathjs), formato de números, muestreo de gráficas. |
-| `scripts/` | Pruebas de verificación numérica que se ejecutan con Node. |
+| `src/modules/<topic>/` | One module per course topic. Each exports a `topic` (see `src/modules/types.ts`) with its methods. |
+| `src/modules/<topic>/algorithms.ts` | **Pure** algorithms (no React): easy to test with Node. |
+| `src/components/` | Shared UI (`MethodPage`, `DataTable`, `ScilabCode`, `Plot`…). |
+| `src/lib/` | Utilities: expressions (mathjs), number formatting, plot sampling. |
+| `src/i18n.ts` | English/Spanish interface. |
+| `scripts/verificar/` | Numerical verification tests, run with Node. |
 
-## Agregar un método
+## Adding a method
 
-1. Escribe el algoritmo como función pura en `algorithms.ts` y verifícalo contra un resultado conocido (libro, forma cerrada).
-2. Crea la página con `MethodPage`: parámetros, resultados, tabla de iteraciones, **paso a paso** con los números sustituidos y el código **Scilab** equivalente.
-3. Regístrala en el `index.ts` del tema (con `group`, `summary` y `keywords`).
+1. Write the algorithm as a pure function in `algorithms.ts` and check it against a known result (textbook, closed
+   form) with a test in `scripts/verificar/<topic>.ts`.
+2. Build the page with `MethodPage`: parameters, results, iteration table, **step by step** with the numbers plugged
+   in, and the equivalent **Scilab** code.
+3. Register it in the topic's `index.ts` (with `group`, `summary` and `keywords` in both languages).
 
-## Criterios
+## Guidelines
 
-- **Fidelidad primero:** cada resultado debe poder comprobarse a mano o con Scilab. Si una definición varía entre libros, indica cuál se usa y, si es posible, ofrece la otra como opción.
-- **Todo en español**, con notación matemática en KaTeX.
-- **Derechos de autor:** no copies texto de libros; explica con tus palabras. Citar el número de un ejemplo y usar sus datos numéricos está bien.
+- **Correctness first:** every result must be checkable by hand or with Scilab. When a definition differs between
+  books, state which one is used and, if possible, offer the other as an option.
+- **Bilingual:** every visible string goes through `L('texto en español', 'English text')` (see `src/i18n.ts`); it
+  also works with JSX: `L(<>…</>, <>…</>)`. Math notation uses KaTeX. Inside JS strings, TeX needs double
+  backslashes (`'\\frac'`, `'\;'`); `pnpm test:tex` catches mistakes.
+- **Copyright:** don't copy text from books; explain in your own words. Citing an example number and using its
+  numeric data is fine.
 
-## Reportar errores
+## Reporting bugs
 
-Abre un *issue* con: la página (URL con `#/tema/metodo`), los datos que ingresaste, el resultado que obtuviste y el que esperabas (con la fuente, si es de un libro).
+Open an issue with: the page (URL with `#/topic/method`), the input you used, the result you got and the one you
+expected (with its source, if it comes from a book).

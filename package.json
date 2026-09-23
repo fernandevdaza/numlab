@@ -2,7 +2,7 @@
   "name": "numlab",
   "private": true,
   "version": "0.1.0",
-  "description": "Laboratorio interactivo de Métodos Numéricos: métodos del curso con paso a paso, gráficas, análisis de error y código Scilab.",
+  "description": "Numerical methods lab + CAS: step-by-step iterations, exact symbolic math, faithful plots, error analysis and Scilab export. Web & desktop, English/Spanish.",
   "license": "MIT",
   "author": "Fernando Daza (https://github.com/fernandevdaza)",
   "homepage": "https://github.com/fernandevdaza/numlab",
@@ -98,7 +98,7 @@
     "linux": {
       "icon": "build/icon.png",
       "category": "Education",
-      "synopsis": "Laboratorio de Métodos Numéricos",
+      "synopsis": "Numerical methods lab + CAS",
       "maintainer": "Fernando Daza <fernandevdaza@users.noreply.github.com>",
       "target": [
         "AppImage",

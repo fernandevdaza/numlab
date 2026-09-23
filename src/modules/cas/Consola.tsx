@@ -6,8 +6,13 @@ import { Card, download } from '../../components/ui'
 import { Session, texOf, prep, type Out } from './engine'
 import { HELP } from './help'
 import './cas.css'
+import { L } from '../../i18n'
 
-const DEFAULT_HISTORY = ['f(x) = x^3 - 2x - 5', 'derivada(f(x), x)', 'raices(f(x), -5, 5)', 'integrar(f(x), x, 0, 3)', 'graficar(f(x), derivada(f(x), x), -3, 3)']
+// Ejemplos del primer uso, con los nombres de comando del idioma de la interfaz.
+const DEFAULT_HISTORY = L(
+  ['f(x) = x^3 - 2x - 5', 'derivada(f(x), x)', 'raices(f(x), -5, 5)', 'integrar(f(x), x, 0, 3)', 'graficar(f(x), derivada(f(x), x), -3, 3)'],
+  ['f(x) = x^3 - 2x - 5', 'diff(f(x), x)', 'roots(f(x), -5, 5)', 'integrate(f(x), x, 0, 3)', 'plot(f(x), diff(f(x), x), -3, 3)'],
+)
 
 /** Ejecuta todas las líneas en una sesión nueva. */
 function runAll(lines: string[]): { session: Session; outs: Out[] } {
@@ -107,21 +112,30 @@ export function Consola() {
   return (
     <div className="method">
       <header className="method-head">
-        <div className="eyebrow">Herramientas</div>
-        <h1>Calculadora simbólica (CAS)</h1>
+        <div className="eyebrow">{L('Herramientas', 'Tools')}</div>
+        <h1>{L('Calculadora simbólica (CAS)', 'Symbolic calculator (CAS)')}</h1>
         <p className="lead">
-          Consola simbólica y numérica: derivadas, integrales, límites, Taylor, ecuaciones, matrices y gráficas. Escribe un comando y presiona <span className="kbd">Enter</span> (
-          <span className="kbd">Shift</span>+<span className="kbd">Enter</span> para varias líneas, <span className="kbd">↑</span>/<span className="kbd">↓</span> para el historial). Acepta sintaxis tipo
-          Scilab (<span className="mono">%pi</span>, <span className="mono">[1 2; 3 4]</span>, <span className="mono">A'</span>).
+          {L(
+            <>
+              Consola simbólica y numérica: derivadas, integrales, límites, Taylor, ecuaciones, matrices y gráficas. Escribe un comando y presiona <span className="kbd">Enter</span> (
+              <span className="kbd">Shift</span>+<span className="kbd">Enter</span> para varias líneas, <span className="kbd">↑</span>/<span className="kbd">↓</span> para el historial). Acepta sintaxis tipo
+              Scilab (<span className="mono">%pi</span>, <span className="mono">[1 2; 3 4]</span>, <span className="mono">A'</span>).
+            </>,
+            <>
+              Symbolic and numeric console: derivatives, integrals, limits, Taylor series, equations, matrices and plots. Type a command and press <span className="kbd">Enter</span> (
+              <span className="kbd">Shift</span>+<span className="kbd">Enter</span> for multiple lines, <span className="kbd">↑</span>/<span className="kbd">↓</span> for history). Scilab-style syntax is
+              accepted (<span className="mono">%pi</span>, <span className="mono">[1 2; 3 4]</span>, <span className="mono">A'</span>). Command names work in English or Spanish.
+            </>,
+          )}
         </p>
       </header>
       <div className="cas-grid">
         <Card
-          title="Cuaderno"
+          title={L('Cuaderno', 'Notebook')}
           actions={
             <div className="nb-toolbar">
-              <button className="btn ghost sm" onClick={rerun} title="Volver a ejecutar todas las líneas">
-                ↻ Re-ejecutar
+              <button className="btn ghost sm" onClick={rerun} title={L('Volver a ejecutar todas las líneas', 'Run all lines again')}>
+                {L('↻ Re-ejecutar', '↻ Re-run')}
               </button>
               <button className="btn ghost sm" onClick={() => download('numlab_cas.txt', history.join('\n'))}>
                 ⬇ .txt
@@ -133,21 +147,21 @@ export function Consola() {
                   setState(runAll([]))
                 }}
               >
-                ✕ Limpiar
+                {L('✕ Limpiar', '✕ Clear')}
               </button>
             </div>
           }
         >
           <div className="nb">
-            {history.length === 0 && <div className="nb-empty">Cuaderno vacío. Prueba un ejemplo del panel de la derecha o escribe “ayuda”.</div>}
+            {history.length === 0 && <div className="nb-empty">{L('Cuaderno vacío. Prueba un ejemplo del panel de la derecha o escribe “ayuda”.', 'Empty notebook. Try an example from the panel on the right or type “help”.')}</div>}
             {history.map((line, i) => (
               <div key={i} className="cell">
                 <div className="cell-n">[{i + 1}]</div>
-                <div className="cell-in" title="Clic para editar" onClick={() => insert(line)}>
+                <div className="cell-in" title={L('Clic para editar', 'Click to edit')} onClick={() => insert(line)}>
                   {line}
                 </div>
                 <div className="cell-actions">
-                  <button title="Eliminar" onClick={() => remove(i)}>
+                  <button title={L('Eliminar', 'Delete')} onClick={() => remove(i)}>
                     ✕
                   </button>
                 </div>
@@ -168,7 +182,7 @@ export function Consola() {
               spellCheck={false}
               autoCapitalize="off"
               autoCorrect="off"
-              placeholder="derivada(sin(x)^2, x)"
+              placeholder={L('derivada(sin(x)^2, x)', 'diff(sin(x)^2, x)')}
               onChange={(e) => {
                 setDraft(e.target.value)
                 setCursor(null)
@@ -176,13 +190,13 @@ export function Consola() {
               onKeyDown={onKey}
             />
             <button className="btn primary" onClick={() => submit()}>
-              Ejecutar
+              {L('Ejecutar', 'Run')}
             </button>
           </div>
           <div className="prompt-preview">{preview && <Tex>{preview}</Tex>}</div>
         </Card>
-        <Card title="Comandos" className="cas-help">
-          <input className="input help-search" placeholder="Buscar comando…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <Card title={L('Comandos', 'Commands')} className="cas-help">
+          <input className="input help-search" placeholder={L('Buscar comando…', 'Search commands…')} value={filter} onChange={(e) => setFilter(e.target.value)} />
           <HelpList groups={help} onPick={insert} onRun={(ex) => submit(ex)} />
         </Card>
       </div>
@@ -194,7 +208,8 @@ function HelpList({ groups, onPick, onRun }: { groups: typeof HELP; onPick: (s: 
   return (
     <>
       <p className="muted" style={{ fontSize: 11.5, margin: '0 0 10px' }}>
-        Clic en un ejemplo para copiarlo al editor{onRun ? '; doble clic para ejecutarlo' : ''}.
+        {L('Clic en un ejemplo para copiarlo al editor', 'Click an example to copy it to the editor')}
+        {onRun ? L('; doble clic para ejecutarlo', '; double-click to run it') : ''}.
       </p>
       {groups.map((g) => (
         <div key={g.title} className="help-group">

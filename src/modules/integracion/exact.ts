@@ -2,6 +2,7 @@
 // con respaldo numérico de alta precisión (Gauss-Kronrod adaptativo).
 import nerdamer from 'nerdamer'
 import 'nerdamer/Calculus'
+import { L } from '../../i18n'
 import { compile, math, normalize } from '../../lib/expr'
 import { adaptiveGK, referenciaDoble, type Fn, type Fn2 } from './algorithms'
 
@@ -84,8 +85,8 @@ const close = (x: number, y: number) => Math.abs(x - y) <= 1e-7 * Math.max(1, Ma
 export function referencia1D(src: string, f: Fn, a: number, b: number, aSrc?: string, bSrc?: string): Reference {
   const num = adaptiveGK(f, a, b, 1e-13, 3000)
   const numRef: Reference = num.ok
-    ? { value: num.value, kind: 'numerico', err: num.err, label: 'Referencia numérica (Gauss-Kronrod adaptativo, tol 1e-13)' }
-    : { value: NaN, kind: 'ninguno', label: 'No se pudo calcular un valor de referencia (¿singularidad o integral divergente?)' }
+    ? { value: num.value, kind: 'numerico', err: num.err, label: L('Referencia numérica (Gauss-Kronrod adaptativo, tol 1e-13)', 'Numerical reference (adaptive Gauss–Kronrod, tol 1e-13)') }
+    : { value: NaN, kind: 'ninguno', label: L('No se pudo calcular un valor de referencia (¿singularidad o integral divergente?)', 'Could not compute a reference value (singularity or divergent integral?)') }
   const ex = toNerdamer(src)
   if (!ex) return numRef
   const F = antiderivative(ex, 'x')
@@ -110,15 +111,15 @@ export function referencia1D(src: string, f: Fn, a: number, b: number, aSrc?: st
   } catch {
     valueTex = undefined
   }
-  return { value: v, kind: 'simbolico', antiTex: nTex(F), valueTex, label: 'Valor exacto (antiderivada simbólica, F(b) − F(a))' }
+  return { value: v, kind: 'simbolico', antiTex: nTex(F), valueTex, label: L('Valor exacto (antiderivada simbólica, F(b) − F(a))', 'Exact value (symbolic antiderivative, F(b) − F(a))') }
 }
 
 /** Referencia de ∫ₐᵇ ∫_{c(x)}^{d(x)} f(x,y) dy dx. */
 export function referencia2D(src: string, cSrc: string, dSrc: string, f: Fn2, a: number, b: number, c: Fn, d: Fn): Reference {
   const num = referenciaDoble(f, a, b, c, d)
   const numRef: Reference = num.ok
-    ? { value: num.value, kind: 'numerico', err: num.err, label: 'Referencia numérica (Gauss-Kronrod adaptativo anidado)' }
-    : { value: NaN, kind: 'ninguno', label: 'No se pudo calcular un valor de referencia' }
+    ? { value: num.value, kind: 'numerico', err: num.err, label: L('Referencia numérica (Gauss-Kronrod adaptativo anidado)', 'Numerical reference (nested adaptive Gauss–Kronrod)') }
+    : { value: NaN, kind: 'ninguno', label: L('No se pudo calcular un valor de referencia', 'Could not compute a reference value') }
   const ex = toNerdamer(src)
   const C = toNerdamer(cSrc)
   const D = toNerdamer(dSrc)
@@ -133,7 +134,7 @@ export function referencia2D(src: string, cSrc: string, dSrc: string, f: Fn2, a:
     if (!Fc.ok) return numRef
     const v = Fc.f(b) - Fc.f(a)
     if (!Number.isFinite(v) || (num.ok && !close(v, num.value))) return numRef
-    return { value: v, kind: 'simbolico', label: 'Valor exacto (integración simbólica iterada)' }
+    return { value: v, kind: 'simbolico', label: L('Valor exacto (integración simbólica iterada)', 'Exact value (iterated symbolic integration)') }
   } catch {
     return numRef
   }

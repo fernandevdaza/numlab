@@ -7,6 +7,7 @@ import { Alert, Card, DataTable, Examples, IntField, MatrixField, MethodPage, Sc
 import * as A from './algorithms'
 import { N, Note, P, readSystem, sciMat, sciVec, texAug, texM, texMinusTerms, TOPIC, vecText, sciFl } from './shared'
 import { THEORY, TITLES } from './theory'
+import { L } from '../../i18n'
 
 interface S {
   A: string
@@ -17,19 +18,19 @@ interface S {
 }
 
 const EXAMPLES: { label: string; value: S }[] = [
-  { label: 'Ej. 3.2 (Ej. 3.1 reordenado, 4 cifras)', value: { A: '1.331 1.21 1.1\n1 1 1\n0.729 0.81 0.9', b: '1.000 0.8338 0.6867', kind: 'doolittle', t: 4 } },
-  { label: 'Práct. 02 (S₂, 4 cifras)', value: { A: '1.0657 0.34252 -2.7826\n-2.0986 0.37852 0.52046\n0.56722 3.4967 1.5874', b: '1.0035 0.64246 2.0645', kind: 'doolittle', t: 4 } },
-  { label: 'Clásico 3×3', value: { A: '2 1 -1\n-3 -1 2\n-2 1 2', b: '8 -11 -3', kind: 'doolittle', t: 0 } },
+  { label: L('Ej. 3.2 (Ej. 3.1 reordenado, 4 cifras)', 'Ex. 3.2 (Ex. 3.1 reordered, 4 digits)'), value: { A: '1.331 1.21 1.1\n1 1 1\n0.729 0.81 0.9', b: '1.000 0.8338 0.6867', kind: 'doolittle', t: 4 } },
+  { label: L('Práct. 02 (S₂, 4 cifras)', 'Practice 02 (S₂, 4 digits)'), value: { A: '1.0657 0.34252 -2.7826\n-2.0986 0.37852 0.52046\n0.56722 3.4967 1.5874', b: '1.0035 0.64246 2.0645', kind: 'doolittle', t: 4 } },
+  { label: L('Clásico 3×3', 'Classic 3×3'), value: { A: '2 1 -1\n-3 -1 2\n-2 1 2', b: '8 -11 -3', kind: 'doolittle', t: 0 } },
   { label: 'Crout 3×3', value: { A: '2 1 -1\n-3 -1 2\n-2 1 2', b: '8 -11 -3', kind: 'crout', t: 0 } },
-  { label: 'Requiere P (a₁₁ = 0)', value: { A: '0 1 4\n1 2 3\n5 6 0', b: '5 6 11', kind: 'pivoteo', t: 0 } },
-  { label: 'Simétrica def. positiva', value: { A: '4 12 -16\n12 37 -43\n-16 -43 98', b: '0 6 39', kind: 'cholesky', t: 0 } },
+  { label: L('Requiere P (a₁₁ = 0)', 'Requires P (a₁₁ = 0)'), value: { A: '0 1 4\n1 2 3\n5 6 0', b: '5 6 11', kind: 'pivoteo', t: 0 } },
+  { label: L('Simétrica def. positiva', 'Symmetric pos. definite'), value: { A: '4 12 -16\n12 37 -43\n-16 -43 98', b: '0 6 39', kind: 'cholesky', t: 0 } },
   { label: 'Tridiagonal 4×4', value: { A: '2 -1 0 0\n-1 2 -1 0\n0 -1 2 -1\n0 0 -1 2', b: '1 0 0 1', kind: 'doolittle', t: 0 } },
 ]
 
 const KIND_LABEL: Record<A.LUKind, string> = {
-  doolittle: 'Doolittle (lᵢᵢ = 1), como en el texto',
+  doolittle: L('Doolittle (lᵢᵢ = 1), como en el texto', 'Doolittle (lᵢᵢ = 1), as in the textbook'),
   crout: 'Crout (uᵢᵢ = 1)',
-  pivoteo: 'Doolittle con pivoteo parcial: PA = LU (Burden)',
+  pivoteo: L('Doolittle con pivoteo parcial: PA = LU (Burden)', 'Doolittle with partial pivoting: PA = LU (Burden)'),
   cholesky: 'Cholesky: A = LLᵀ (Burden)',
 }
 
@@ -51,10 +52,10 @@ export function LU() {
 
   const inputs = (
     <>
-      <MatrixField label="Matriz A" value={s.A} onChange={(A) => set({ A })} rows={5} />
-      <VectorField label="Vector b" value={s.b} onChange={(b) => set({ b })} />
-      <SelectField label="Factorización" value={s.kind} onChange={(kind) => set({ kind })} options={(Object.keys(KIND_LABEL) as A.LUKind[]).map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
-      <IntField label="Cifras de la mantisa (0 = doble precisión)" value={s.t} onChange={(t) => set({ t })} min={0} max={12} hint="Simula la calculadora de t cifras de los ejemplos del texto: redondea cada dato y cada operación." />
+      <MatrixField label={L('Matriz A', 'Matrix A')} value={s.A} onChange={(A) => set({ A })} rows={5} />
+      <VectorField label={L('Vector b', 'Vector b')} value={s.b} onChange={(b) => set({ b })} />
+      <SelectField label={L('Factorización', 'Factorization')} value={s.kind} onChange={(kind) => set({ kind })} options={(Object.keys(KIND_LABEL) as A.LUKind[]).map((k) => ({ value: k, label: KIND_LABEL[k] }))} />
+      <IntField label={L('Cifras de la mantisa (0 = doble precisión)', 'Mantissa digits (0 = double precision)')} value={s.t} onChange={(t) => set({ t })} min={0} max={12} hint={L('Simula la calculadora de t cifras de los ejemplos del texto: redondea cada dato y cada operación.', 'Simulates the t-digit calculator of the textbook examples: rounds every datum and every operation.')} />
       <Examples items={EXAMPLES} onPick={(v) => set(v)} />
     </>
   )
@@ -78,42 +79,53 @@ function LUResults({ s, sys, res, inv, exact, digits }: { s: S; sys: { A: A.Mat;
     <>
       <Stats
         items={[
-          { label: 'Solución x', value: res.ok ? vecText(res.x, s.t || Math.min(digits, 8)) : '—', accent: true, hint: s.t ? `aritmética de ${s.t} cifras` : undefined },
+          { label: L('Solución x', 'Solution x'), value: res.ok ? vecText(res.x, s.t || Math.min(digits, 8)) : '—', accent: true, hint: s.t ? L(`aritmética de ${s.t} cifras`, `${s.t}-digit arithmetic`) : undefined },
           { label: 'det(A)', value: res.ok ? fmt(res.det, s.t || undefined) : '—', hint: s.kind === 'cholesky' ? '∏ lᵢᵢ²' : hasP ? 'det(P)·∏ uᵢᵢ' : s.kind === 'crout' ? '∏ lᵢᵢ' : '∏ uᵢᵢ' },
-          { label: hasP ? '‖PA − LU‖' : s.kind === 'cholesky' ? '‖A − LLᵀ‖' : '‖A − LU‖', value: res.ok ? fmtErr(factorErr) : '—', hint: 'verificación de la factorización' },
+          { label: hasP ? '‖PA − LU‖' : s.kind === 'cholesky' ? '‖A − LLᵀ‖' : '‖A − LU‖', value: res.ok ? fmtErr(factorErr) : '—', hint: L('verificación de la factorización', 'factorization check') },
           exact
-            ? { label: 'Error relativo máx.', value: res.ok ? `${fmt(100 * Math.max(...res.x.map((_, i) => er(i))), 2)} %` : '—', hint: 'respecto de la solución en doble precisión' }
-            : { label: 'Residuo ‖b − Ax‖∞', value: res.ok ? fmtErr(A.normInf(res.residual)) : '—' },
+            ? { label: L('Error relativo máx.', 'Max. relative error'), value: res.ok ? `${fmt(100 * Math.max(...res.x.map((_, i) => er(i))), 2)} %` : '—', hint: L('respecto de la solución en doble precisión', 'with respect to the double-precision solution') }
+            : { label: L('Residuo ‖b − Ax‖∞', 'Residual ‖b − Ax‖∞'), value: res.ok ? fmtErr(A.normInf(res.residual)) : '—' },
         ]}
       />
       {res.ok ? (
         <Alert kind="ok">
-          Factorización {KIND_LABEL[s.kind].split(/[,(]/)[0].trim()} obtenida.{' '}
-          {hasP ? (res.perm.some((p, i) => p !== i) ? `Orden de filas: (${res.perm.map((p) => p + 1).join(', ')}).` : 'No hizo falta intercambiar filas (P = I).') : ''}
+          {L(<>Factorización {KIND_LABEL[s.kind].split(/[,(]/)[0].trim()} obtenida.</>, <>{KIND_LABEL[s.kind].split(/[,(]/)[0].trim()} factorization obtained.</>)}{' '}
+          {hasP
+            ? res.perm.some((p, i) => p !== i)
+              ? L(`Orden de filas: (${res.perm.map((p) => p + 1).join(', ')}).`, `Row order: (${res.perm.map((p) => p + 1).join(', ')}).`)
+              : L('No hizo falta intercambiar filas (P = I).', 'No row interchanges were needed (P = I).')
+            : ''}
         </Alert>
       ) : (
         <Alert kind="error">
           {res.error}
-          {s.kind === 'cholesky' && !sym && ' (A no es simétrica)'}
+          {s.kind === 'cholesky' && !sym && L(' (A no es simétrica)', ' (A is not symmetric)')}
         </Alert>
       )}
       {res.ok && (
-        <Card title="Factores">
+        <Card title={L('Factores', 'Factors')}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, alignItems: 'center' }}>
             {hasP && <Tex>{'P = ' + texM(res.P, 1)}</Tex>}
             <Tex>{'L = ' + texM(res.L, dd)}</Tex>
             <Tex>{(s.kind === 'cholesky' ? 'L^T = ' : 'U = ') + texM(res.U, dd)}</Tex>
           </div>
           <p className="muted" style={{ fontSize: 12.5, margin: '10px 0 0' }}>
-            {hasP ? 'Se verifica PA = LU. ' : ''}Resolver Ax = b ⇔ Ly = {hasP ? 'Pb' : 'b'} (progresiva) y luego Ux = y (regresiva): cada nuevo b cuesta sólo O(n²).
+            {L(
+              <>
+                {hasP ? 'Se verifica PA = LU. ' : ''}Resolver Ax = b ⇔ Ly = {hasP ? 'Pb' : 'b'} (progresiva) y luego Ux = y (regresiva): cada nuevo b cuesta sólo O(n²).
+              </>,
+              <>
+                {hasP ? 'PA = LU holds. ' : ''}Solving Ax = b ⇔ Ly = {hasP ? 'Pb' : 'b'} (forward) and then Ux = y (backward): each new b costs only O(n²).
+              </>,
+            )}
           </p>
         </Card>
       )}
       <Tabs
         tabs={[
-          { label: 'Paso a paso', content: <Card><Steps steps={luSteps(res, n, s.kind, dd)} /></Card> },
+          { label: L('Paso a paso', 'Step by step'), content: <Card><Steps steps={luSteps(res, n, s.kind, dd)} /></Card> },
           {
-            label: 'Solución',
+            label: L('Solución', 'Solution'),
             content: (
               <Card>
                 {res.ok ? (
@@ -126,33 +138,41 @@ function LUResults({ s, sys, res, inv, exact, digits }: { s: S; sys: { A: A.Mat;
                       { key: 'x', tex: 'x_i', get: (r: any) => fmt(r.x, dd) },
                       ...(exact
                         ? [
-                            { key: 'ex', tex: 'x_i\\;\\text{(doble precisión)}' },
-                            { key: 'er', tex: '\\text{E.R. (\\%)}', get: (r: any) => (Number.isFinite(r.er) ? fmt(100 * r.er, 3) : '—') },
+                            { key: 'ex', tex: L('x_i\\;\\text{(doble precisión)}', 'x_i\\;\\text{(double precision)}') },
+                            { key: 'er', tex: L('\\text{E.R. (\\%)}', '\\text{R.E. (\\%)}'), get: (r: any) => (Number.isFinite(r.er) ? fmt(100 * r.er, 3) : '—') },
                           ]
                         : [{ key: 'r', tex: '(b-Ax)_i', fmt: 'err' as const }]),
                     ]}
                     rows={res.x.map((x, i) => ({ i: i + 1, pb: res.Pb[i], y: res.y[i], x, ex: exact?.x[i], er: er(i), r: res.residual[i] }))}
                   />
                 ) : (
-                  <p className="muted">La factorización no pudo completarse.</p>
+                  <p className="muted">{L('La factorización no pudo completarse.', 'The factorization could not be completed.')}</p>
                 )}
               </Card>
             ),
           },
           {
-            label: 'Inversa A⁻¹',
+            label: L('Inversa A⁻¹', 'Inverse A⁻¹'),
             content: (
               <Card>
                 {inv ? (
                   <>
                     <Tex block>{`A^{-1} = ${texM(inv, dd ?? 6)}`}</Tex>
                     <Note>
-                      Con la misma factorización se resuelven n sistemas L U xⱼ = eⱼ (eⱼ = columna j de la identidad{hasP ? ', permutada por P' : ''}); cada xⱼ es la columna j de A⁻¹
-                      (Práctica 02 del texto).
+                      {L(
+                        <>
+                          Con la misma factorización se resuelven n sistemas L U xⱼ = eⱼ (eⱼ = columna j de la identidad{hasP ? ', permutada por P' : ''}); cada xⱼ es la columna j de A⁻¹
+                          (Práctica 02 del texto).
+                        </>,
+                        <>
+                          With the same factorization n systems L U xⱼ = eⱼ are solved (eⱼ = column j of the identity{hasP ? ', permuted by P' : ''}); each xⱼ is column j of A⁻¹
+                          (textbook Practice 02).
+                        </>,
+                      )}
                     </Note>
                   </>
                 ) : (
-                  <p className="muted">A no es invertible (o la factorización no pudo completarse).</p>
+                  <p className="muted">{L('A no es invertible (o la factorización no pudo completarse).', 'A is not invertible (or the factorization could not be completed).')}</p>
                 )}
               </Card>
             ),
@@ -163,6 +183,9 @@ function LUResults({ s, sys, res, inv, exact, digits }: { s: S; sys: { A: A.Mat;
     </>
   )
 }
+
+/** Fila en TeX: F (fila) / R (row). */
+const RF = L('F', 'R')
 
 const ij = (n: number, i: number, j: number) => (n > 9 ? `${i + 1},${j + 1}` : `${i + 1}${j + 1}`)
 
@@ -184,16 +207,22 @@ function entryTex(e: A.Entry, n: number, kind: A.LUKind, d?: number): string {
 function luSteps(res: A.LUResult, n: number, kind: A.LUKind, d?: number): { text?: string; tex?: string }[] {
   const out: { text?: string; tex?: string }[] = []
   if (kind === 'pivoteo') {
-    out.push({ text: 'Eliminación gaussiana con pivoteo parcial; los multiplicadores forman L y los intercambios forman P:' })
+    out.push({ text: L('Eliminación gaussiana con pivoteo parcial; los multiplicadores forman L y los intercambios forman P:', 'Gaussian elimination with partial pivoting; the multipliers form L and the interchanges form P:') })
     for (const st of res.steps) {
       const k = st.k
-      if (st.swap) out.push({ text: `Columna ${k + 1}: el mayor |aᵢ${k + 1}| está en la fila ${st.swap[1] + 1} ⇒ F${k + 1} ↔ F${st.swap[1] + 1} (también se intercambian en P y en las columnas ya calculadas de L).` })
-      else out.push({ text: `Columna ${k + 1}: el pivote ya es el de mayor módulo, no se intercambia.` })
+      if (st.swap)
+        out.push({
+          text: L(
+            `Columna ${k + 1}: el mayor |aᵢ${k + 1}| está en la fila ${st.swap[1] + 1} ⇒ F${k + 1} ↔ F${st.swap[1] + 1} (también se intercambian en P y en las columnas ya calculadas de L).`,
+            `Column ${k + 1}: the largest |aᵢ${k + 1}| is in row ${st.swap[1] + 1} ⇒ R${k + 1} ↔ R${st.swap[1] + 1} (also interchanged in P and in the already computed columns of L).`,
+          ),
+        })
+      else out.push({ text: L(`Columna ${k + 1}: el pivote ya es el de mayor módulo, no se intercambia.`, `Column ${k + 1}: the pivot already has the largest modulus, no interchange.`) })
       if (st.mult.length)
         out.push({
           tex:
             '\\begin{aligned}' +
-            st.mult.map(({ i, m }) => `l_{${ij(n, i, k)}} = m_{${ij(n, i, k)}} &= ${N(m, d)} &&\\Rightarrow F_{${i + 1}} \\leftarrow F_{${i + 1}} - ${P(m, d)}F_{${k + 1}}`).join(' \\\\ ') +
+            st.mult.map(({ i, m }) => `l_{${ij(n, i, k)}} = m_{${ij(n, i, k)}} &= ${N(m, d)} &&\\Rightarrow ${RF}_{${i + 1}} \\leftarrow ${RF}_{${i + 1}} - ${P(m, d)}${RF}_{${k + 1}}`).join(' \\\\ ') +
             '\\end{aligned}\\qquad\\longrightarrow\\; ' +
             texM(st.U, d),
         })
@@ -201,18 +230,21 @@ function luSteps(res: A.LUResult, n: number, kind: A.LUKind, d?: number): { text
   } else {
     const label =
       kind === 'doolittle'
-        ? 'en el paso k, primero la fila k de U y luego la columna k de L (así todo lo que aparece a la derecha ya fue calculado)'
+        ? L('en el paso k, primero la fila k de U y luego la columna k de L (así todo lo que aparece a la derecha ya fue calculado)', 'at step k, first row k of U and then column k of L (so everything on the right-hand side has already been computed)')
         : kind === 'crout'
-          ? 'en el paso k, primero la columna k de L y luego la fila k de U'
-          : 'columna k de L'
-    out.push({ text: `Se calculan las entradas en este orden: ${label}.` })
+          ? L('en el paso k, primero la columna k de L y luego la fila k de U', 'at step k, first column k of L and then row k of U')
+          : L('columna k de L', 'column k of L')
+    out.push({ text: L(`Se calculan las entradas en este orden: ${label}.`, `The entries are computed in this order: ${label}.`) })
     const stages = new Map<number, A.Entry[]>()
     for (const e of res.entries) {
       const k = kind === 'doolittle' ? (e.M === 'U' ? e.i : e.j) : kind === 'crout' ? (e.M === 'L' ? e.j : e.i) : e.j
       stages.set(k, [...(stages.get(k) ?? []), e])
     }
     for (const [k, es] of stages) {
-      const what = kind === 'doolittle' ? `${k + 1}.ª fila de U${k < n - 1 ? ` y ${k + 1}.ª columna de L` : ''}` : kind === 'crout' ? `${k + 1}.ª columna de L${k < n - 1 ? ` y ${k + 1}.ª fila de U` : ''}` : `${k + 1}.ª columna de L`
+      const what = L(
+        kind === 'doolittle' ? `${k + 1}.ª fila de U${k < n - 1 ? ` y ${k + 1}.ª columna de L` : ''}` : kind === 'crout' ? `${k + 1}.ª columna de L${k < n - 1 ? ` y ${k + 1}.ª fila de U` : ''}` : `${k + 1}.ª columna de L`,
+        kind === 'doolittle' ? `row ${k + 1} of U${k < n - 1 ? ` and column ${k + 1} of L` : ''}` : kind === 'crout' ? `column ${k + 1} of L${k < n - 1 ? ` and row ${k + 1} of U` : ''}` : `column ${k + 1} of L`,
+      )
       out.push({ text: `k = ${k + 1}: ${what}`, tex: '\\begin{aligned}' + es.map((e) => entryTex(e, n, kind, d)).join(' \\\\ ') + '\\end{aligned}' })
     }
   }
@@ -221,11 +253,11 @@ function luSteps(res: A.LUResult, n: number, kind: A.LUKind, d?: number): { text
     return out
   }
   if (kind === 'pivoteo') {
-    out.push({ text: 'Factores obtenidos:', tex: `P = ${texM(res.P, 1)},\\quad L = ${texM(res.L, d)},\\quad U = ${texM(res.U, d)}` })
-    out.push({ text: 'Permutamos b:', tex: `Pb = ${texM(res.Pb, d)}` })
+    out.push({ text: L('Factores obtenidos:', 'Factors obtained:'), tex: `P = ${texM(res.P, 1)},\\quad L = ${texM(res.L, d)},\\quad U = ${texM(res.U, d)}` })
+    out.push({ text: L('Permutamos b:', 'Permute b:'), tex: `Pb = ${texM(res.Pb, d)}` })
   }
   const bName = kind === 'pivoteo' ? '(Pb)' : 'b'
-  out.push({ text: `(1) Sustitución progresiva Ly = ${kind === 'pivoteo' ? 'Pb' : 'b'} (se calculan y₁, y₂, …, yₙ en ese orden):`, tex: texAug(res.L.map((r, i) => [...r, res.Pb[i]]), d) })
+  out.push({ text: L(`(1) Sustitución progresiva Ly = ${kind === 'pivoteo' ? 'Pb' : 'b'} (se calculan y₁, y₂, …, yₙ en ese orden):`, `(1) Forward substitution Ly = ${kind === 'pivoteo' ? 'Pb' : 'b'} (compute y₁, y₂, …, yₙ in that order):`), tex: texAug(res.L.map((r, i) => [...r, res.Pb[i]]), d) })
   out.push({
     tex:
       '\\begin{aligned}' +
@@ -242,7 +274,7 @@ function luSteps(res: A.LUResult, n: number, kind: A.LUKind, d?: number): { text
         .join(' \\\\ ') +
       '\\end{aligned}',
   })
-  out.push({ text: '(2) Sustitución regresiva Ux = y (se calculan xₙ, xₙ₋₁, …, x₁):', tex: texAug(res.U.map((r, i) => [...r, res.y[i]]), d) })
+  out.push({ text: L('(2) Sustitución regresiva Ux = y (se calculan xₙ, xₙ₋₁, …, x₁):', '(2) Back substitution Ux = y (compute xₙ, xₙ₋₁, …, x₁):'), tex: texAug(res.U.map((r, i) => [...r, res.y[i]]), d) })
   out.push({
     tex:
       '\\begin{aligned}' +
@@ -264,14 +296,14 @@ function scilabLU(Am: A.Mat, b: A.Vec, kind: A.LUKind, t: number): string {
   // Las sumas se escriben con bucles explícitos: en Scilab 6, [] - x o x - [] da [] (no 0) y rompería k = 1.
   const F = (e: string) => (t ? `fl(${e})` : e)
   const flDef = t ? sciFl(t) : ''
-  const head = `// Factorización LU — ${KIND_LABEL[kind]}${t ? ` — aritmética de ${t} cifras` : ''} — generado por NumLab
+  const head = `// ${L(`Factorización LU — ${KIND_LABEL[kind]}${t ? ` — aritmética de ${t} cifras` : ''} — generado por NumLab`, `LU factorization — ${KIND_LABEL[kind]}${t ? ` — ${t}-digit arithmetic` : ''} — generated by NumLab`)}
 clear; clc;
 ${flDef}A = ${F(sciMat(Am))};
 b = ${F(sciVec(b))};
 n = size(A, 1);
 `
   const fact: Record<A.LUKind, string> = {
-    doolittle: `// Doolittle: L con unos en la diagonal; fila k de U y luego columna k de L
+    doolittle: `// ${L('Doolittle: L con unos en la diagonal; fila k de U y luego columna k de L', 'Doolittle: L with ones on the diagonal; row k of U and then column k of L')}
 L = eye(n, n); U = zeros(n, n);
 for k = 1:n
   for j = k:n
@@ -281,7 +313,7 @@ for k = 1:n
     end
     U(k, j) = s;
   end
-  if U(k, k) == 0 then error('u(k,k) = 0: reordene las ecuaciones'); end
+  if U(k, k) == 0 then error('u(k,k) = 0: ${L('reordene las ecuaciones', 'reorder the equations')}'); end
   for i = k+1:n
     s = A(i, k);
     for m = 1:k-1
@@ -294,7 +326,7 @@ Pb = b;
 disp('L ='); disp(L); disp('U ='); disp(U);
 mprintf('||A - L*U|| = %e\\n', norm(A - L*U));
 `,
-    crout: `// Crout: U con unos en la diagonal; columna k de L y luego fila k de U
+    crout: `// ${L('Crout: U con unos en la diagonal; columna k de L y luego fila k de U', 'Crout: U with ones on the diagonal; column k of L and then row k of U')}
 L = zeros(n, n); U = eye(n, n);
 for k = 1:n
   for i = k:n
@@ -304,7 +336,7 @@ for k = 1:n
     end
     L(i, k) = s;
   end
-  if L(k, k) == 0 then error('l(k,k) = 0: reordene las ecuaciones'); end
+  if L(k, k) == 0 then error('l(k,k) = 0: ${L('reordene las ecuaciones', 'reorder the equations')}'); end
   for j = k+1:n
     s = A(k, j);
     for m = 1:k-1
@@ -317,12 +349,12 @@ Pb = b;
 disp('L ='); disp(L); disp('U ='); disp(U);
 mprintf('||A - L*U|| = %e\\n', norm(A - L*U));
 `,
-    pivoteo: `// Eliminación con pivoteo parcial: P*A = L*U
+    pivoteo: `// ${L('Eliminación con pivoteo parcial: P*A = L*U', 'Elimination with partial pivoting: P*A = L*U')}
 U = A; L = eye(n, n); P = eye(n, n);
 for k = 1:n-1
   [mx, p] = max(abs(U(k:n, k)));
   p = p + k - 1;
-  if mx == 0 then error('Matriz singular'); end
+  if mx == 0 then error('${L('Matriz singular', 'Singular matrix')}'); end
   if p <> k then
     U([k p], :) = U([p k], :);
     P([k p], :) = P([p k], :);
@@ -337,18 +369,18 @@ end
 Pb = P * b;
 disp('P ='); disp(P); disp('L ='); disp(L); disp('U ='); disp(U);
 mprintf('||P*A - L*U|| = %e\\n', norm(P*A - L*U));
-// Comparación con la función de Scilab: [L2, U2, P2] = lu(A) cumple P2*A = L2*U2
+// ${L('Comparación con la función de Scilab: [L2, U2, P2] = lu(A) cumple P2*A = L2*U2', 'Comparison with the Scilab function: [L2, U2, P2] = lu(A) satisfies P2*A = L2*U2')}
 [L2, U2, P2] = lu(A);
-disp('lu(A) de Scilab, U ='); disp(U2);
+disp('${L('lu(A) de Scilab, U =', 'Scilab lu(A), U =')}'); disp(U2);
 `,
-    cholesky: `// Cholesky: A = L*L'  (A simétrica definida positiva)
+    cholesky: `// Cholesky: A = L*L'  (${L('A simétrica definida positiva', 'A symmetric positive definite')})
 L = zeros(n, n);
 for j = 1:n
   s = A(j, j);
   for m = 1:j-1
     s = ${F(`s - ${F('L(j, m)^2')}`)};
   end
-  if s <= 0 then error('A no es definida positiva'); end
+  if s <= 0 then error('${L('A no es definida positiva', 'A is not positive definite')}'); end
   L(j, j) = ${F('sqrt(s)')};
   for i = j+1:n
     s = A(i, j);
@@ -361,15 +393,15 @@ end
 U = L';
 Pb = b;
 disp('L ='); disp(L);
-// Scilab: R = chol(A) devuelve la triangular SUPERIOR con R'*R = A (R = L')
-disp('chol(A) de Scilab ='); disp(chol(A));
+// ${L("Scilab: R = chol(A) devuelve la triangular SUPERIOR con R'*R = A (R = L')", "Scilab: R = chol(A) returns the UPPER triangular factor with R'*R = A (R = L')")}
+disp('${L('chol(A) de Scilab =', 'Scilab chol(A) =')}'); disp(chol(A));
 `,
   }
   return (
     head +
     fact[kind] +
     `
-// (1) Sustitución progresiva: L*y = Pb
+// (1) ${L('Sustitución progresiva', 'Forward substitution')}: L*y = Pb
 y = zeros(n, 1);
 for i = 1:n
   s = Pb(i);
@@ -378,7 +410,7 @@ for i = 1:n
   end
   y(i) = ${F('s / L(i, i)')};
 end
-// (2) Sustitución regresiva: U*x = y
+// (2) ${L('Sustitución regresiva', 'Back substitution')}: U*x = y
 x = zeros(n, 1);
 for i = n:-1:1
   s = y(i);
@@ -390,7 +422,7 @@ end
 disp('y ='); disp(y);
 disp('x ='); disp(x);
 mprintf('det(A) = %.10g\\n', det(A));
-disp('Verificación A\\b ='); disp(A\\b);
+disp('${L('Verificación', 'Check')} A\\b ='); disp(A\\b);
 `
   )
 }

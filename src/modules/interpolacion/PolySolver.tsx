@@ -10,6 +10,7 @@ import * as A from './algorithms'
 import { DataInput, DATA_DEFAULTS, parseData, type DataState, type ParsedData } from './DataInput'
 import { polyTex, sci, sciVec, sub, texDiff, texFactor, tn, tp } from './texutil'
 import { THEORY, TITLES, TOPIC } from './theory'
+import { L } from '../../i18n'
 
 export type PolyKind = 'lagrange' | 'diferencias-divididas' | 'diferencias-finitas'
 
@@ -22,6 +23,9 @@ interface State extends DataState {
 }
 
 type Ex = { label: string; value: Partial<State> }
+
+/** Nombre de la dirección para textos: «avance» / «retroceso». */
+const dirName = (d: A.Direction) => (d === 'avance' ? L('avance', 'forward') : L('retroceso', 'backward'))
 
 // Datos del texto: log10(x) redondeado a 6 decimales (Ej. 4.2, 4.4, 4.6) y con paso h = 0.4 (Ej. 4.8, 4.10)
 const LOG: Partial<State> = { mode: 'puntos', xs: '1.2 1.6 2.1 2.5 2.7', ys: '0.079181 0.204120 0.322219 0.397940 0.431364', f: 'log10(x)', xbar: '2.3', grado: '', apoyo: '' }
@@ -37,36 +41,36 @@ const DEFAULTS: Record<PolyKind, Partial<State>> = {
 
 const EXAMPLES: Record<PolyKind, Ex[]> = {
   lagrange: [
-    { label: 'Ej. 4.2 · P₄(2.3), log x', value: { ...LOG } },
-    { label: 'Ej. 4.2 · P₂ con x₂, x₃, x₄', value: { ...LOG, grado: '2', apoyo: '2' } },
-    { label: '1/x en 2, 2.75, 4 → P(3)', value: { ...RESET, mode: 'funcion', xs: '2 2.75 4', f: '1/x', xbar: '3' } },
-    { label: 'cos x en 0, 0.6, 0.9 → P(0.45)', value: { ...RESET, mode: 'funcion', xs: '0 0.6 0.9', f: 'cos(x)', xbar: '0.45' } },
-    { label: 'Tabla (1,2), (2,3), (3,5), (5,4)', value: { ...RESET, mode: 'puntos', xs: '1 2 3 5', ys: '2 3 5 4', f: '', xbar: '4' } },
+    { label: L('Ej. 4.2 · P₄(2.3), log x', 'Ex. 4.2 · P₄(2.3), log x'), value: { ...LOG } },
+    { label: L('Ej. 4.2 · P₂ con x₂, x₃, x₄', 'Ex. 4.2 · P₂ with x₂, x₃, x₄'), value: { ...LOG, grado: '2', apoyo: '2' } },
+    { label: L('1/x en 2, 2.75, 4 → P(3)', '1/x at 2, 2.75, 4 → P(3)'), value: { ...RESET, mode: 'funcion', xs: '2 2.75 4', f: '1/x', xbar: '3' } },
+    { label: L('cos x en 0, 0.6, 0.9 → P(0.45)', 'cos x at 0, 0.6, 0.9 → P(0.45)'), value: { ...RESET, mode: 'funcion', xs: '0 0.6 0.9', f: 'cos(x)', xbar: '0.45' } },
+    { label: L('Tabla (1,2), (2,3), (3,5), (5,4)', 'Table (1,2), (2,3), (3,5), (5,4)'), value: { ...RESET, mode: 'puntos', xs: '1 2 3 5', ys: '2 3 5 4', f: '', xbar: '4' } },
   ],
   'diferencias-divididas': [
-    { label: 'Ej. 4.4 · avance, P₄(2.3)', value: { ...LOG, dir: 'avance' } },
-    { label: 'Ej. 4.4 · P₃ apoyado en x₁', value: { ...LOG, dir: 'avance', grado: '3', apoyo: '1' } },
-    { label: 'Ej. 4.4 · P₂ apoyado en x₂', value: { ...LOG, dir: 'avance', grado: '2', apoyo: '2' } },
-    { label: 'Ej. 4.6 · retroceso, P₄(2.3)', value: { ...LOG, dir: 'retroceso' } },
-    { label: 'Ej. 4.6 · P₁ de retroceso apoyado en x₃', value: { ...LOG, dir: 'retroceso', grado: '1', apoyo: '3' } },
-    { label: 'Ej. 4.11 · P₃ apoyado en x₀ y su error', value: { ...LOG, dir: 'avance', grado: '3', apoyo: '0' } },
+    { label: L('Ej. 4.4 · avance, P₄(2.3)', 'Ex. 4.4 · forward, P₄(2.3)'), value: { ...LOG, dir: 'avance' } },
+    { label: L('Ej. 4.4 · P₃ apoyado en x₁', 'Ex. 4.4 · P₃ based at x₁'), value: { ...LOG, dir: 'avance', grado: '3', apoyo: '1' } },
+    { label: L('Ej. 4.4 · P₂ apoyado en x₂', 'Ex. 4.4 · P₂ based at x₂'), value: { ...LOG, dir: 'avance', grado: '2', apoyo: '2' } },
+    { label: L('Ej. 4.6 · retroceso, P₄(2.3)', 'Ex. 4.6 · backward, P₄(2.3)'), value: { ...LOG, dir: 'retroceso' } },
+    { label: L('Ej. 4.6 · P₁ de retroceso apoyado en x₃', 'Ex. 4.6 · backward P₁ based at x₃'), value: { ...LOG, dir: 'retroceso', grado: '1', apoyo: '3' } },
+    { label: L('Ej. 4.11 · P₃ apoyado en x₀ y su error', 'Ex. 4.11 · P₃ based at x₀ and its error'), value: { ...LOG, dir: 'avance', grado: '3', apoyo: '0' } },
     {
-      label: 'Práctica 3 · ln x, P₃ apoyado en x₁',
+      label: L('Práctica 3 · ln x, P₃ apoyado en x₁', 'Practice 3 · ln x, P₃ based at x₁'),
       value: { mode: 'puntos', xs: '1 1.35 1.7 1.9 3', ys: '0 0.30010 0.53063 0.64185 1.09861', f: 'log(x)', xbar: '1.5', dir: 'avance', grado: '3', apoyo: '1' },
     },
-    { label: 'Tabla J₀(x) de Burden → P(1.5)', value: { ...BESSEL, xbar: '1.5', dir: 'avance' } },
+    { label: L('Tabla J₀(x) de Burden → P(1.5)', 'Burden J₀(x) table → P(1.5)'), value: { ...BESSEL, xbar: '1.5', dir: 'avance' } },
   ],
   'diferencias-finitas': [
-    { label: 'Ej. 4.8 · avance, P₄(2.3)', value: { ...LOGH, dir: 'avance' } },
-    { label: 'Ej. 4.8 · P₂ apoyado en x₁', value: { ...LOGH, dir: 'avance', grado: '2', apoyo: '1' } },
-    { label: 'Ej. 4.10 · retroceso, P₄(2.3)', value: { ...LOGH, dir: 'retroceso' } },
-    { label: 'Ej. 4.10 · P₁ de retroceso apoyado en x₃', value: { ...LOGH, dir: 'retroceso', grado: '1', apoyo: '3' } },
+    { label: L('Ej. 4.8 · avance, P₄(2.3)', 'Ex. 4.8 · forward, P₄(2.3)'), value: { ...LOGH, dir: 'avance' } },
+    { label: L('Ej. 4.8 · P₂ apoyado en x₁', 'Ex. 4.8 · P₂ based at x₁'), value: { ...LOGH, dir: 'avance', grado: '2', apoyo: '1' } },
+    { label: L('Ej. 4.10 · retroceso, P₄(2.3)', 'Ex. 4.10 · backward, P₄(2.3)'), value: { ...LOGH, dir: 'retroceso' } },
+    { label: L('Ej. 4.10 · P₁ de retroceso apoyado en x₃', 'Ex. 4.10 · backward P₁ based at x₃'), value: { ...LOGH, dir: 'retroceso', grado: '1', apoyo: '3' } },
     {
-      label: 'Práctica 4 · butadieno, P₃(64)',
+      label: L('Práctica 4 · butadieno, P₃(64)', 'Practice 4 · butadiene, P₃(64)'),
       value: { mode: 'puntos', xs: '50 60 70 80 90 100', ys: '24.94 30.11 36.05 42.84 50.57 59.30', f: '', xbar: '64', dir: 'avance', grado: '3', apoyo: '0' },
     },
-    { label: 'J₀(x) de Burden: retroceso → P(2.0)', value: { ...BESSEL, xbar: '2', dir: 'retroceso' } },
-    { label: 'sen x, h = 0.1 → P(0.05)', value: { ...RESET, mode: 'funcion', xs: '0 0.1 0.2 0.3 0.4', f: 'sin(x)', xbar: '0.05', dir: 'avance' } },
+    { label: L('J₀(x) de Burden: retroceso → P(2.0)', 'Burden J₀(x): backward → P(2.0)'), value: { ...BESSEL, xbar: '2', dir: 'retroceso' } },
+    { label: L('sen x, h = 0.1 → P(0.05)', 'sin x, h = 0.1 → P(0.05)'), value: { ...RESET, mode: 'funcion', xs: '0 0.1 0.2 0.3 0.4', f: 'sin(x)', xbar: '0.05', dir: 'avance' } },
   ],
 }
 
@@ -101,7 +105,7 @@ interface Calc {
 
 function parseIndex(src: string, name: string): number | string {
   const v = evalNumber(src)
-  if (!Number.isFinite(v) || !Number.isInteger(v) || v < 0) return `${name} debe ser un entero ≥ 0.`
+  if (!Number.isFinite(v) || !Number.isInteger(v) || v < 0) return L(`${name} debe ser un entero ≥ 0.`, `${name} must be an integer ≥ 0.`)
   return v
 }
 
@@ -111,17 +115,22 @@ export function compute(kind: PolyKind, s: State): Calc {
   const { xs, ys, xbar } = data
   const n = xs.length - 1
   const dir: A.Direction = kind === 'lagrange' ? 'avance' : s.dir
-  const mi = s.grado.trim() ? parseIndex(s.grado, 'El grado m') : n
+  const mi = s.grado.trim() ? parseIndex(s.grado, L('El grado m', 'The degree m')) : n
   if (typeof mi === 'string') return { error: mi }
-  if (mi > n) return { error: `Con ${n + 1} datos el grado máximo es ${n}.` }
-  const ki = s.apoyo.trim() ? parseIndex(s.apoyo, 'El índice k del nodo de apoyo') : dir === 'avance' ? 0 : n
+  if (mi > n) return { error: L(`Con ${n + 1} datos el grado máximo es ${n}.`, `With ${n + 1} data points the maximum degree is ${n}.`) }
+  const ki = s.apoyo.trim() ? parseIndex(s.apoyo, L('El índice k del nodo de apoyo', 'The index k of the base node')) : dir === 'avance' ? 0 : n
   if (typeof ki === 'string') return { error: ki }
-  if (ki > n) return { error: `El nodo de apoyo debe ser x₀ … x${sub(n)}.` }
+  if (ki > n) return { error: L(`El nodo de apoyo debe ser x₀ … x${sub(n)}.`, `The base node must be one of x₀ … x${sub(n)}.`) }
   const m = mi, k = ki
   const idx = A.supportIndices(n, k, m, dir)
   if (!idx) {
     const need = dir === 'avance' ? `x${sub(k)}, …, x${sub(k + m)}` : `x${sub(k)}, x${sub(k - 1)}, …, x${sub(k - m)}`
-    return { error: `No hay datos suficientes: un polinomio de grado ${m} de ${dir} apoyado en x${sub(k)} necesita ${need}, pero los datos van de x₀ a x${sub(n)}.` }
+    return {
+      error: L(
+        `No hay datos suficientes: un polinomio de grado ${m} de ${dir} apoyado en x${sub(k)} necesita ${need}, pero los datos van de x₀ a x${sub(n)}.`,
+        `Not enough data: a ${dirName(dir)} polynomial of degree ${m} based at x${sub(k)} needs ${need}, but the data run from x₀ to x${sub(n)}.`,
+      ),
+    }
   }
   const F = A.dividedDifferences(xs, ys)
   const z = idx.map((i) => xs[i])
@@ -147,7 +156,12 @@ export function compute(kind: PolyKind, s: State): Calc {
     const h = A.equiStep(xs)
     if (h === null) {
       const gaps = xs.slice(1).map((x, i) => fmt(x - xs[i], 6))
-      return { error: `Los nodos no están equiespaciados (diferencias xᵢ₊₁ − xᵢ: ${gaps.join(', ')}). Las fórmulas de diferencias finitas requieren paso h constante y nodos en orden; usa diferencias divididas de Newton.` }
+      return {
+        error: L(
+          `Los nodos no están equiespaciados (diferencias xᵢ₊₁ − xᵢ: ${gaps.join(', ')}). Las fórmulas de diferencias finitas requieren paso h constante y nodos en orden; usa diferencias divididas de Newton.`,
+          `The nodes are not equally spaced (differences xᵢ₊₁ − xᵢ: ${gaps.join(', ')}). Finite-difference formulas require a constant step h and ordered nodes; use Newton divided differences instead.`,
+        ),
+      }
     }
     out.h = h
     out.D = A.forwardDifferences(ys)
@@ -179,25 +193,25 @@ export function PolySolver({ kind }: { kind: PolyKind }) {
       <DataInput s={s} set={set} />
       {!lag && (
         <SelectField
-          label="Polinomio"
+          label={L('Polinomio', 'Polynomial')}
           value={s.dir}
           onChange={(dir) => set({ dir })}
           options={
             kind === 'diferencias-divididas'
               ? [
-                  { value: 'avance', label: 'De avance (apoyado en x₀ por defecto)' },
-                  { value: 'retroceso', label: 'De retroceso (apoyado en xₙ por defecto)' },
+                  { value: 'avance', label: L('De avance (apoyado en x₀ por defecto)', 'Forward (based at x₀ by default)') },
+                  { value: 'retroceso', label: L('De retroceso (apoyado en xₙ por defecto)', 'Backward (based at xₙ by default)') },
                 ]
               : [
-                  { value: 'avance', label: 'De avance: Δ, s = (x − xₖ)/h' },
-                  { value: 'retroceso', label: 'De retroceso: ∇, s = (x − xₖ)/h' },
+                  { value: 'avance', label: L('De avance: Δ, s = (x − xₖ)/h', 'Forward: Δ, s = (x − xₖ)/h') },
+                  { value: 'retroceso', label: L('De retroceso: ∇, s = (x − xₖ)/h', 'Backward: ∇, s = (x − xₖ)/h') },
                 ]
           }
         />
       )}
       <FieldRow>
-        <NumField label="Grado m" value={s.grado} onChange={(grado) => set({ grado })} placeholder="n (todos)" />
-        <NumField label={lag ? 'Desde xₖ: k =' : 'Apoyado en xₖ: k ='} value={s.apoyo} onChange={(apoyo) => set({ apoyo })} placeholder={lag || s.dir === 'avance' ? '0' : 'n'} />
+        <NumField label={L('Grado m', 'Degree m')} value={s.grado} onChange={(grado) => set({ grado })} placeholder={L('n (todos)', 'n (all)')} />
+        <NumField label={lag ? L('Desde xₖ: k =', 'From xₖ: k =') : L('Apoyado en xₖ: k =', 'Based at xₖ: k =')} value={s.apoyo} onChange={(apoyo) => set({ apoyo })} placeholder={lag || s.dir === 'avance' ? '0' : 'n'} />
       </FieldRow>
       <Examples items={EXAMPLES[kind]} onPick={(v) => set({ ...RESET, ...v })} />
     </>
@@ -216,8 +230,8 @@ const isPartial = (c: Required<Calc>) => c.m < c.n
 
 /** Descripción del polinomio: «P₃ de avance apoyado en x₁». */
 function polyName(kind: PolyKind, c: Required<Calc>): string {
-  if (kind === 'lagrange') return isPartial(c) ? `P${sub(c.m)} con x${sub(c.k)} … x${sub(c.k + c.m)}` : `P${sub(c.m)}`
-  return `P${sub(c.m)} de ${c.dir} apoyado en x${sub(c.k)}`
+  if (kind === 'lagrange') return isPartial(c) ? L(`P${sub(c.m)} con x${sub(c.k)} … x${sub(c.k + c.m)}`, `P${sub(c.m)} with x${sub(c.k)} … x${sub(c.k + c.m)}`) : `P${sub(c.m)}`
+  return L(`P${sub(c.m)} de ${c.dir} apoyado en x${sub(c.k)}`, `${dirName(c.dir)} P${sub(c.m)} based at x${sub(c.k)}`)
 }
 
 function Results({ kind, s, c }: { kind: PolyKind; s: State; c: Required<Calc> }) {
@@ -228,39 +242,57 @@ function Results({ kind, s, c }: { kind: PolyKind; s: State; c: Required<Calc> }
   const extrap = has && (xbar < lo || xbar > hi)
 
   const stats = [
-    { label: has ? `P${sub(c.m)}(${fmt(xbar, 6)})` : 'P(x̄)', value: has ? fmt(c.px, 12) : '—', accent: true, hint: has ? polyName(kind, c) : 'indica x̄ para evaluar' },
-    { label: 'Grado', value: c.m, hint: `usa ${c.m + 1} de ${c.n + 1} datos` },
+    { label: has ? `P${sub(c.m)}(${fmt(xbar, 6)})` : 'P(x̄)', value: has ? fmt(c.px, 12) : '—', accent: true, hint: has ? polyName(kind, c) : L('indica x̄ para evaluar', 'enter x̄ to evaluate') },
+    { label: L('Grado', 'Degree'), value: c.m, hint: L(`usa ${c.m + 1} de ${c.n + 1} datos`, `uses ${c.m + 1} of ${c.n + 1} data points`) },
   ] as { label: ReactNode; value: ReactNode; hint?: ReactNode; accent?: boolean }[]
-  if (kind === 'diferencias-finitas') stats.push({ label: 'Paso h / s', value: fmt(c.h, 8), hint: c.fin ? `s = (x̄ − x${sub(c.k)})/h = ${fmt(c.fin.s, 8)}` : undefined })
-  if (c.est) stats.push({ label: 'Error estimado (dato siguiente)', value: fmtErr(c.est.value), hint: `con x${sub(c.est.next)}, fórmula ${kind === 'diferencias-finitas' ? '(4.32)' : '(4.31)'}` })
+  if (kind === 'diferencias-finitas') stats.push({ label: L('Paso h / s', 'Step h / s'), value: fmt(c.h, 8), hint: c.fin ? `s = (x̄ − x${sub(c.k)})/h = ${fmt(c.fin.s, 8)}` : undefined })
+  if (c.est) stats.push({
+      label: L('Error estimado (dato siguiente)', 'Estimated error (next data point)'),
+      value: fmtErr(c.est.value),
+      hint: L(`con x${sub(c.est.next)}, fórmula `, `with x${sub(c.est.next)}, formula `) + (kind === 'diferencias-finitas' ? '(4.32)' : '(4.31)'),
+    })
   if (f && has) {
     stats.push({ label: `f(${fmt(xbar, 6)})`, value: fmt(fx, 12) })
-    stats.push({ label: 'Error real f − P', value: fmtErr(fx - c.px), hint: `relativo: ${fmtErr(Math.abs((fx - c.px) / fx))}` })
+    stats.push({ label: L('Error real f − P', 'Actual error f − P'), value: fmtErr(fx - c.px), hint: L('relativo: ', 'relative: ') + fmtErr(Math.abs((fx - c.px) / fx)) })
   }
 
   const tabs = [
-    { label: 'Paso a paso', content: <Card><Steps steps={stepsFor(kind, s, c)} /></Card> },
-    { label: 'Gráfica', content: <Card><MainPlot c={c} /></Card> },
+    { label: L('Paso a paso', 'Step by step'), content: <Card><Steps steps={stepsFor(kind, s, c)} /></Card> },
+    { label: L('Gráfica', 'Plot'), content: <Card><MainPlot c={c} /></Card> },
   ]
-  if (kind === 'lagrange') tabs.push({ label: 'Polinomios base', content: <Card><BasisPlot c={c} /></Card> })
-  else tabs.push({ label: 'Construcción', content: <Card><BuildPlot c={c} /></Card> })
-  if (f) tabs.push({ label: 'Error real', content: <Card><ErrPlot c={c} /></Card> })
+  if (kind === 'lagrange') tabs.push({ label: L('Polinomios base', 'Basis polynomials'), content: <Card><BasisPlot c={c} /></Card> })
+  else tabs.push({ label: L('Construcción', 'Construction'), content: <Card><BuildPlot c={c} /></Card> })
+  if (f) tabs.push({ label: L('Error real', 'Actual error'), content: <Card><ErrPlot c={c} /></Card> })
 
   const tableTitle =
     kind === 'lagrange'
-      ? 'Polinomios de Lagrange en x̄'
+      ? L('Polinomios de Lagrange en x̄', 'Lagrange polynomials at x̄')
       : kind === 'diferencias-divididas'
-        ? `Tabla de diferencias divididas${c.dir === 'retroceso' ? ' (de retroceso: es la misma tabla)' : ''}`
-        : `Tabla de diferencias finitas de ${c.dir}`
+        ? L('Tabla de diferencias divididas', 'Divided-difference table') + (c.dir === 'retroceso' ? L(' (de retroceso: es la misma tabla)', ' (backward: it is the same table)') : '')
+        : L(`Tabla de diferencias finitas de ${c.dir}`, `${c.dir === 'avance' ? 'Forward' : 'Backward'} finite-difference table`)
   return (
     <>
       <Stats items={stats} />
       {extrap && (
         <Alert kind="warn">
-          x̄ = {fmt(xbar)} está fuera de [{fmt(lo)}, {fmt(hi)}], el rango de los nodos usados: es <b>extrapolación</b> y el error puede ser grande.
+          {L(
+            <>
+              {L(
+            <>
+              x̄ = {fmt(xbar)} está fuera de [{fmt(lo)}, {fmt(hi)}], el rango de los nodos usados: es <b>extrapolación</b> y el error puede ser grande.
+            </>,
+            <>
+              x̄ = {fmt(xbar)} lies outside [{fmt(lo)}, {fmt(hi)}], the range of the nodes used: this is <b>extrapolation</b> and the error may be large.
+            </>,
+          )}
+            </>,
+            <>
+              x̄ = {fmt(xbar)} lies outside [{fmt(lo)}, {fmt(hi)}], the range of the nodes used: this is <b>extrapolation</b> and the error may be large.
+            </>,
+          )}
         </Alert>
       )}
-      <Card title="Polinomio de interpolación">
+      <Card title={L('Polinomio de interpolación', 'Interpolating polynomial')}>
         <PolyForms kind={kind} s={s} c={c} />
       </Card>
       <Card title={tableTitle}>
@@ -353,7 +385,7 @@ function TableFor({ kind, c }: { kind: PolyKind; c: Required<Calc> }) {
         <DataTable columns={cols} rows={rows} filename="lagrange" />
         {has && (
           <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-            Σ L_i(x̄) = {fmt(Lv.reduce((a, b) => a + b, 0), 12)} (siempre 1) · Σ f(x_i) L_i(x̄) = P(x̄) = {fmt(c.px, 12)}
+            Σ L_i(x̄) = {fmt(Lv.reduce((a, b) => a + b, 0), 12)} {L('(siempre 1)', '(always 1)')} · Σ f(x_i) L_i(x̄) = P(x̄) = {fmt(c.px, 12)}
           </p>
         )}
       </>
@@ -375,14 +407,16 @@ function TableFor({ kind, c }: { kind: PolyKind; c: Required<Calc> }) {
       <>
         <DataTable columns={cols} rows={rows} filename="diferencias_divididas" />
         <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-          Resaltados: los coeficientes de {polyName(kind, c)}.{' '}
+          {L('Resaltados: los coeficientes de ', 'Highlighted: the coefficients of ')}
+          {polyName(kind, c)}.{' '}
           {fw ? (
             <>
-              De avance: fila <Tex>{`i = ${c.k}`}</Tex>, <Tex>{`a_j = f[x_{${c.k}},\\dots,x_{${c.k}+j}]`}</Tex>.
+              {L('De avance: fila', 'Forward: row')} <Tex>{`i = ${c.k}`}</Tex>, <Tex>{`a_j = f[x_{${c.k}},\\dots,x_{${c.k}+j}]`}</Tex>.
             </>
           ) : (
             <>
-              De retroceso: el valor que termina en <Tex>{`x_{${c.k}}`}</Tex> en cada columna, <Tex>{`a_j = f[x_{${c.k}-j},\\dots,x_{${c.k}}]`}</Tex>.
+              {L('De retroceso: el valor que termina en', 'Backward: the value ending at')} <Tex>{`x_{${c.k}}`}</Tex> {L('en cada columna', 'in each column')},{' '}
+              <Tex>{`a_j = f[x_{${c.k}-j},\\dots,x_{${c.k}}]`}</Tex>.
             </>
           )}
         </p>
@@ -405,8 +439,13 @@ function TableFor({ kind, c }: { kind: PolyKind; c: Required<Calc> }) {
     <>
       <DataTable columns={cols} rows={rows} filename={fw ? 'diferencias_finitas_avance' : 'diferencias_finitas_retroceso'} />
       <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-        Resaltados: {fw ? <Tex>{`\\Delta^j f(x_{${c.k}})`}</Tex> : <Tex>{`\\nabla^j f(x_{${c.k}})`}</Tex>}, <Tex>{`j = 0,\\dots,${c.m}`}</Tex>.{' '}
-        {fw ? 'Cada columna se obtiene restando dos términos seguidos de la anterior.' : <>Es la misma tabla de avance, porque <Tex>{'\\nabla^j f(x_{i+j}) = \\Delta^j f(x_i)'}</Tex>.</>}
+        {L('Resaltados:', 'Highlighted:')} {fw ? <Tex>{`\\Delta^j f(x_{${c.k}})`}</Tex> : <Tex>{`\\nabla^j f(x_{${c.k}})`}</Tex>}, <Tex>{`j = 0,\\dots,${c.m}`}</Tex>.{' '}
+        {fw
+          ? L('Cada columna se obtiene restando dos términos seguidos de la anterior.', 'Each column is obtained by subtracting consecutive entries of the previous one.')
+          : L(
+              <>Es la misma tabla de avance, porque <Tex>{'\\nabla^j f(x_{i+j}) = \\Delta^j f(x_i)'}</Tex>.</>,
+              <>It is the same as the forward table, because <Tex>{'\\nabla^j f(x_{i+j}) = \\Delta^j f(x_i)'}</Tex>.</>,
+            )}
       </p>
     </>
   )
@@ -430,9 +469,9 @@ function MainPlot({ c }: { c: Required<Calc> }) {
     const t: Trace[] = []
     if (f) t.push({ ...sample(f.f, a, b), type: 'scatter', mode: 'lines', name: 'f(x)', line: { color: SERIES[1], width: 2, dash: 'dash' } })
     t.push({ ...sample(P, a, b, 500), type: 'scatter', mode: 'lines', name: `P${sub(c.m)}(x)`, line: { color: SERIES[0], width: 2.5 } })
-    t.push({ x: c.idx.map((i) => xs[i]), y: c.idx.map((i) => ys[i]), type: 'scatter', mode: 'markers', name: 'nodos usados', marker: { color: SERIES[3], size: 9 } })
+    t.push({ x: c.idx.map((i) => xs[i]), y: c.idx.map((i) => ys[i]), type: 'scatter', mode: 'markers', name: L('nodos usados', 'nodes used'), marker: { color: SERIES[3], size: 9 } })
     const rest = xs.map((_, i) => i).filter((i) => !c.idx.includes(i))
-    if (rest.length) t.push({ x: rest.map((i) => xs[i]), y: rest.map((i) => ys[i]), type: 'scatter', mode: 'markers', name: 'datos no usados', marker: { color: '#94a3b8', size: 8, symbol: 'circle-open' } })
+    if (rest.length) t.push({ x: rest.map((i) => xs[i]), y: rest.map((i) => ys[i]), type: 'scatter', mode: 'markers', name: L('datos no usados', 'unused data'), marker: { color: '#94a3b8', size: 8, symbol: 'circle-open' } })
     if (Number.isFinite(xbar)) t.push({ x: [xbar], y: [P(xbar)], type: 'scatter', mode: 'markers', name: 'P(x̄)', marker: { color: SERIES[5], size: 13, symbol: 'star' } })
     return t
   }, [c])
@@ -444,15 +483,29 @@ function BasisPlot({ c }: { c: Required<Calc> }) {
     const z = c.nw.z
     const [a, b] = range(c)
     const t: Trace[] = c.lag.basis.map((L, j) => ({ ...sample((x) => A.polyEval(L, x), a, b, 400), type: 'scatter', mode: 'lines', name: `L${sub(c.idx[j])}(x)`, line: { color: SERIES[j % SERIES.length], width: 2 } }))
-    t.push({ x: z, y: z.map(() => 1), type: 'scatter', mode: 'markers', name: 'valor 1', marker: { color: '#94a3b8', size: 6, symbol: 'circle-open' } })
-    t.push({ x: z, y: z.map(() => 0), type: 'scatter', mode: 'markers', name: 'valor 0', marker: { color: '#94a3b8', size: 6 } })
+    t.push({ x: z, y: z.map(() => 1), type: 'scatter', mode: 'markers', name: L('valor 1', 'value 1'), marker: { color: '#94a3b8', size: 6, symbol: 'circle-open' } })
+    t.push({ x: z, y: z.map(() => 0), type: 'scatter', mode: 'markers', name: L('valor 0', 'value 0'), marker: { color: '#94a3b8', size: 6 } })
     return t
   }, [c])
   return (
     <>
       <Plot data={data} layout={{ xaxis: { title: { text: 'x' } } }} />
       <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-        Cada <Tex>L_i</Tex> vale 1 en su nodo <Tex>x_i</Tex> y 0 en los demás nodos (<Tex>{'L_i(x_k)=\\delta_{ik}'}</Tex>).
+        {L(
+          <>
+            {L(
+          <>
+            Cada <Tex>L_i</Tex> vale 1 en su nodo <Tex>x_i</Tex> y 0 en los demás nodos (<Tex>{'L_i(x_k)=\\delta_{ik}'}</Tex>).
+          </>,
+          <>
+            Each <Tex>L_i</Tex> equals 1 at its own node <Tex>x_i</Tex> and 0 at the other nodes (<Tex>{'L_i(x_k)=\\delta_{ik}'}</Tex>).
+          </>,
+        )}
+          </>,
+          <>
+            Each <Tex>L_i</Tex> equals 1 at its own node <Tex>x_i</Tex> and 0 at the other nodes (<Tex>{'L_i(x_k)=\\delta_{ik}'}</Tex>).
+          </>,
+        )}
       </p>
     </>
   )
@@ -466,15 +519,22 @@ function BuildPlot({ c }: { c: Required<Calc> }) {
       const aj = c.nw.a.slice(0, j + 1)
       return { ...sample((x) => A.newtonEval(c.nw.z, aj, x), a, b, 300), type: 'scatter', mode: 'lines', name: `P${sub(j)}(x)`, line: { color: SERIES[j % SERIES.length], width: j === c.m ? 2.8 : 1.4 } }
     })
-    t.push({ x: xs, y: ys, type: 'scatter', mode: 'markers', name: 'datos', marker: { color: '#94a3b8', size: 9 } })
+    t.push({ x: xs, y: ys, type: 'scatter', mode: 'markers', name: L('datos', 'data'), marker: { color: '#94a3b8', size: 9 } })
     return t
   }, [c])
   return (
     <>
       <Plot data={data} layout={{ xaxis: { title: { text: 'x' } } }} />
       <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-        <Tex>{'P_j(x) = P_{j-1}(x) + a_j\\prod_{i<j}(x-z_i)'}</Tex>: cada término nuevo corrige al anterior sin modificar los ya calculados; <Tex>P_j</Tex> interpola los primeros{' '}
-        <Tex>j+1</Tex> nodos usados.
+        <Tex>{'P_j(x) = P_{j-1}(x) + a_j\\prod_{i<j}(x-z_i)'}</Tex>
+        {L(
+          <>
+            : cada término nuevo corrige al anterior sin modificar los ya calculados; <Tex>P_j</Tex> interpola los primeros <Tex>j+1</Tex> nodos usados.
+          </>,
+          <>
+            : each new term corrects the previous polynomial without changing the terms already computed; <Tex>P_j</Tex> interpolates the first <Tex>j+1</Tex> nodes used.
+          </>,
+        )}
       </p>
     </>
   )
@@ -489,9 +549,12 @@ function ErrPlot({ c }: { c: Required<Calc> }) {
   }, [c])
   return (
     <>
-      <Plot data={data} layout={{ yaxis: { type: 'log', title: { text: '|f − P| (escala log)' }, exponentformat: 'power' }, xaxis: { title: { text: 'x' } } }} />
+      <Plot data={data} layout={{ yaxis: { type: 'log', title: { text: L('|f − P| (escala log)', '|f − P| (log scale)') }, exponentformat: 'power' }, xaxis: { title: { text: 'x' } } }} />
       <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-        El error se anula en los nodos usados y crece hacia los bordes y fuera de ellos. Para la cota con la derivada ver «Estimación del error».
+        {L(
+          'El error se anula en los nodos usados y crece hacia los bordes y fuera de ellos. Para la cota con la derivada ver «Estimación del error».',
+          'The error vanishes at the nodes used and grows toward the ends and beyond them. For the bound based on the derivative see “Error estimate”.',
+        )}
       </p>
     </>
   )
@@ -509,12 +572,15 @@ export function stepsFor(kind: PolyKind, s: State, c: Required<Calc>): Step[] {
   const has = Number.isFinite(xbar)
   const fw = c.dir === 'avance'
   const out: Step[] = []
-  if (f && s.mode === 'funcion') out.push({ text: 'Valores de la función en los nodos:', tex: xs.map((x, i) => `f(${N(x)}) = ${N(ys[i])}`).join(',\\quad ') })
+  if (f && s.mode === 'funcion') out.push({ text: L('Valores de la función en los nodos:', 'Function values at the nodes:'), tex: xs.map((x, i) => `f(${N(x)}) = ${N(ys[i])}`).join(',\\quad ') })
   out.push({
     text:
       m === n
-        ? `Con ${n + 1} datos el polinomio de interpolación es de grado ${n} (y es único).`
-        : `Polinomio de grado ${m} ${kind === 'lagrange' ? '' : `de ${c.dir} apoyado en x${sub(k)}`}: usa los nodos ${c.idx.map((i) => `x${sub(i)}`).join(', ')}.`,
+        ? L(`Con ${n + 1} datos el polinomio de interpolación es de grado ${n} (y es único).`, `With ${n + 1} data points the interpolating polynomial has degree ${n} (and is unique).`)
+        : L(
+            `Polinomio de grado ${m} ${kind === 'lagrange' ? '' : `de ${c.dir} apoyado en x${sub(k)}`}: usa los nodos ${c.idx.map((i) => `x${sub(i)}`).join(', ')}.`,
+            `${kind === 'lagrange' ? 'Polynomial' : `${c.dir === 'avance' ? 'Forward' : 'Backward'} polynomial`} of degree ${m}${kind === 'lagrange' ? '' : ` based at x${sub(k)}`}: it uses the nodes ${c.idx.map((i) => `x${sub(i)}`).join(', ')}.`,
+          ),
   })
 
   if (kind === 'lagrange') {
@@ -525,59 +591,61 @@ export function stepsFor(kind: PolyKind, s: State, c: Required<Calc>): Step[] {
       for (let j = 0; j < show; j++) {
         const numF = z.map((xj, t) => (t === j ? '' : texDiff(xbar, xj))).join('')
         const denF = z.map((xj, t) => (t === j ? '' : texDiff(z[j], xj))).join('')
-        out.push({ text: j === 0 ? `Polinomios de Lagrange (4.11) evaluados en x̄ = ${fmt(xbar)}:` : undefined, tex: m === 0 ? `L_{${c.idx[0]}}(\\bar x) = 1` : `L_{${c.idx[j]}}(${N(xbar)}) = \\frac{${numF}}{${denF}} = ${N(Lv[j])}` })
+        out.push({ text: j === 0 ? L(`Polinomios de Lagrange (4.11) evaluados en x̄ = ${fmt(xbar)}:`, `Lagrange polynomials (4.11) evaluated at x̄ = ${fmt(xbar)}:`) : undefined, tex: m === 0 ? `L_{${c.idx[0]}}(\\bar x) = 1` : `L_{${c.idx[j]}}(${N(xbar)}) = \\frac{${numF}}{${denF}} = ${N(Lv[j])}` })
       }
-      if (show < m + 1) out.push({ text: `… (${m + 1 - show} bases más, análogas).` })
+      if (show < m + 1) out.push({ text: L(`… (${m + 1 - show} bases más, análogas).`, `… (${m + 1 - show} more basis polynomials, computed likewise).`) })
       const sum = c.idx.slice(0, show).map((i, j) => `${P_(ys[i])}(${N(Lv[j])})`).join(' + ') + (show < m + 1 ? ' + \\cdots' : '')
-      out.push({ text: 'Se aplica (4.12), P(x̄) = Σ f(xᵢ) Lᵢ(x̄):', tex: `P_{${m}}(${N(xbar)}) = ${sum} = ${N(c.px)}` })
+      out.push({ text: L('Se aplica (4.12), P(x̄) = Σ f(xᵢ) Lᵢ(x̄):', 'Apply (4.12), P(x̄) = Σ f(xᵢ) Lᵢ(x̄):'), tex: `P_{${m}}(${N(xbar)}) = ${sum} = ${N(c.px)}` })
     }
     for (let j = 0; j < show; j++) {
       const numF = z.map((xj, t) => (t === j ? '' : texFactor(xj))).join('')
       const denF = z.map((xj, t) => (t === j ? '' : texDiff(z[j], xj))).join('')
       const numPoly = A.polyScale(c.lag.basis[j], c.lag.denoms[j])
       out.push({
-        text: j === 0 ? 'Polinomios base como funciones de x:' : undefined,
+        text: j === 0 ? L('Polinomios base como funciones de x:', 'Basis polynomials as functions of x:') : undefined,
         tex: m === 0 ? `L_{${c.idx[0]}}(x) = 1` : `L_{${c.idx[j]}}(x) = \\frac{${numF}}{${denF}} = \\frac{${polyTex(numPoly)}}{${N(c.lag.denoms[j])}} = ${polyTex(c.lag.basis[j], s.frac)}`,
       })
     }
-    out.push({ text: 'Polinomio de interpolación, agrupando términos:', tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
+    out.push({ text: L('Polinomio de interpolación, agrupando términos:', 'Interpolating polynomial, collecting terms:'), tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
   } else if (kind === 'diferencias-divididas') {
-    out.push({ text: 'Tabla de diferencias divididas (4.18). Orden 0:', tex: xs.map((_, i) => `f[x_{${i}}] = ${N(ys[i])}`).join(',\\quad ') })
+    out.push({ text: L('Tabla de diferencias divididas (4.18). Orden 0:', 'Divided-difference table (4.18). Order 0:'), tex: xs.map((_, i) => `f[x_{${i}}] = ${N(ys[i])}`).join(',\\quad ') })
     let shown = 0
     for (let j = 1; j <= n && shown < 14; j++) {
       for (let i = 0; i + j <= n && shown < 14; i++, shown++) {
         const lab = (a: number, b: number) => (b - a >= 3 ? `f[x_{${a}},\\dots,x_{${b}}]` : `f[${Array.from({ length: b - a + 1 }, (_, t) => `x_{${a + t}}`).join(',')}]`)
         out.push({
-          text: i === 0 ? `Orden ${j}:` : undefined,
+          text: i === 0 ? L(`Orden ${j}:`, `Order ${j}:`) : undefined,
           tex: `${lab(i, i + j)} = \\frac{${lab(i + 1, i + j)} - ${lab(i, i + j - 1)}}{x_{${i + j}} - x_{${i}}} = \\frac{${N(c.F[i + 1][j - 1])} - ${P_(c.F[i][j - 1])}}{${N(xs[i + j])} - ${P_(xs[i])}} = ${N(c.F[i][j])}`,
         })
       }
     }
-    if (shown >= 14) out.push({ text: '… el resto de la tabla se calcula igual (ver la tabla).' })
+    if (shown >= 14) out.push({ text: L('… el resto de la tabla se calcula igual (ver la tabla).', '… the rest of the table is computed the same way (see the table).') })
     const lab = (j: number) => (fw ? (j === 0 ? `f(x_{${k}})` : `f[x_{${k}},\\dots,x_{${k + j}}]`) : j === 0 ? `f(x_{${k}})` : `f[x_{${k - j}},\\dots,x_{${k}}]`)
     out.push({
-      text: fw ? `Coeficientes de avance (fila de x${sub(k)} de la tabla):` : `Coeficientes de retroceso (último valor de cada columna que termina en x${sub(k)}):`,
+      text: fw
+        ? L(`Coeficientes de avance (fila de x${sub(k)} de la tabla):`, `Forward coefficients (row of x${sub(k)} in the table):`)
+        : L(`Coeficientes de retroceso (último valor de cada columna que termina en x${sub(k)}):`, `Backward coefficients (last value of each column ending at x${sub(k)}):`),
       tex: c.nw.a.slice(0, 9).map((a, j) => `${lab(j)} = ${N(a)}`).join(',\\quad ') + (m > 8 ? ',\\;\\dots' : ''),
     })
-    out.push({ text: `Forma de Newton ${fw ? '(4.17)' : '(4.19)'}:`, tex: `P_{${m}}(x) = ${newtonFormTex(c.nw.z, c.nw.a, false)}` })
+    out.push({ text: L('Forma de Newton ', 'Newton form ') + (fw ? '(4.17):' : '(4.19):'), tex: `P_{${m}}(x) = ${newtonFormTex(c.nw.z, c.nw.a, false)}` })
     if (has) {
       const v = c.nw.a.map((a) => N(a))
       const cs = ['', ...c.nw.z.map((zi) => texDiff(xbar, zi))]
-      if (m <= 10) out.push({ text: 'Se evalúa en forma anidada:', tex: `P_{${m}}(${N(xbar)}) = ${nestedTex(v, cs, '+')} = ${N(c.px)}` })
-      else out.push({ text: 'Evaluación en forma anidada:', tex: `P_{${m}}(${N(xbar)}) = ${N(c.px)}` })
+      if (m <= 10) out.push({ text: L('Se evalúa en forma anidada:', 'Evaluate in nested form:'), tex: `P_{${m}}(${N(xbar)}) = ${nestedTex(v, cs, '+')} = ${N(c.px)}` })
+      else out.push({ text: L('Evaluación en forma anidada:', 'Nested-form evaluation:'), tex: `P_{${m}}(${N(xbar)}) = ${N(c.px)}` })
       if (c.est) {
         const nx = c.est.next
         out.push({
-          text: `Estimación del error (4.31) con el dato siguiente x${sub(nx)} = ${fmt(xs[nx])}:`,
+          text: L(`Estimación del error (4.31) con el dato siguiente x${sub(nx)} = ${fmt(xs[nx])}:`, `Error estimate (4.31) with the next data point x${sub(nx)} = ${fmt(xs[nx])}:`),
           tex: `R_{${m}}(${N(xbar)}) \\approx ${fw ? `f[x_{${k}},\\dots,x_{${nx}}]` : `f[x_{${nx}},\\dots,x_{${k}}]`}\\prod(\\bar x - x_i) = ${P_(c.est.coef)}\\cdot(${N(c.est.factor)}) = ${tn(c.est.value, false, 6)}`,
         })
       }
     }
-    out.push({ text: 'Desarrollando los productos:', tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
+    out.push({ text: L('Desarrollando los productos:', 'Expanding the products:'), tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
   } else {
     const h = c.h
     const D = c.D
-    out.push({ text: 'Los nodos están equiespaciados:', tex: `h = x_1 - x_0 = ${N(xs[1])} - ${P_(xs[0])} = ${N(h)}` })
+    out.push({ text: L('Los nodos están equiespaciados:', 'The nodes are equally spaced:'), tex: `h = x_1 - x_0 = ${N(xs[1])} - ${P_(xs[0])} = ${N(h)}` })
     const lines: string[] = []
     for (let j = 1; j <= Math.min(m, 8); j++) {
       if (fw) lines.push(`${dsym('avance', j, k)} &= ${dsym('avance', j - 1, k + 1)} - ${dsym('avance', j - 1, k)} = ${N(D[j - 1][k + 1])} - ${P_(D[j - 1][k])} = ${N(D[j][k])}`)
@@ -585,21 +653,23 @@ export function stepsFor(kind: PolyKind, s: State, c: Required<Calc>): Step[] {
     }
     if (m >= 1)
       out.push({
-        text: fw ? `Diferencias finitas de avance (4.21) en x${sub(k)} (fila de x${sub(k)} de la tabla):` : `Diferencias finitas de retroceso (4.26) en x${sub(k)} (se leen en la misma tabla):`,
+        text: fw
+          ? L(`Diferencias finitas de avance (4.21) en x${sub(k)} (fila de x${sub(k)} de la tabla):`, `Forward finite differences (4.21) at x${sub(k)} (row of x${sub(k)} in the table):`)
+          : L(`Diferencias finitas de retroceso (4.26) en x${sub(k)} (se leen en la misma tabla):`, `Backward finite differences (4.26) at x${sub(k)} (read from the same table):`),
         tex: '\\begin{aligned}' + lines.join('\\\\') + '\\end{aligned}',
       })
     if (has && c.fin) {
       const sv = c.fin.s
-      out.push({ text: 'Se calcula s:', tex: `s = \\frac{\\bar x - x_{${k}}}{h} = \\frac{${N(xbar)} - ${P_(xs[k])}}{${N(h)}} = ${N(sv)}` })
+      out.push({ text: L('Se calcula s:', 'Compute s:'), tex: `s = \\frac{\\bar x - x_{${k}}}{h} = \\frac{${N(xbar)} - ${P_(xs[k])}}{${N(h)}} = ${N(sv)}` })
       const v = c.deltas.map((d) => N(d))
       if (fw || sv > 0) {
         // avance (4.23); retroceso con s > 0 (extrapolación): s(s+1)…(s+j−1)/j!
         const cs = ['', ...c.deltas.slice(1).map((_, t) => (t === 0 ? P_(sv) : `\\frac{${N(sv)} ${fw ? '-' : '+'} ${t}}{${t + 1}}`))]
-        out.push({ text: fw ? 'Forma anidada (4.23):' : 'Forma anidada con s(s+1)…(s+j−1)/j!:', tex: `P_{${m}}(${N(sv)}) = ${m <= 8 ? nestedTex(v, cs, '+') : '\\cdots'} = ${N(c.fin.value)}` })
+        out.push({ text: fw ? L('Forma anidada (4.23):', 'Nested form (4.23):') : L('Forma anidada con s(s+1)…(s+j−1)/j!:', 'Nested form with s(s+1)…(s+j−1)/j!:'), tex: `P_{${m}}(${N(sv)}) = ${m <= 8 ? nestedTex(v, cs, '+') : '\\cdots'} = ${N(c.fin.value)}` })
       } else {
         const sa = Math.abs(sv)
         const cs = ['', ...c.deltas.slice(1).map((_, t) => (t === 0 ? N(sa) : `\\frac{${N(sa)} - ${t}}{${t + 1}}`))]
-        out.push({ text: 'Forma anidada del texto (4.28), con |s|:', tex: `P_{${m}}(s = ${N(sv)}) = ${m <= 8 ? nestedTex(v, cs, '-') : '\\cdots'} = ${N(c.fin.value)}` })
+        out.push({ text: L('Forma anidada del texto (4.28), con |s|:', 'Textbook nested form (4.28), with |s|:'), tex: `P_{${m}}(s = ${N(sv)}) = ${m <= 8 ? nestedTex(v, cs, '-') : '\\cdots'} = ${N(c.fin.value)}` })
       }
       const tl = c.fin.terms.slice(0, 9).map((t) => {
         let fac = ''
@@ -607,24 +677,24 @@ export function stepsFor(kind: PolyKind, s: State, c: Required<Calc>): Step[] {
         const coef = t.k === 0 ? '' : t.k === 1 ? fac : `\\frac{${fac}}{${t.k}!}`
         return `j=${t.k}:&\\quad ${coef ? coef + '\\,' : ''}${dsym(c.dir, t.k, k)} = ${t.k ? `${N(t.coef)}\\cdot ` : ''}${P_(t.delta)} = ${N(t.value)}`
       })
-      out.push({ text: 'Término a término:', tex: '\\begin{aligned}' + tl.join('\\\\') + '\\end{aligned}' })
+      out.push({ text: L('Término a término:', 'Term by term:'), tex: '\\begin{aligned}' + tl.join('\\\\') + '\\end{aligned}' })
       if (c.est) {
         const nx = c.est.next
         let fac = ''
         for (let q = 0; q <= m; q++) fac += `(${N(fw ? sv - q : sv + q)})`
         out.push({
-          text: `Estimación del error (4.32) con el dato siguiente x${sub(nx)} = ${fmt(xs[nx])}:`,
+          text: L(`Estimación del error (4.32) con el dato siguiente x${sub(nx)} = ${fmt(xs[nx])}:`, `Error estimate (4.32) with the next data point x${sub(nx)} = ${fmt(xs[nx])}:`),
           tex: `R_{${m}} \\approx \\frac{${fac}}{${m + 1}!}\\,${dsym(c.dir, m + 1, k)} = ${N(c.est.factor)}\\cdot ${P_(c.est.coef)} = ${tn(c.est.value, false, 6)}`,
         })
       }
     }
-    out.push({ text: 'En potencias de x (sustituyendo s):', tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
+    out.push({ text: L('En potencias de x (sustituyendo s):', 'In powers of x (substituting s):'), tex: `P_{${m}}(x) = ${polyTex(c.coeffs, s.frac)}` })
   }
   if (has && f) {
     const fx = f.f(xbar)
     out.push({
-      text: 'Comparación con el valor exacto:',
-      tex: `f(${N(xbar)}) = ${N(fx)},\\qquad f(\\bar x) - P(\\bar x) = ${N(fx)} - ${P_(c.px)} = ${tn(fx - c.px, false, 4)},\\qquad \\text{error relativo} = ${tn(Math.abs((fx - c.px) / fx), false, 3)}`,
+      text: L('Comparación con el valor exacto:', 'Comparison with the exact value:'),
+      tex: `f(${N(xbar)}) = ${N(fx)},\\qquad f(\\bar x) - P(\\bar x) = ${N(fx)} - ${P_(c.px)} = ${tn(fx - c.px, false, 4)},\\qquad \\text{${L('error relativo', 'relative error')}} = ${tn(Math.abs((fx - c.px) / fx), false, 3)}`,
     })
   }
   return out
@@ -636,30 +706,33 @@ export function scilabFor(kind: PolyKind, s: State, c: Required<Calc>): string {
   const { xs, ys, f, xbar } = c.data
   const xb = Number.isFinite(xbar) ? sci(xbar) : sci((xs[0] + xs[1]) / 2)
   const fw = c.dir === 'avance'
-  let code = `// ${TITLES[kind]} — generado por NumLab\nclear; clc;\n`
+  let code = `// ${TITLES[kind]} — ${L('generado por NumLab', 'generated by NumLab')}\nclear; clc;\n`
   if (f) code += `function y = f(x)\n  y = ${toScilab(f.src, true)};\nendfunction\n\n`
   code += `x = ${sciVec(xs)};\n`
   code += s.mode === 'funcion' && f ? `y = f(x);\n` : `y = ${sciVec(ys)};\n`
-  code += `xb = ${xb};${Number.isFinite(xbar) ? '' : '  // (no se indico x barra: se usa un punto de ejemplo)'}\n`
-  code += `n = length(x) - 1;   // datos x_0 ... x_n (en Scilab los indices empiezan en 1)\nm = ${c.m};            // grado del polinomio\nk = ${c.k};            // ${kind === 'lagrange' ? 'se usan x_k ... x_(k+m)' : `apoyado en x_k (${c.dir})`}\npx = poly(0, 'x');\n\n`
+  code += `xb = ${xb};${Number.isFinite(xbar) ? '' : L('  // (no se indico x barra: se usa un punto de ejemplo)', '  // (no x bar given: a sample point is used)')}\n`
+  code += L(
+    `n = length(x) - 1;   // datos x_0 ... x_n (en Scilab los indices empiezan en 1)\nm = ${c.m};            // grado del polinomio\nk = ${c.k};            // ${kind === 'lagrange' ? 'se usan x_k ... x_(k+m)' : `apoyado en x_k (${c.dir})`}\npx = poly(0, 'x');\n\n`,
+    `n = length(x) - 1;   // data x_0 ... x_n (Scilab indices start at 1)\nm = ${c.m};            // polynomial degree\nk = ${c.k};            // ${kind === 'lagrange' ? 'uses x_k ... x_(k+m)' : `based at x_k (${dirName(c.dir)})`}\npx = poly(0, 'x');\n\n`,
+  )
   if (kind === 'lagrange') {
-    code += `z = x(k+1:k+m+1); fz = y(k+1:k+m+1);   // nodos usados\nP = 0; pb = 0;\nfor i = 1:m+1\n  L = 1;   // polinomio de Lagrange L_i(x)\n  Lb = 1;  // su valor en xb\n  for j = 1:m+1\n    if j <> i then\n      L = L * (px - z(j)) / (z(i) - z(j));\n      Lb = Lb * (xb - z(j)) / (z(i) - z(j));\n    end\n  end\n  mprintf('L_%d(%g) = %.10f\\n', k+i-1, xb, Lb);\n  P = P + fz(i) * L;\n  pb = pb + fz(i) * Lb;\nend\nmprintf('P(%g) = %.12f\\n', xb, pb);\nmprintf('P(x) =\\n'); disp(P);\n`
+    code += `z = x(k+1:k+m+1); fz = y(k+1:k+m+1);   // ${L('nodos usados', 'nodes used')}\nP = 0; pb = 0;\nfor i = 1:m+1\n  L = 1;   // ${L('polinomio de Lagrange L_i(x)', 'Lagrange polynomial L_i(x)')}\n  Lb = 1;  // ${L('su valor en xb', 'its value at xb')}\n  for j = 1:m+1\n    if j <> i then\n      L = L * (px - z(j)) / (z(i) - z(j));\n      Lb = Lb * (xb - z(j)) / (z(i) - z(j));\n    end\n  end\n  mprintf('L_%d(%g) = %.10f\\n', k+i-1, xb, Lb);\n  P = P + fz(i) * L;\n  pb = pb + fz(i) * Lb;\nend\nmprintf('P(%g) = %.12f\\n', xb, pb);\nmprintf('P(x) =\\n'); disp(P);\n`
   } else if (kind === 'diferencias-divididas') {
-    code += `// Tabla de diferencias divididas: D(i+1, j+1) = f[x_i, ..., x_(i+j)]\nD = zeros(n+1, n+1);\nD(:, 1) = y(:);\nfor j = 1:n\n  for i = 0:n-j\n    D(i+1, j+1) = (D(i+2, j) - D(i+1, j)) / (x(i+j+1) - x(i+1));\n  end\nend\nmprintf('Tabla de diferencias divididas:\\n'); disp(D);\n\n`
+    code += `// ${L('Tabla de diferencias divididas', 'Divided-difference table')}: D(i+1, j+1) = f[x_i, ..., x_(i+j)]\nD = zeros(n+1, n+1);\nD(:, 1) = y(:);\nfor j = 1:n\n  for i = 0:n-j\n    D(i+1, j+1) = (D(i+2, j) - D(i+1, j)) / (x(i+j+1) - x(i+1));\n  end\nend\nmprintf('${L('Tabla de diferencias divididas', 'Divided-difference table')}:\\n'); disp(D);\n\n`
     code += fw
-      ? `// Avance: a_j = f[x_k, ..., x_(k+j)], nodos z = x_k, x_(k+1), ...\na = zeros(1, m+1); z = zeros(1, m+1);\nfor j = 0:m\n  a(j+1) = D(k+1, j+1);\n  z(j+1) = x(k+j+1);\nend\n`
-      : `// Retroceso: a_j = f[x_(k-j), ..., x_k], nodos z = x_k, x_(k-1), ...\na = zeros(1, m+1); z = zeros(1, m+1);\nfor j = 0:m\n  a(j+1) = D(k-j+1, j+1);\n  z(j+1) = x(k-j+1);\nend\n`
-    code += `mprintf('Coeficientes:\\n'); disp(a);\n\n// Forma anidada: a_0 + (x - z_0)[a_1 + (x - z_1)[ ... ]]\np = a(m+1); P = a(m+1);\nfor j = m:-1:1\n  p = a(j) + (xb - z(j)) * p;\n  P = a(j) + (px - z(j)) * P;\nend\nmprintf('P_%d(%g) = %.12f\\n', m, xb, p);\nmprintf('P(x) =\\n'); disp(P);\n`
+      ? `// ${L('Avance: a_j = f[x_k, ..., x_(k+j)], nodos', 'Forward: a_j = f[x_k, ..., x_(k+j)], nodes')} z = x_k, x_(k+1), ...\na = zeros(1, m+1); z = zeros(1, m+1);\nfor j = 0:m\n  a(j+1) = D(k+1, j+1);\n  z(j+1) = x(k+j+1);\nend\n`
+      : `// ${L('Retroceso: a_j = f[x_(k-j), ..., x_k], nodos', 'Backward: a_j = f[x_(k-j), ..., x_k], nodes')} z = x_k, x_(k-1), ...\na = zeros(1, m+1); z = zeros(1, m+1);\nfor j = 0:m\n  a(j+1) = D(k-j+1, j+1);\n  z(j+1) = x(k-j+1);\nend\n`
+    code += `mprintf('${L('Coeficientes', 'Coefficients')}:\\n'); disp(a);\n\n// ${L('Forma anidada', 'Nested form')}: a_0 + (x - z_0)[a_1 + (x - z_1)[ ... ]]\np = a(m+1); P = a(m+1);\nfor j = m:-1:1\n  p = a(j) + (xb - z(j)) * p;\n  P = a(j) + (px - z(j)) * P;\nend\nmprintf('P_%d(%g) = %.12f\\n', m, xb, p);\nmprintf('P(x) =\\n'); disp(P);\n`
   } else {
-    code += `h = x(2) - x(1);\n// Tabla de diferencias finitas: D(i+1, j+1) = Delta^j f(x_i)\nD = zeros(n+1, n+1);\nD(:, 1) = y(:);\nfor j = 1:n\n  for i = 0:n-j\n    D(i+1, j+1) = D(i+2, j) - D(i+1, j);\n  end\nend\nmprintf('Tabla de diferencias finitas:\\n'); disp(D);\n\n`
+    code += `h = x(2) - x(1);\n// ${L('Tabla de diferencias finitas', 'Finite-difference table')}: D(i+1, j+1) = Delta^j f(x_i)\nD = zeros(n+1, n+1);\nD(:, 1) = y(:);\nfor j = 1:n\n  for i = 0:n-j\n    D(i+1, j+1) = D(i+2, j) - D(i+1, j);\n  end\nend\nmprintf('${L('Tabla de diferencias finitas', 'Finite-difference table')}:\\n'); disp(D);\n\n`
     code += fw
-      ? `// Avance: P(s) = sum C(s, j) Delta^j f(x_k), C(s, j) = s(s-1)...(s-j+1)/j!\ns = (xb - x(k+1)) / h;\nsp = (px - x(k+1)) / h;   // s como polinomio en x\np = D(k+1, 1); P = D(k+1, 1); c = 1; cp = 1;\nfor j = 1:m\n  c = c * (s - j + 1) / j;\n  cp = cp * (sp - j + 1) / j;\n  p = p + c * D(k+1, j+1);\n  P = P + cp * D(k+1, j+1);\nend\n`
-      : `// Retroceso: P(s) = sum s(s+1)...(s+j-1)/j! nabla^j f(x_k), con nabla^j f(x_k) = Delta^j f(x_(k-j))\ns = (xb - x(k+1)) / h;\nsp = (px - x(k+1)) / h;   // s como polinomio en x\np = D(k+1, 1); P = D(k+1, 1); c = 1; cp = 1;\nfor j = 1:m\n  c = c * (s + j - 1) / j;\n  cp = cp * (sp + j - 1) / j;\n  p = p + c * D(k-j+1, j+1);\n  P = P + cp * D(k-j+1, j+1);\nend\n`
+      ? `// ${L('Avance', 'Forward')}: P(s) = sum C(s, j) Delta^j f(x_k), C(s, j) = s(s-1)...(s-j+1)/j!\ns = (xb - x(k+1)) / h;\nsp = (px - x(k+1)) / h;   // ${L('s como polinomio en x', 's as a polynomial in x')}\np = D(k+1, 1); P = D(k+1, 1); c = 1; cp = 1;\nfor j = 1:m\n  c = c * (s - j + 1) / j;\n  cp = cp * (sp - j + 1) / j;\n  p = p + c * D(k+1, j+1);\n  P = P + cp * D(k+1, j+1);\nend\n`
+      : `// ${L('Retroceso', 'Backward')}: P(s) = sum s(s+1)...(s+j-1)/j! nabla^j f(x_k), ${L('con', 'with')} nabla^j f(x_k) = Delta^j f(x_(k-j))\ns = (xb - x(k+1)) / h;\nsp = (px - x(k+1)) / h;   // ${L('s como polinomio en x', 's as a polynomial in x')}\np = D(k+1, 1); P = D(k+1, 1); c = 1; cp = 1;\nfor j = 1:m\n  c = c * (s + j - 1) / j;\n  cp = cp * (sp + j - 1) / j;\n  p = p + c * D(k-j+1, j+1);\n  P = P + cp * D(k-j+1, j+1);\nend\n`
     code += `mprintf('s = %.10f\\n', s);\nmprintf('P_%d(%g) = %.12f\\n', m, xb, p);\nmprintf('P(x) =\\n'); disp(P);\n`
   }
   if (f) code += `mprintf('f(%g) = %.12f   error = %.3e\\n', xb, f(xb), f(xb) - horner(P, xb));\n`
-  code += `\n// Grafica\nxx = linspace(min([x, xb]), max([x, xb]), 400);\nclf();\nplot(xx, horner(P, xx), 'b-');\n`
+  code += `\n// ${L('Grafica', 'Plot')}\nxx = linspace(min([x, xb]), max([x, xb]), 400);\nclf();\nplot(xx, horner(P, xx), 'b-');\n`
   if (f) code += `plot(xx, f(xx), 'g--');\n`
-  code += `plot(x, y, 'ro');\nplot(xb, horner(P, xb), 'k*');\nxgrid();\nlegend(${f ? "['P(x)', 'f(x)', 'datos', 'P(xb)']" : "['P(x)', 'datos', 'P(xb)']"});\ntitle('${TITLES[kind].replace(/[():]/g, '')}');\n`
+  code += `plot(x, y, 'ro');\nplot(xb, horner(P, xb), 'k*');\nxgrid();\nlegend(${f ? `['P(x)', 'f(x)', '${L('datos', 'data')}', 'P(xb)']` : `['P(x)', '${L('datos', 'data')}', 'P(xb)']`});\ntitle('${TITLES[kind].replace(/[():]/g, '')}');\n`
   return code
 }

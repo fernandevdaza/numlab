@@ -1,6 +1,7 @@
 // Algoritmos del Tema 3: sistemas de ecuaciones lineales y no lineales, valores propios.
 // Funciones puras: devuelven toda la información intermedia para el "paso a paso".
 import { clone, eye, inverse, luFactor, luSolve, matVec, norm1, norm2, normInf, normInfM, solve, spectralRadius, transpose, vsub, type Mat, type Vec } from './linalg.ts'
+import { L as tr } from '../../i18n.ts' // `L` es la matriz triangular inferior en este archivo
 
 export * from './linalg.ts'
 
@@ -115,7 +116,7 @@ export function gauss(A: Mat, b: Vec, pivot: Pivot, t = 0): GaussResult {
     }
     const before = clone(M)
     const piv = M[k][k]
-    if (Math.abs(piv) <= 1e-14 * scale) return fail(`Pivote nulo en la columna ${k + 1}: toda la columna bajo la diagonal es cero ⇒ la matriz es singular (det A = 0). El sistema no tiene solución única.`)
+    if (Math.abs(piv) <= 1e-14 * scale) return fail(tr(`Pivote nulo en la columna ${k + 1}: toda la columna bajo la diagonal es cero ⇒ la matriz es singular (det A = 0). El sistema no tiene solución única.`, `Zero pivot in column ${k + 1}: the whole column below the diagonal is zero ⇒ the matrix is singular (det A = 0). The system has no unique solution.`))
     const mult: { i: number; m: number }[] = []
     for (let i = k + 1; i < n; i++) {
       const m = R(M[i][k] / piv)
@@ -135,7 +136,7 @@ export function gauss(A: Mat, b: Vec, pivot: Pivot, t = 0): GaussResult {
     }
     steps.push({ k, swap, pivot: piv, ratios, mult, before, after: clone(M) })
   }
-  if (Math.abs(M[n - 1][n - 1]) <= 1e-14 * scale) return fail(`El último pivote a₍${n}${n}₎ es cero ⇒ la matriz es singular (det A = 0). El sistema es incompatible o tiene infinitas soluciones.`)
+  if (Math.abs(M[n - 1][n - 1]) <= 1e-14 * scale) return fail(tr(`El último pivote a₍${n}${n}₎ es cero ⇒ la matriz es singular (det A = 0). El sistema es incompatible o tiene infinitas soluciones.`, `The last pivot a₍${n}${n}₎ is zero ⇒ the matrix is singular (det A = 0). The system is inconsistent or has infinitely many solutions.`))
   const x = new Array(n).fill(0)
   const back: BackStep[] = []
   for (let i = n - 1; i >= 0; i--) {
@@ -247,7 +248,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
         U[k][j] = v
         entries.push({ M: 'U', i: k, j, a: A[k][j], terms, value: v })
       }
-      if (tiny(U[k][k]) && k < n - 1) return fail(`u₍${k + 1}${k + 1}₎ = 0: Doolittle sin pivoteo no puede continuar. Reordena las ecuaciones o usa la variante con pivoteo parcial (PA = LU).`)
+      if (tiny(U[k][k]) && k < n - 1) return fail(tr(`u₍${k + 1}${k + 1}₎ = 0: Doolittle sin pivoteo no puede continuar. Reordena las ecuaciones o usa la variante con pivoteo parcial (PA = LU).`, `u₍${k + 1}${k + 1}₎ = 0: Doolittle without pivoting cannot continue. Reorder the equations or use the partial-pivoting variant (PA = LU).`))
       for (let i = k + 1; i < n; i++) {
         const terms: [number, number][] = []
         let v = A[i][k]
@@ -272,7 +273,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
         L[i][k] = v
         entries.push({ M: 'L', i, j: k, a: A[i][k], terms, value: v })
       }
-      if (tiny(L[k][k]) && k < n - 1) return fail(`l₍${k + 1}${k + 1}₎ = 0: Crout sin pivoteo no puede continuar. Reordena las ecuaciones.`)
+      if (tiny(L[k][k]) && k < n - 1) return fail(tr(`l₍${k + 1}${k + 1}₎ = 0: Crout sin pivoteo no puede continuar. Reordena las ecuaciones.`, `l₍${k + 1}${k + 1}₎ = 0: Crout without pivoting cannot continue. Reorder the equations.`))
       for (let j = k + 1; j < n; j++) {
         const terms: [number, number][] = []
         let v = A[k][j]
@@ -285,7 +286,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
       }
     }
   } else if (kind === 'cholesky') {
-    for (let i = 0; i < n; i++) for (let j = 0; j < i; j++) if (Math.abs(A[i][j] - A[j][i]) > 1e-12 * scale) return fail('Cholesky requiere una matriz simétrica (A = Aᵀ).')
+    for (let i = 0; i < n; i++) for (let j = 0; j < i; j++) if (Math.abs(A[i][j] - A[j][i]) > 1e-12 * scale) return fail(tr('Cholesky requiere una matriz simétrica (A = Aᵀ).', 'Cholesky requires a symmetric matrix (A = Aᵀ).'))
     for (let j = 0; j < n; j++) {
       const terms: [number, number][] = []
       let v = A[j][j]
@@ -293,7 +294,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
         terms.push([L[j][m], L[j][m]])
         v = R(v - R(L[j][m] ** 2))
       }
-      if (!(v > 0)) return fail(`a₍${j + 1}${j + 1}₎ − Σ l²₍${j + 1}k₎ = ${v.toPrecision(6)} ≤ 0: la matriz no es definida positiva, Cholesky no existe.`)
+      if (!(v > 0)) return fail(tr(`a₍${j + 1}${j + 1}₎ − Σ l²₍${j + 1}k₎ = ${v.toPrecision(6)} ≤ 0: la matriz no es definida positiva, Cholesky no existe.`, `a₍${j + 1}${j + 1}₎ − Σ l²₍${j + 1}k₎ = ${v.toPrecision(6)} ≤ 0: the matrix is not positive definite, so the Cholesky factorization does not exist.`))
       L[j][j] = R(Math.sqrt(v))
       entries.push({ M: 'L', i: j, j, a: A[j][j], terms, sqrt: true, value: L[j][j] })
       for (let i = j + 1; i < n; i++) {
@@ -323,7 +324,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
         swap = [k, p]
         sign = -sign
       }
-      if (tiny(W[k][k])) return fail(`Pivote nulo en la columna ${k + 1} incluso con pivoteo ⇒ la matriz es singular (det A = 0).`)
+      if (tiny(W[k][k])) return fail(tr(`Pivote nulo en la columna ${k + 1} incluso con pivoteo ⇒ la matriz es singular (det A = 0).`, `Zero pivot in column ${k + 1} even with pivoting ⇒ the matrix is singular (det A = 0).`))
       const mult: { i: number; m: number }[] = []
       for (let i = k + 1; i < n; i++) {
         const m = R(W[i][k] / W[k][k])
@@ -343,7 +344,7 @@ export function lu(A0: Mat, b0: Vec, kind: LUKind, t = 0): LUResult {
     }
   }
   const diagProd = Array.from({ length: n }, (_, i) => L[i][i] * U[i][i]).reduce((a, v) => a * v, sign)
-  if (tiny(U[n - 1][n - 1]) || tiny(L[n - 1][n - 1])) return fail('El último elemento diagonal es cero ⇒ la matriz es singular (det A = 0); la factorización existe pero el sistema no tiene solución única.')
+  if (tiny(U[n - 1][n - 1]) || tiny(L[n - 1][n - 1])) return fail(tr('El último elemento diagonal es cero ⇒ la matriz es singular (det A = 0); la factorización existe pero el sistema no tiene solución única.', 'The last diagonal entry is zero ⇒ the matrix is singular (det A = 0); the factorization exists but the system has no unique solution.'))
   const P = perm.map((p) => eye(n)[p])
   const Pb = perm.map((p) => b[p])
   const y = new Array(n).fill(0)
@@ -429,7 +430,7 @@ export function thomas(a0: Vec, b0: Vec, c0: Vec, d0: Vec, t = 0): ThomasResult 
     }
     rows.push({ i, a: ai, b: b[i], c: ci, d: d[i], m, bk: bk[i], dk: dk[i], den: bk[i], cp: i < n - 1 ? ci / bk[i] : NaN, dp: dk[i] / bk[i], x: NaN })
     if (Math.abs(bk[i]) < 1e-300 || !Number.isFinite(bk[i]))
-      return { ok: false, error: `Elemento diagonal transformado nulo en la fila ${i + 1} (b${i + 1} = 0 tras la eliminación). Thomas no hace pivoteo; revisa la dominancia diagonal.`, rows, x: [] }
+      return { ok: false, error: tr(`Elemento diagonal transformado nulo en la fila ${i + 1} (b${i + 1} = 0 tras la eliminación). Thomas no hace pivoteo; revisa la dominancia diagonal.`, `Zero transformed diagonal entry in row ${i + 1} (b${i + 1} = 0 after elimination). The Thomas algorithm does not pivot; check diagonal dominance.`), rows, x: [] }
   }
   const x = new Array(n).fill(0)
   x[n - 1] = R(dk[n - 1] / bk[n - 1])
@@ -475,7 +476,7 @@ export function iterativo(A: Mat, b: Vec, x0: Vec, o: { method: IterMethod; omeg
   const n = A.length
   const nrm = o.norm ?? 'inf'
   for (let i = 0; i < n; i++)
-    if (A[i][i] === 0) return { ok: false, error: `a₍${i + 1}${i + 1}₎ = 0: el método requiere elementos diagonales no nulos. Reordena las ecuaciones.`, rows: [], x: x0, converged: false, message: '' }
+    if (A[i][i] === 0) return { ok: false, error: tr(`a₍${i + 1}${i + 1}₎ = 0: el método requiere elementos diagonales no nulos. Reordena las ecuaciones.`, `a₍${i + 1}${i + 1}₎ = 0: the method requires nonzero diagonal entries. Reorder the equations.`), rows: [], x: x0, converged: false, message: '' }
   const rows: IterRow[] = [{ k: 0, x: x0.slice(), err: NaN, errRel: NaN }]
   let x = x0.slice()
   const w = o.method === 'gs' ? o.omega : 1
@@ -491,10 +492,10 @@ export function iterativo(A: Mat, b: Vec, x0: Vec, o: { method: IterMethod; omeg
     const errRel = err / Math.max(vnorm(xn, nrm), 1e-300)
     rows.push({ k, x: xn, err, errRel })
     x = xn
-    if (!xn.every(Number.isFinite) || normInf(xn) > 1e12) return { ok: true, rows, x, converged: false, message: `La iteración diverge (‖x⁽ᵏ⁾‖ → ∞ en k = ${k}). Reordena las ecuaciones para que el sistema sea lo más diagonalmente dominante posible.` }
-    if ((o.crit === 'rel' ? errRel : err) < o.tol) return { ok: true, rows, x, converged: true, message: `Convergió en ${k} iteraciones` }
+    if (!xn.every(Number.isFinite) || normInf(xn) > 1e12) return { ok: true, rows, x, converged: false, message: tr(`La iteración diverge (‖x⁽ᵏ⁾‖ → ∞ en k = ${k}). Reordena las ecuaciones para que el sistema sea lo más diagonalmente dominante posible.`, `The iteration diverges (‖x⁽ᵏ⁾‖ → ∞ at k = ${k}). Reorder the equations so the system is as diagonally dominant as possible.`) }
+    if ((o.crit === 'rel' ? errRel : err) < o.tol) return { ok: true, rows, x, converged: true, message: tr(`Convergió en ${k} iteraciones`, `Converged in ${k} iterations`) }
   }
-  return { ok: true, rows, x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones` }
+  return { ok: true, rows, x, converged: false, message: tr(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Tolerance not reached in ${o.maxIter} iterations`) }
 }
 
 /** Matriz de iteración T y vector c tales que x⁽ᵏ⁺¹⁾ = T x⁽ᵏ⁾ + c. */
@@ -600,18 +601,18 @@ export function newtonSistema(F: FnN[], J: FnN[][], x0: Vec, o: { tol: number; m
     const Fx = F.map((f) => f(...x))
     const Jx = J.map((r) => r.map((f) => f(...x)))
     if (!Fx.every(Number.isFinite) || !Jx.every((r) => r.every(Number.isFinite)))
-      return { rows, x, converged: false, message: `F(x) o J(x) no es finito en x⁽${k}⁾: revisa el dominio de las funciones o el valor inicial.`, iterates }
+      return { rows, x, converged: false, message: tr(`F(x) o J(x) no es finito en x⁽${k}⁾: revisa el dominio de las funciones o el valor inicial.`, `F(x) or J(x) is not finite at x⁽${k}⁾: check the domain of the functions or the initial value.`), iterates }
     const dx = solve(Jx, Fx.map((v) => -v))
-    if (!dx) return { rows, x, converged: false, message: `El Jacobiano es singular en x⁽${k}⁾ (det J = 0): Newton no puede continuar. Prueba otro valor inicial.`, iterates }
+    if (!dx) return { rows, x, converged: false, message: tr(`El Jacobiano es singular en x⁽${k}⁾ (det J = 0): Newton no puede continuar. Prueba otro valor inicial.`, `The Jacobian is singular at x⁽${k}⁾ (det J = 0): Newton cannot continue. Try another initial value.`), iterates }
     const xn = x.map((v, i) => v + dx[i])
     const err = normInf(dx)
     rows.push({ k, x, F: Fx, J: Jx, dx, xn, normF: normInf(Fx), err })
     iterates.push(xn)
     x = xn
-    if (!xn.every(Number.isFinite) || normInf(xn) > 1e12) return { rows, x, converged: false, message: 'La iteración diverge.', iterates }
-    if (err < o.tol) return { rows, x, converged: true, message: `Convergió en ${k + 1} iteraciones`, iterates }
+    if (!xn.every(Number.isFinite) || normInf(xn) > 1e12) return { rows, x, converged: false, message: tr('La iteración diverge.', 'The iteration diverges.'), iterates }
+    if (err < o.tol) return { rows, x, converged: true, message: tr(`Convergió en ${k + 1} iteraciones`, `Converged in ${k + 1} iterations`), iterates }
   }
-  return { rows, x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones`, iterates }
+  return { rows, x, converged: false, message: tr(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Tolerance not reached in ${o.maxIter} iterations`), iterates }
 }
 
 /* ═══════════════════════ Punto fijo para sistemas no lineales ═══════════════════════ */
@@ -643,11 +644,11 @@ export function puntoFijoSistema(G: FnN[], x0: Vec, o: { tol: number; maxIter: n
     const err = normInf(vsub(xn, x))
     rows.push({ k, x: xn, err })
     x = xn
-    if (!xn.every(Number.isFinite)) return { rows, x, converged: false, message: `g(x⁽${k - 1}⁾) no es un número real (fuera del dominio de alguna gᵢ, p. ej. raíz de un negativo): prueba otro despeje o otro valor inicial.` }
-    if (normInf(xn) > 1e12) return { rows, x, converged: false, message: 'La iteración diverge: la condición de suficiencia no se cumple cerca de la solución; prueba otro despeje gᵢ.' }
-    if (err < o.tol) return { rows, x, converged: true, message: `Convergió en ${k} iteraciones` }
+    if (!xn.every(Number.isFinite)) return { rows, x, converged: false, message: tr(`g(x⁽${k - 1}⁾) no es un número real (fuera del dominio de alguna gᵢ, p. ej. raíz de un negativo): prueba otro despeje o otro valor inicial.`, `g(x⁽${k - 1}⁾) is not a real number (outside the domain of some gᵢ, e.g. square root of a negative): try another rearrangement or another initial value.`) }
+    if (normInf(xn) > 1e12) return { rows, x, converged: false, message: tr('La iteración diverge: la condición de suficiencia no se cumple cerca de la solución; prueba otro despeje gᵢ.', 'The iteration diverges: the sufficient condition does not hold near the solution; try another rearrangement gᵢ.') }
+    if (err < o.tol) return { rows, x, converged: true, message: tr(`Convergió en ${k} iteraciones`, `Converged in ${k} iterations`) }
   }
-  return { rows, x, converged: false, message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones` }
+  return { rows, x, converged: false, message: tr(`No alcanzó la tolerancia en ${o.maxIter} iteraciones`, `Tolerance not reached in ${o.maxIter} iterations`) }
 }
 
 /* ═══════════════════════ Método de la potencia ═══════════════════════ */
@@ -681,12 +682,12 @@ const argmaxAbs = (v: Vec) => v.reduce((p, x, i) => (Math.abs(x) > Math.abs(v[p]
 export function potencia(A: Mat, x0: Vec, o: { variant: PowerVariant; shift: number; tol: number; maxIter: number }): PowerResult {
   const n = A.length
   const rows: PowerRow[] = []
-  if (normInf(x0) === 0) return { ok: false, error: 'El vector inicial no puede ser cero.', rows, lambda: NaN, v: x0, converged: false, message: '' }
+  if (normInf(x0) === 0) return { ok: false, error: tr('El vector inicial no puede ser cero.', 'The initial vector cannot be zero.'), rows, lambda: NaN, v: x0, converged: false, message: '' }
   let fac: ReturnType<typeof luFactor> = null
   if (o.variant === 'inversa') {
     const B = A.map((r, i) => r.map((v, j) => (i === j ? v - o.shift : v)))
     fac = luFactor(B)
-    if (!fac) return { ok: false, error: `A − qI es singular: q = ${o.shift} ya es un valor propio exacto de A. Cambia ligeramente el desplazamiento.`, rows, lambda: o.shift, v: x0, converged: false, message: '' }
+    if (!fac) return { ok: false, error: tr(`A − qI es singular: q = ${o.shift} ya es un valor propio exacto de A. Cambia ligeramente el desplazamiento.`, `A − qI is singular: q = ${o.shift} is already an exact eigenvalue of A. Change the shift slightly.`), rows, lambda: o.shift, v: x0, converged: false, message: '' }
   }
   let p = argmaxAbs(x0)
   let x = x0.map((v) => v / x0[p])
@@ -697,7 +698,7 @@ export function potencia(A: Mat, x0: Vec, o: { variant: PowerVariant; shift: num
     const lambda = o.variant === 'inversa' ? 1 / mu + o.shift : mu
     const pn = argmaxAbs(y)
     if (y[pn] === 0)
-      return { ok: true, rows, lambda: 0, v: x, converged: true, message: 'Ax = 0: A tiene el valor propio 0 con vector propio x; elige otro vector inicial.' }
+      return { ok: true, rows, lambda: 0, v: x, converged: true, message: tr('Ax = 0: A tiene el valor propio 0 con vector propio x; elige otro vector inicial.', 'Ax = 0: A has the eigenvalue 0 with eigenvector x; choose another initial vector.') }
     const xn = y.map((v) => v / y[pn])
     const err = normInf(vsub(x, xn))
     const errL = Math.abs(lambda - lamOld)
@@ -705,8 +706,8 @@ export function potencia(A: Mat, x0: Vec, o: { variant: PowerVariant; shift: num
     x = xn
     p = pn
     lamOld = lambda
-    if (!Number.isFinite(lambda)) return { ok: true, rows, lambda, v: x, converged: false, message: 'Se obtuvo un valor no finito.' }
-    if (err < o.tol) return { ok: true, rows, lambda, v: x, converged: true, message: `Convergió en ${k} iteraciones` }
+    if (!Number.isFinite(lambda)) return { ok: true, rows, lambda, v: x, converged: false, message: tr('Se obtuvo un valor no finito.', 'A non-finite value was obtained.') }
+    if (err < o.tol) return { ok: true, rows, lambda, v: x, converged: true, message: tr(`Convergió en ${k} iteraciones`, `Converged in ${k} iterations`) }
   }
   return {
     ok: true,
@@ -714,6 +715,6 @@ export function potencia(A: Mat, x0: Vec, o: { variant: PowerVariant; shift: num
     lambda: lamOld,
     v: x,
     converged: false,
-    message: `No alcanzó la tolerancia en ${o.maxIter} iteraciones (puede haber dos valores propios dominantes de igual módulo, p. ej. λ y −λ, o complejos conjugados).`,
+    message: tr(`No alcanzó la tolerancia en ${o.maxIter} iteraciones (puede haber dos valores propios dominantes de igual módulo, p. ej. λ y −λ, o complejos conjugados).`, `Tolerance not reached in ${o.maxIter} iterations (there may be two dominant eigenvalues of equal modulus, e.g. λ and −λ, or a complex-conjugate pair).`),
   }
 }

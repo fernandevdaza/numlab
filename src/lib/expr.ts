@@ -1,5 +1,6 @@
 // Expresiones matemáticas: parseo, compilación, derivación simbólica y conversión a TeX / Scilab.
 import { create, all, type MathNode } from 'mathjs'
+import { L } from '../i18n.ts'
 
 export const math = create(all, { number: 'number' })
 
@@ -53,7 +54,7 @@ const KNOWN_CONSTANTS = new Set(['pi', 'e', 'E', 'PI', 'i', 'Infinity', 'NaN', '
 /** Compila una expresión en las variables dadas (por defecto x). Nunca lanza excepción. */
 export function compile(src: string, vars: string[] = ['x']): CompileResult {
   try {
-    if (!src.trim()) return { ok: false, src, error: 'Expresión vacía' }
+    if (!src.trim()) return { ok: false, src, error: L('Expresión vacía', 'Empty expression') }
     const node = math.parse(normalize(src))
     // Verificar variables libres desconocidas
     const unknown = new Set<string>()
@@ -68,7 +69,10 @@ export function compile(src: string, vars: string[] = ['x']): CompileResult {
       return {
         ok: false,
         src,
-        error: `Variable desconocida: ${[...unknown].join(', ')}. Variables permitidas: ${vars.join(', ')}`,
+        error: L(
+          `Variable desconocida: ${[...unknown].join(', ')}. Variables permitidas: ${vars.join(', ')}`,
+          `Unknown variable: ${[...unknown].join(', ')}. Allowed variables: ${vars.join(', ')}`,
+        ),
       }
     }
     const code = node.compile()
@@ -90,7 +94,7 @@ export function compile(src: string, vars: string[] = ['x']): CompileResult {
     } catch (e: any) {
       const msg = String(e?.message ?? e)
       if (/Too few arguments|Too many arguments|Wrong number of arguments/i.test(msg))
-        return { ok: false, src, error: 'Número de argumentos incorrecto en una función (p. ej. sqrt() vacío)' }
+        return { ok: false, src, error: L('Número de argumentos incorrecto en una función (p. ej. sqrt() vacío)', 'Wrong number of arguments in a function (e.g. empty sqrt())') }
     }
     return { ok: true, src, node, f, tex: toTex(node), vars }
   } catch (e: any) {
@@ -98,7 +102,9 @@ export function compile(src: string, vars: string[] = ['x']): CompileResult {
   }
 }
 
+/** Mensajes de math.js: en español se traducen; en inglés se dejan tal cual (ya están en inglés). */
 function traducirError(msg: string): string {
+  if (L(false, true)) return msg
   return msg
     .replace('Unexpected end of expression', 'Expresión incompleta')
     .replace('Parenthesis ) expected', 'Falta cerrar paréntesis )')
@@ -135,7 +141,7 @@ export function compileDerivative(c: Compiled, variable = 'x', order = 1): Compi
     for (let k = 0; k < order; k++) n = derivative(n, variable)
     return compile(n.toString(), c.vars)
   } catch (e: any) {
-    return { ok: false, src: c.src, error: 'No se pudo derivar: ' + (e?.message ?? e) }
+    return { ok: false, src: c.src, error: L('No se pudo derivar: ', 'Could not differentiate: ') + (e?.message ?? e) }
   }
 }
 

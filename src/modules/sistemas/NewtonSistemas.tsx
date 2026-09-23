@@ -9,6 +9,7 @@ import { Alert, Card, DataTable, Examples, ExprField, FieldRow, IntField, Method
 import * as A from './algorithms'
 import { N, Note, readVec, sciVec, texM, TOPIC, vecText } from './shared'
 import { THEORY, TITLES } from './theory'
+import { L } from '../../i18n'
 
 const VARS = ['x', 'y', 'z', 'w']
 
@@ -28,14 +29,14 @@ const EJ36 = { n: 2, eqs: ['x^2 - y - 0.2', 'y^2 - x - 0.3', '', ''], tol: '1e-6
 const P61 = { n: 2, eqs: ['4x^2 - y^2 - 1', 'x^2 - 2x + y^2 - 4y - 3', '', ''], tol: '1e-6' }
 
 const EXAMPLES: { label: string; value: Partial<S> }[] = [
-  { label: 'Ej. 3.6 desde (−0.3, −0.1)', value: { ...EJ36, x0: '-0.3 -0.1' } },
-  { label: 'Ej. 3.6 desde (1.2, 1.2)', value: { ...EJ36, x0: '1.2 1.2' } },
-  { label: 'Ej. 3.5: x² + y² = 2, xy = 1 (tangentes)', value: { n: 2, eqs: ['x^2 + y^2 - 2', 'x*y - 1', '', ''], x0: '1.5 0.8', tol: '1e-8' } },
-  { label: 'Práct. 6.1 desde (0.5, −0.8)', value: { ...P61, x0: '0.5 -0.8' } },
-  { label: 'Práct. 6.1 desde (−1.7, 3)', value: { ...P61, x0: '-1.7 3' } },
+  { label: L('Ej. 3.6 desde (−0.3, −0.1)', 'Ex. 3.6 from (−0.3, −0.1)'), value: { ...EJ36, x0: '-0.3 -0.1' } },
+  { label: L('Ej. 3.6 desde (1.2, 1.2)', 'Ex. 3.6 from (1.2, 1.2)'), value: { ...EJ36, x0: '1.2 1.2' } },
+  { label: L('Ej. 3.5: x² + y² = 2, xy = 1 (tangentes)', 'Ex. 3.5: x² + y² = 2, xy = 1 (tangent)'), value: { n: 2, eqs: ['x^2 + y^2 - 2', 'x*y - 1', '', ''], x0: '1.5 0.8', tol: '1e-8' } },
+  { label: L('Práct. 6.1 desde (0.5, −0.8)', 'Practice 6.1 from (0.5, −0.8)'), value: { ...P61, x0: '0.5 -0.8' } },
+  { label: L('Práct. 6.1 desde (−1.7, 3)', 'Practice 6.1 from (−1.7, 3)'), value: { ...P61, x0: '-1.7 3' } },
   { label: 'Burden 10.2 (1,1)', value: { n: 2, eqs: ['x^2 - 10x + y^2 + 8', 'x*y^2 + x - 10y + 8', '', ''], x0: '0 0', tol: '1e-10' } },
   { label: 'Burden 3×3', value: { n: 3, eqs: ['3x - cos(y*z) - 1/2', 'x^2 - 81(y + 0.1)^2 + sin(z) + 1.06', 'exp(-x*y) + 20z + (10pi - 3)/3', ''], x0: '0.1 0.1 -0.1', tol: '1e-10' } },
-  { label: 'J singular en x⁽⁰⁾', value: { n: 2, eqs: ['x^2 + y^2 - 4', 'x*y - 1', '', ''], x0: '0 0', tol: '1e-10' } },
+  { label: L('J singular en x⁽⁰⁾', 'J singular at x⁽⁰⁾'), value: { n: 2, eqs: ['x^2 + y^2 - 4', 'x*y - 1', '', ''], x0: '0 0', tol: '1e-10' } },
 ]
 
 export function NewtonSistemas() {
@@ -63,7 +64,7 @@ export function NewtonSistemas() {
         try {
           node = derivative(F[i].node, vs[j])
         } catch (e: any) {
-          return { error: `No se pudo derivar f${i + 1} respecto de ${vs[j]}: ${e?.message ?? e}` }
+          return { error: L(`No se pudo derivar f${i + 1} respecto de ${vs[j]}: ${e?.message ?? e}`, `Could not differentiate f${i + 1} with respect to ${vs[j]}: ${e?.message ?? e}`) }
         }
         const c = compile(node.toString(), vs)
         if (!c.ok) return { error: `∂f${i + 1}/∂${vs[j]}: ${c.error}` }
@@ -74,7 +75,7 @@ export function NewtonSistemas() {
     const x0 = readVec(d.x0, n, 'x⁽⁰⁾')
     if (typeof x0 === 'string') return { error: x0 }
     const tol = evalNumber(d.tol)
-    if (!(tol > 0)) return { error: 'La tolerancia debe ser un número positivo.' }
+    if (!(tol > 0)) return { error: L('La tolerancia debe ser un número positivo.', 'The tolerance must be a positive number.') }
     const res = A.newtonSistema(
       F.map((f) => f.f),
       J.map((r) => r.map((f) => f.f)),
@@ -86,24 +87,24 @@ export function NewtonSistemas() {
 
   const inputs = (
     <>
-      <IntField label="Número de ecuaciones n" value={s.n} onChange={(n) => set({ n })} min={2} max={4} hint={`Variables: ${vars.join(', ')}`} />
+      <IntField label={L('Número de ecuaciones n', 'Number of equations n')} value={s.n} onChange={(n) => set({ n })} min={2} max={4} hint={`Variables: ${vars.join(', ')}`} />
       {vars.map((_, i) => (
         <ExprField key={i} label={`f${i + 1}(${vars.join(', ')}) = 0`} value={s.eqs[i] ?? ''} onChange={(e) => setEq(i, e)} vars={vars} texPrefix={`f_{${i + 1}} =`} />
       ))}
-      <VectorField label={<>Valor inicial <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>} value={s.x0} onChange={(x0) => set({ x0 })} />
+      <VectorField label={L(<>Valor inicial <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>, <>Initial value <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>)} value={s.x0} onChange={(x0) => set({ x0 })} />
       <FieldRow>
-        <NumField label="Precisión eps" value={s.tol} onChange={(tol) => set({ tol })} />
-        <IntField label="Máx. iteraciones" value={s.maxIter} onChange={(maxIter) => set({ maxIter })} min={1} max={500} />
+        <NumField label={L('Precisión eps', 'Tolerance eps')} value={s.tol} onChange={(tol) => set({ tol })} />
+        <IntField label={L('Máx. iteraciones', 'Max. iterations')} value={s.maxIter} onChange={(maxIter) => set({ maxIter })} min={1} max={500} />
       </FieldRow>
       {s.n === 2 && (
         <>
           <FieldRow>
-            <NumField label="Gráfica: x mín" value={s.xmin} onChange={(xmin) => set({ xmin })} placeholder="auto" />
-            <NumField label="x máx" value={s.xmax} onChange={(xmax) => set({ xmax })} placeholder="auto" />
+            <NumField label={L('Gráfica: x mín', 'Plot: x min')} value={s.xmin} onChange={(xmin) => set({ xmin })} placeholder="auto" />
+            <NumField label={L('x máx', 'x max')} value={s.xmax} onChange={(xmax) => set({ xmax })} placeholder="auto" />
           </FieldRow>
           <FieldRow>
-            <NumField label="y mín" value={s.ymin} onChange={(ymin) => set({ ymin })} placeholder="auto" />
-            <NumField label="y máx" value={s.ymax} onChange={(ymax) => set({ ymax })} placeholder="auto" />
+            <NumField label={L('y mín', 'y min')} value={s.ymin} onChange={(ymin) => set({ ymin })} placeholder="auto" />
+            <NumField label={L('y máx', 'y max')} value={s.ymax} onChange={(ymax) => set({ ymax })} placeholder="auto" />
           </FieldRow>
         </>
       )}
@@ -142,26 +143,26 @@ function NewtonResults({ c, s, digits }: { c: Calc; s: S; digits: number }) {
   const rows = res.rows.map((r) => ({ k: r.k, err: r.err, ...Object.fromEntries(r.x.map((v, i) => ['x' + i, v])), ...Object.fromEntries(r.F.map((v, i) => ['f' + i, v])) }))
   rows.push({ k: res.rows.length, err: NaN, ...Object.fromEntries(res.x.map((v, i) => ['x' + i, v])), ...Object.fromEntries(Fx.map((v, i) => ['f' + i, v])) } as any)
   const tabs = [
-    ...(n === 2 ? [{ label: 'Gráfica', content: <Card><ContourPlot c={c} s={s} /></Card> }] : []),
-    { label: 'Paso a paso', content: <Card><Steps steps={newtonSteps(c)} /></Card> },
-    { label: 'Convergencia', content: <Card><ConvPlot res={res} /></Card> },
+    ...(n === 2 ? [{ label: L('Gráfica', 'Plot'), content: <Card><ContourPlot c={c} s={s} /></Card> }] : []),
+    { label: L('Paso a paso', 'Step by step'), content: <Card><Steps steps={newtonSteps(c)} /></Card> },
+    { label: L('Convergencia', 'Convergence'), content: <Card><ConvPlot res={res} /></Card> },
   ]
   return (
     <>
       <Stats
         items={[
-          { label: `Solución (${vs.join(', ')})`, value: vecText(res.x, Math.min(digits, 10)), accent: true },
-          { label: 'Iteraciones', value: res.rows.length, hint: res.converged ? 'convergió' : 'no convergió' },
+          { label: L(`Solución (${vs.join(', ')})`, `Solution (${vs.join(', ')})`), value: vecText(res.x, Math.min(digits, 10)), accent: true },
+          { label: L('Iteraciones', 'Iterations'), value: res.rows.length, hint: res.converged ? L('convergió', 'converged') : L('no convergió', 'did not converge') },
           { label: '‖F(x*)‖∞', value: fmtErr(A.normInf(Fx)) },
-          { label: 'det J(x*)', value: fmt(detJ, 6), hint: Math.abs(detJ) < 1e-8 ? 'J casi singular: convergencia lenta' : 'J no singular ⇒ convergencia cuadrática' },
+          { label: 'det J(x*)', value: fmt(detJ, 6), hint: Math.abs(detJ) < 1e-8 ? L('J casi singular: convergencia lenta', 'J nearly singular: slow convergence') : L('J no singular ⇒ convergencia cuadrática', 'J nonsingular ⇒ quadratic convergence') },
         ]}
       />
       <Alert kind={res.converged ? 'ok' : 'warn'}>{res.message}</Alert>
-      <Card title="Jacobiano simbólico">
+      <Card title={L('Jacobiano simbólico', 'Symbolic Jacobian')}>
         <Tex block>{`J(${vs.join(',')}) = \\begin{bmatrix}${c.J.map((r) => r.map((f) => f.tex).join(' & ')).join(' \\\\ ')}\\end{bmatrix}`}</Tex>
       </Card>
       <Tabs tabs={tabs} />
-      <Card title="Tabla de iteraciones">
+      <Card title={L('Tabla de iteraciones', 'Iteration table')}>
         <DataTable columns={cols} rows={rows} highlightLast={res.converged} filename="newton_sistemas" />
       </Card>
       <ScilabCode code={scilabNewton(c, s)} filename="newton_sistemas" />
@@ -172,23 +173,23 @@ function NewtonResults({ c, s, digits }: { c: Calc; s: S; digits: number }) {
 function newtonSteps(c: Calc): { text?: string; tex?: string }[] {
   const { vs, res } = c
   const out: { text?: string; tex?: string }[] = []
-  out.push({ text: 'Sistema F(x) = 0:', tex: '\\begin{cases}' + c.F.map((f, i) => `f_{${i + 1}} = ${f.tex} = 0`).join(' \\\\ ') + '\\end{cases}' })
-  out.push({ text: 'Derivadas parciales (matriz Jacobiana Jᵢⱼ = ∂fᵢ/∂xⱼ):', tex: '\\begin{aligned}' + c.J.flatMap((r, i) => r.map((f, j) => `\\frac{\\partial f_{${i + 1}}}{\\partial ${vs[j]}} &= ${f.tex}`)).join(' \\\\ ') + '\\end{aligned}' })
+  out.push({ text: L('Sistema F(x) = 0:', 'System F(x) = 0:'), tex: '\\begin{cases}' + c.F.map((f, i) => `f_{${i + 1}} = ${f.tex} = 0`).join(' \\\\ ') + '\\end{cases}' })
+  out.push({ text: L('Derivadas parciales (matriz Jacobiana Jᵢⱼ = ∂fᵢ/∂xⱼ):', 'Partial derivatives (Jacobian matrix Jᵢⱼ = ∂fᵢ/∂xⱼ):'), tex: '\\begin{aligned}' + c.J.flatMap((r, i) => r.map((f, j) => `\\frac{\\partial f_{${i + 1}}}{\\partial ${vs[j]}} &= ${f.tex}`)).join(' \\\\ ') + '\\end{aligned}' })
   res.rows.slice(0, 3).forEach((r) => {
     const k = r.k
     out.push({
-      text: `Iteración ${k + 1}: evaluamos en x⁽${k}⁾ = (${r.x.map((v) => fmt(v, 8)).join(', ')})`,
+      text: L(`Iteración ${k + 1}: evaluamos en x⁽${k}⁾ = (${r.x.map((v) => fmt(v, 8)).join(', ')})`, `Iteration ${k + 1}: evaluate at x⁽${k}⁾ = (${r.x.map((v) => fmt(v, 8)).join(', ')})`),
       tex: `F(\\mathbf{x}^{(${k})}) = ${texM(r.F)},\\qquad J(\\mathbf{x}^{(${k})}) = ${texM(r.J)}`,
     })
     out.push({
-      text: 'Resolvemos el sistema lineal J Δx = −F (Gauss con pivoteo; no se calcula J⁻¹):',
+      text: L('Resolvemos el sistema lineal J Δx = −F (Gauss con pivoteo; no se calcula J⁻¹):', 'Solve the linear system J Δx = −F (Gaussian elimination with pivoting; J⁻¹ is not computed):'),
       tex: `${texM(r.J)}\\,\\Delta\\mathbf{x} = ${texM(r.F.map((v) => -v))}\\;\\Rightarrow\\;\\Delta\\mathbf{x}^{(${k})} = ${texM(r.dx)}`,
     })
     out.push({
       tex: `\\mathbf{x}^{(${k + 1})} = \\mathbf{x}^{(${k})} + \\Delta\\mathbf{x}^{(${k})} = ${texM(r.x)} + ${texM(r.dx)} = ${texM(r.xn)},\\qquad \\|\\Delta\\mathbf{x}\\|_\\infty = ${N(r.err)}`,
     })
   })
-  if (res.rows.length > 3) out.push({ text: `… hasta la iteración ${res.rows.length} (ver tabla).` })
+  if (res.rows.length > 3) out.push({ text: L(`… hasta la iteración ${res.rows.length} (ver tabla).`, `… up to iteration ${res.rows.length} (see table).`) })
   if (!res.converged) out.push({ text: '⚠ ' + res.message })
   return out
 }
@@ -200,8 +201,13 @@ function ConvPlot({ res }: { res: A.NewtonResult }) {
   ]
   return (
     <>
-      <Plot data={data} layout={{ yaxis: { type: 'log', title: { text: 'escala log' }, exponentformat: 'power' }, xaxis: { title: { text: 'k' }, dtick: 1 } }} />
-      <Note>Convergencia cuadrática: cerca de la solución, el número de cifras correctas se duplica en cada paso (la curva cae cada vez más rápido). Si J es singular en la solución (curvas tangentes, Ej. 3.5) la convergencia es sólo lineal.</Note>
+      <Plot data={data} layout={{ yaxis: { type: 'log', title: { text: L('escala log', 'log scale') }, exponentformat: 'power' }, xaxis: { title: { text: 'k' }, dtick: 1 } }} />
+      <Note>
+        {L(
+          'Convergencia cuadrática: cerca de la solución, el número de cifras correctas se duplica en cada paso (la curva cae cada vez más rápido). Si J es singular en la solución (curvas tangentes, Ej. 3.5) la convergencia es sólo lineal.',
+          'Quadratic convergence: near the solution the number of correct digits doubles at each step (the curve drops faster and faster). If J is singular at the solution (tangent curves, Ex. 3.5) convergence is only linear.',
+        )}
+      </Note>
     </>
   )
 }
@@ -231,14 +237,19 @@ function ContourPlot({ c, s }: { c: Calc; s: S }) {
       return { type: 'contour', x: gx, y: gy, z, contours: { start: 0, end: 0, size: 1, coloring: 'lines' }, colorscale: [[0, col], [1, col]], line: { width: 2.5 }, showscale: false, name: `f${i + 1} = 0`, showlegend: true, hoverinfo: 'skip' }
     })
     const it = c.res.iterates.slice(0, 15)
-    traces.push({ x: it.map((p) => p[0]), y: it.map((p) => p[1]), type: 'scatter', mode: 'lines+markers+text', text: it.map((_, k) => `x${k}`), textposition: 'top right', name: 'iteraciones', line: { color: SERIES[2], width: 1.3, dash: 'dot' }, marker: { color: SERIES[3], size: 7 } })
-    if (c.res.converged) traces.push({ x: [c.res.x[0]], y: [c.res.x[1]], type: 'scatter', mode: 'markers', name: 'solución', marker: { color: SERIES[5], size: 13, symbol: 'star' } })
+    traces.push({ x: it.map((p) => p[0]), y: it.map((p) => p[1]), type: 'scatter', mode: 'lines+markers+text', text: it.map((_, k) => `x${k}`), textposition: 'top right', name: L('iteraciones', 'iterations'), line: { color: SERIES[2], width: 1.3, dash: 'dot' }, marker: { color: SERIES[3], size: 7 } })
+    if (c.res.converged) traces.push({ x: [c.res.x[0]], y: [c.res.x[1]], type: 'scatter', mode: 'markers', name: L('solución', 'solution'), marker: { color: SERIES[5], size: 13, symbol: 'star' } })
     return { traces, range: [x0, x1, y0, y1] }
   }, [c, s.xmin, s.xmax, s.ymin, s.ymax])
   return (
     <>
       <Plot data={data.traces} height={440} layout={{ xaxis: { title: { text: 'x' }, range: data.range.slice(0, 2) }, yaxis: { title: { text: 'y' }, range: data.range.slice(2) } }} />
-      <Note>Las curvas de nivel cero de f₁ y f₂; cada intersección es una solución del sistema. Cambia x⁽⁰⁾ para converger a otra intersección.</Note>
+      <Note>
+        {L(
+          'Las curvas de nivel cero de f₁ y f₂; cada intersección es una solución del sistema. Cambia x⁽⁰⁾ para converger a otra intersección.',
+          'The zero level curves of f₁ and f₂; each intersection is a solution of the system. Change x⁽⁰⁾ to converge to another intersection.',
+        )}
+      </Note>
     </>
   )
 }
@@ -256,7 +267,7 @@ function scilabNewton(c: Calc, s: S): string {
   const n = c.n
   const Fl = c.F.map((f, i) => `  F(${i + 1}) = ${sciExpr(f.node, c.vs)};`).join('\n')
   const Jl = c.J.flatMap((r, i) => r.map((f, j) => `  J(${i + 1}, ${j + 1}) = ${sciExpr(f.node, c.vs)};`)).join('\n')
-  return `// Newton para sistemas no lineales — generado por NumLab
+  return `// ${L('Newton para sistemas no lineales — generado por NumLab', 'Newton for nonlinear systems — generated by NumLab')}
 // Variables: ${c.vs.map((v, i) => `${v} = x(${i + 1})`).join(', ')}
 clear; clc;
 function F = fun(x)
@@ -272,20 +283,20 @@ x = ${sciVec(c.x0)};
 tol = ${s.tol}; maxit = ${s.maxIter};
 mprintf('%4s', 'k'); mprintf('%16s', 'x' + string((1:${n})')); mprintf('%14s\\n', '||dx||');
 for k = 0:maxit-1
-  dx = -jac(x) \\ fun(x);      // resolver J*dx = -F
+  dx = -jac(x) \\ fun(x);      // ${L('resolver', 'solve')} J*dx = -F
   x = x + dx;
   mprintf('%4d', k+1); mprintf('%16.10f', x); mprintf('%14.3e\\n', norm(dx, %inf));
   if norm(dx, %inf) < tol then break; end
 end
-disp('Solución:'); disp(x);
+disp('${L('Solución:', 'Solution:')}'); disp(x);
 mprintf('||F(x)||inf = %e\\n', norm(fun(x), %inf));
-// Verificación con fsolve de Scilab
+// ${L('Verificación con fsolve de Scilab', 'Check with the Scilab fsolve')}
 [xs, v, info] = fsolve(${sciVec(c.x0)}, fun, jac);
 disp('fsolve:'); disp(xs);
 ${
   n === 2
     ? `
-// Curvas f1 = 0 y f2 = 0
+// ${L('Curvas f1 = 0 y f2 = 0', 'Curves f1 = 0 and f2 = 0')}
 xx = linspace(${fmt(c.res.x[0] - 3, 4)}, ${fmt(c.res.x[0] + 3, 4)}, 150);
 yy = linspace(${fmt(c.res.x[1] - 3, 4)}, ${fmt(c.res.x[1] + 3, 4)}, 150);
 Z1 = zeros(150, 150); Z2 = Z1;
@@ -297,7 +308,7 @@ end
 contour2d(xx, yy, Z1, [0 0], style=[2 2]);
 contour2d(xx, yy, Z2, [0 0], style=[5 5]);
 plot(x(1), x(2), 'k*');
-xtitle('f1 = 0 (azul), f2 = 0 (rojo)', 'x', 'y');
+xtitle('${L('f1 = 0 (azul), f2 = 0 (rojo)', 'f1 = 0 (blue), f2 = 0 (red)')}', 'x', 'y');
 `
     : ''
 }`

@@ -9,6 +9,8 @@ import { IconChevron, IconGithub, IconHelp, IconKeyboard, IconMenu, IconMoon, Ic
 import { useLocalState } from './lib/useLocalState'
 import { CONFIG } from './config'
 import { Home } from './Home'
+import { LangSwitch } from './components/LangSwitch'
+import { L } from './i18n'
 
 const LOGO = import.meta.env.BASE_URL + 'favicon.svg'
 
@@ -66,8 +68,10 @@ function search(q: string): Hit[] {
   for (const t of TOPICS)
     for (const m of t.methods) {
       const title = fold(m.title)
-      // "Método de la secante" → "secante" para que "sec" lo ponga primero
-      const core = title.replace(/^(metodo|metodos|regla|reglas)\s+(de\s+)?(la\s+|las\s+|los\s+|el\s+)?/, '')
+      // "Método de la secante" → "secante" (y "The method of …" → "…") para que "sec" lo ponga primero
+      const core = title
+        .replace(/^(metodo|metodos|regla|reglas)\s+(de\s+)?(la\s+|las\s+|los\s+|el\s+)?/, '')
+        .replace(/^(the\s+)?(method|methods|rule|rules)\s+(of\s+)?(the\s+)?/, '')
       const hay = [title, fold(m.keywords ?? ''), fold(m.summary ?? ''), fold(m.group ?? ''), fold(t.title), fold(t.shortTitle ?? '')].join(' · ')
       if (!terms.every((w) => hay.includes(w))) continue
       let score = 0
@@ -212,9 +216,9 @@ export function App() {
   return (
     <div className={'app' + (navOpen ? ' nav-open' : '')}>
       <a className="skip-link" href="#contenido" onClick={(e) => (e.preventDefault(), document.getElementById('contenido')?.focus())}>
-        Saltar al contenido
+        {L('Saltar al contenido', 'Skip to content')}
       </a>
-      <aside className="sidebar" aria-label="Menú de métodos">
+      <aside className="sidebar" aria-label={L('Menú de métodos', 'Methods menu')}>
         <a className="brand" href="#/">
           <img src={LOGO} alt="" width={34} height={34} />
           <div>
@@ -230,8 +234,8 @@ export function App() {
             ref={searchRef}
             className="input"
             type="search"
-            placeholder="Buscar método…"
-            aria-label="Buscar método"
+            placeholder={L('Buscar método…', 'Search methods…')}
+            aria-label={L('Buscar método', 'Search methods')}
             aria-controls="nav-list"
             aria-activedescendant={searching && hits[sel] ? `sr-${sel}` : undefined}
             autoComplete="off"
@@ -262,11 +266,15 @@ export function App() {
           />
           {!query && <span className="kbd">{MOD_KEY === '⌘' ? '⌘K' : 'Ctrl K'}</span>}
         </div>
-        <nav className="nav" id="nav-list" ref={navRef} aria-label={searching ? 'Resultados de búsqueda' : 'Temas'}>
+        <nav className="nav" id="nav-list" ref={navRef} aria-label={searching ? L('Resultados de búsqueda', 'Search results') : L('Temas', 'Topics')}>
           {searching ? (
-            <div className="search-results" role="listbox" aria-label="Resultados">
+            <div className="search-results" role="listbox" aria-label={L('Resultados', 'Results')}>
               <div className="search-count" aria-live="polite">
-                {hits.length === 0 ? 'Sin resultados' : hits.length === 1 ? '1 resultado' : `${hits.length} resultados`}
+                {hits.length === 0
+                  ? L('Sin resultados', 'No results')
+                  : hits.length === 1
+                    ? L('1 resultado', '1 result')
+                    : L(`${hits.length} resultados`, `${hits.length} results`)}
               </div>
               {hits.map((h, i) => (
                 <a
@@ -283,7 +291,7 @@ export function App() {
                     <Highlight text={h.method.title} q={query} />
                   </div>
                   <div className="sr-meta">
-                    {h.topic.num > 0 ? `Tema ${h.topic.num} · ` : ''}
+                    {h.topic.num > 0 ? `${L('Tema', 'Topic')} ${h.topic.num} · ` : ''}
                     {topicLabel(h.topic)}
                     {h.method.group ? ` · ${h.method.group}` : ''}
                   </div>
@@ -292,7 +300,14 @@ export function App() {
               ))}
               {hits.length === 0 && (
                 <div className="nav-empty">
-                  Prueba con otra palabra (p. ej. <i>newton</i>, <i>simpson</i>, <i>error</i>).
+                  {L(
+                    <>
+                      Prueba con otra palabra (p. ej. <i>newton</i>, <i>simpson</i>, <i>error</i>).
+                    </>,
+                    <>
+                      Try another word (e.g. <i>newton</i>, <i>simpson</i>, <i>error</i>).
+                    </>,
+                  )}
                 </div>
               )}
             </div>
@@ -335,8 +350,8 @@ export function App() {
           )}
         </nav>
         <div className="sidebar-foot">
-          <label className="digits-ctl" title="Cifras significativas en tablas y resultados">
-            Cifras
+          <label className="digits-ctl" title={L('Cifras significativas en tablas y resultados', 'Significant digits in tables and results')}>
+            {L('Cifras', 'Digits')}
             <select className="input sm" value={digits} onChange={(e) => setDigits(Number(e.target.value))}>
               {[4, 6, 8, 10, 12, 15].map((d) => (
                 <option key={d} value={d}>
@@ -347,11 +362,11 @@ export function App() {
           </label>
           <span className="spacer" />
           {CONFIG.repoUrl && (
-            <a className="icon-btn sm" href={CONFIG.repoUrl} target="_blank" rel="noopener noreferrer" aria-label="Código fuente en GitHub" title="Código fuente">
+            <a className="icon-btn sm" href={CONFIG.repoUrl} target="_blank" rel="noopener noreferrer" aria-label={L('Código fuente en GitHub', 'Source code on GitHub')} title={L('Código fuente', 'Source code')}>
               <IconGithub size={15} />
             </a>
           )}
-          <button type="button" className="icon-btn sm" onClick={() => openHelp('acerca')} aria-label="Acerca de" title="Acerca de">
+          <button type="button" className="icon-btn sm" onClick={() => openHelp('acerca')} aria-label={L('Acerca de', 'About')} title={L('Acerca de', 'About')}>
             <span style={{ font: '600 13px var(--display)', fontStyle: 'italic' }}>i</span>
           </button>
         </div>
@@ -359,13 +374,13 @@ export function App() {
       <div className="scrim" onClick={() => setNavOpen(false)} aria-hidden="true" />
       <main className={'main' + (scrolled ? ' scrolled' : '')} ref={mainRef}>
         <header className="topbar">
-          <button type="button" className="icon-btn menu-btn" onClick={() => setNavOpen(true)} aria-label="Abrir el menú" aria-expanded={navOpen}>
+          <button type="button" className="icon-btn menu-btn" onClick={() => setNavOpen(true)} aria-label={L('Abrir el menú', 'Open the menu')} aria-expanded={navOpen}>
             <IconMenu size={17} />
           </button>
-          <nav className="crumbs" aria-label="Ruta">
+          <nav className="crumbs" aria-label={L('Ruta', 'Breadcrumb')}>
             {found ? (
               <>
-                <a href="#/">Inicio</a>
+                <a href="#/">{L('Inicio', 'Home')}</a>
                 <span className="sep" aria-hidden="true">
                   /
                 </span>
@@ -376,11 +391,11 @@ export function App() {
                 <b aria-current="page">{found.method.title}</b>
               </>
             ) : route.length ? (
-              <a href="#/">Inicio</a>
+              <a href="#/">{L('Inicio', 'Home')}</a>
             ) : null}
           </nav>
           <div className="topbar-actions">
-            <button type="button" className="icon-btn" onClick={focusSearch} aria-label="Buscar método" title={`Buscar (${MOD_KEY === '⌘' ? '⌘K' : 'Ctrl+K'})`}>
+            <button type="button" className="icon-btn" onClick={focusSearch} aria-label={L('Buscar método', 'Search methods')} title={`${L('Buscar', 'Search')} (${MOD_KEY === '⌘' ? '⌘K' : 'Ctrl+K'})`}>
               <IconSearch size={16} />
             </button>
             <button
@@ -388,15 +403,26 @@ export function App() {
               className="icon-btn"
               aria-pressed={palette}
               onClick={() => setPalette(!palette)}
-              aria-label="Teclado de símbolos"
-              title={palette ? 'Teclado de símbolos: activado (aparece al escribir una expresión)' : 'Teclado de símbolos: desactivado'}
+              aria-label={L('Teclado de símbolos', 'Symbol keyboard')}
+              title={
+                palette
+                  ? L('Teclado de símbolos: activado (aparece al escribir una expresión)', 'Symbol keyboard: on (shows up while typing an expression)')
+                  : L('Teclado de símbolos: desactivado', 'Symbol keyboard: off')
+              }
             >
               <IconKeyboard size={17} />
             </button>
-            <button type="button" className="icon-btn" onClick={toggle} aria-label={dark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'} title={dark ? 'Tema claro' : 'Tema oscuro'}>
+            <LangSwitch />
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={toggle}
+              aria-label={dark ? L('Cambiar a tema claro', 'Switch to light theme') : L('Cambiar a tema oscuro', 'Switch to dark theme')}
+              title={dark ? L('Tema claro', 'Light theme') : L('Tema oscuro', 'Dark theme')}
+            >
               {dark ? <IconSun size={16} /> : <IconMoon size={16} />}
             </button>
-            <button type="button" className="icon-btn" onClick={() => openHelp()} aria-label="Ayuda" aria-haspopup="dialog" title={`Ayuda (? o ${MOD_KEY}/)`}>
+            <button type="button" className="icon-btn" onClick={() => openHelp()} aria-label={L('Ayuda', 'Help')} aria-haspopup="dialog" title={`${L('Ayuda', 'Help')} (? ${L('o', 'or')} ${MOD_KEY}/)`}>
               <IconHelp size={17} />
             </button>
           </div>
@@ -422,10 +448,12 @@ export function App() {
 function NotFound() {
   return (
     <div className="card" style={{ marginTop: 24, maxWidth: 560 }}>
-      <div className="card-title">Página no encontrada</div>
-      <p className="muted">Este enlace no corresponde a ningún método (quizá cambió de nombre).</p>
+      <div className="card-title">{L('Página no encontrada', 'Page not found')}</div>
+      <p className="muted">
+        {L('Este enlace no corresponde a ningún método (quizá cambió de nombre).', 'This link does not match any method (it may have been renamed).')}
+      </p>
       <a className="btn" href="#/">
-        Volver al inicio
+        {L('Volver al inicio', 'Back to home')}
       </a>
     </div>
   )

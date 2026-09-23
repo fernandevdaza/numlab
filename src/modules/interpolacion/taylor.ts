@@ -2,6 +2,8 @@
 // Evalúa el árbol de mathjs con aritmética de series truncadas: c_k = f^{(k)}(x0)/k!.
 // Es exacto (salvo redondeo) y muy rápido, a diferencia de derivar simbólicamente n veces.
 
+import { L } from '../../i18n.ts'
+
 type S = number[]
 
 const cst = (v: number, K: number): S => {
@@ -119,7 +121,7 @@ function ev(node: any, x0: number, K: number, v: string): S {
       return s
     }
     if (node.name in CONSTS) return cst(CONSTS[node.name], K)
-    throw new Error('Símbolo no soportado: ' + node.name)
+    throw new Error(L('Símbolo no soportado: ', 'Unsupported symbol: ') + node.name)
   }
   if (node.isOperatorNode) {
     const args = node.args.map((a: any) => ev(a, x0, K, v))
@@ -136,7 +138,7 @@ function ev(node: any, x0: number, K: number, v: string): S {
         return exp(mul(b, log(a)))
       }
     }
-    throw new Error('Operador no soportado: ' + node.op)
+    throw new Error(L('Operador no soportado: ', 'Unsupported operator: ') + node.op)
   }
   if (node.isFunctionNode) {
     const name = node.fn?.name ?? node.name
@@ -171,9 +173,9 @@ function ev(node: any, x0: number, K: number, v: string): S {
       case 'square': return mul(a, a)
       case 'cube': return mul(a, mul(a, a))
     }
-    throw new Error('Función no soportada para derivadas de orden alto: ' + name)
+    throw new Error(L('Función no soportada para derivadas de orden alto: ', 'Function not supported for high-order derivatives: ') + name)
   }
-  throw new Error('Expresión no soportada')
+  throw new Error(L('Expresión no soportada', 'Unsupported expression'))
 }
 
 /** Devuelve una función x ↦ f^{(k)}(x) usando series de Taylor. Lanza error si la expresión no es soportada. */

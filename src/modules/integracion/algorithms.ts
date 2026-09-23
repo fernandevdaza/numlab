@@ -1,6 +1,8 @@
 // Algoritmos de derivación e integración numérica (Tema 5).
 // Funciones puras: no dependen de React ni del parser de expresiones.
 
+import { L } from '../../i18n.ts'
+
 export type Fn = (x: number) => number
 export type Fn2 = (x: number, y: number) => number
 
@@ -56,44 +58,44 @@ export interface SchemeDef {
 
 export const SCHEMES: Record<DiffScheme, SchemeDef> = {
   progresiva2: {
-    label: 'Diferencia de avance', short: 'Avance', libro: true, eq: '(5.44)', k: 1, offsets: [0, 1], coefs: [-1, 1], den: 1, p: 1, even: false, errCoef: 1 / 2,
+    label: L('Diferencia de avance', 'Forward difference'), short: L('Avance', 'Forward'), libro: true, eq: '(5.44)', k: 1, offsets: [0, 1], coefs: [-1, 1], den: 1, p: 1, even: false, errCoef: 1 / 2,
     tex: "f'(x) \\approx \\frac{f(x+h) - f(x)}{h}", errTex: "-\\frac{h}{2}f''(\\xi)",
   },
   regresiva2: {
-    label: 'Diferencia de retroceso', short: 'Retroceso', libro: true, eq: '(5.45)', k: 1, offsets: [-1, 0], coefs: [-1, 1], den: 1, p: 1, even: false, errCoef: 1 / 2,
+    label: L('Diferencia de retroceso', 'Backward difference'), short: L('Retroceso', 'Backward'), libro: true, eq: '(5.45)', k: 1, offsets: [-1, 0], coefs: [-1, 1], den: 1, p: 1, even: false, errCoef: 1 / 2,
     tex: "f'(x) \\approx \\frac{f(x) - f(x-h)}{h}", errTex: "+\\frac{h}{2}f''(\\xi)",
   },
   centralMedio: {
-    label: 'Diferencia central (x ± h/2)', short: 'Central', libro: true, eq: '(5.46)', k: 1, offsets: [-0.5, 0.5], coefs: [-1, 1], den: 1, p: 2, even: true, errCoef: 1 / 24,
+    label: L('Diferencia central (x ± h/2)', 'Central difference (x ± h/2)'), short: 'Central', libro: true, eq: '(5.46)', k: 1, offsets: [-0.5, 0.5], coefs: [-1, 1], den: 1, p: 2, even: true, errCoef: 1 / 24,
     tex: "f'(x) \\approx \\frac{f(x+\\frac{h}{2}) - f(x-\\frac{h}{2})}{h}", errTex: "-\\frac{h^2}{24}f'''(\\xi)",
   },
   extrapolada: {
-    label: 'Diferencia extrapolada', short: 'Extrapolada', libro: true, eq: '(5.47)', k: 1, offsets: [-0.5, -0.25, 0.25, 0.5], coefs: [1, -8, 8, -1], den: 3, p: 4, even: true, errCoef: 1 / 7680,
+    label: L('Diferencia extrapolada', 'Extrapolated difference'), short: L('Extrapolada', 'Extrapolated'), libro: true, eq: '(5.47)', k: 1, offsets: [-0.5, -0.25, 0.25, 0.5], coefs: [1, -8, 8, -1], den: 3, p: 4, even: true, errCoef: 1 / 7680,
     tex: "f'(x) \\approx \\frac{8[f(x+\\frac{h}{4}) - f(x-\\frac{h}{4})] - [f(x+\\frac{h}{2}) - f(x-\\frac{h}{2})]}{3h}",
     errTex: '+\\frac{h^4}{120\\cdot 64}f^{(5)}(\\xi)',
   },
   segunda3: {
-    label: 'Segunda derivada (coef. indeterminados)', short: "f'' 3 puntos", libro: true, eq: '(5.49)', k: 2, offsets: [-1, 0, 1], coefs: [1, -2, 1], den: 1, p: 2, even: true, errCoef: 1 / 12,
+    label: L('Segunda derivada (coef. indeterminados)', 'Second derivative (undetermined coefficients)'), short: L("f'' 3 puntos", "f'' 3-point"), libro: true, eq: '(5.49)', k: 2, offsets: [-1, 0, 1], coefs: [1, -2, 1], den: 1, p: 2, even: true, errCoef: 1 / 12,
     tex: "f''(x) \\approx \\frac{f(x+h) - 2f(x) + f(x-h)}{h^2}", errTex: '-\\frac{h^2}{12}f^{(4)}(\\xi)',
   },
   centrada3: {
-    label: 'Centrada con paso h (x ± h)', short: 'Centrada x±h', libro: false, k: 1, offsets: [-1, 1], coefs: [-1, 1], den: 2, p: 2, even: true, errCoef: 1 / 6,
+    label: L('Centrada con paso h (x ± h)', 'Centered with step h (x ± h)'), short: L('Centrada x±h', 'Centered x±h'), libro: false, k: 1, offsets: [-1, 1], coefs: [-1, 1], den: 2, p: 2, even: true, errCoef: 1 / 6,
     tex: "f'(x) \\approx \\frac{f(x+h) - f(x-h)}{2h}", errTex: "-\\frac{h^2}{6}f'''(\\xi)",
   },
   progresiva3: {
-    label: 'Progresiva de 3 puntos', short: 'Progresiva 3p', libro: false, k: 1, offsets: [0, 1, 2], coefs: [-3, 4, -1], den: 2, p: 2, even: false, errCoef: 1 / 3,
+    label: L('Progresiva de 3 puntos', 'Three-point forward'), short: L('Progresiva 3p', 'Forward 3p'), libro: false, k: 1, offsets: [0, 1, 2], coefs: [-3, 4, -1], den: 2, p: 2, even: false, errCoef: 1 / 3,
     tex: "f'(x) \\approx \\frac{-3f(x) + 4f(x+h) - f(x+2h)}{2h}", errTex: "+\\frac{h^2}{3}f'''(\\xi)",
   },
   regresiva3: {
-    label: 'Regresiva de 3 puntos', short: 'Regresiva 3p', libro: false, k: 1, offsets: [-2, -1, 0], coefs: [1, -4, 3], den: 2, p: 2, even: false, errCoef: 1 / 3,
+    label: L('Regresiva de 3 puntos', 'Three-point backward'), short: L('Regresiva 3p', 'Backward 3p'), libro: false, k: 1, offsets: [-2, -1, 0], coefs: [1, -4, 3], den: 2, p: 2, even: false, errCoef: 1 / 3,
     tex: "f'(x) \\approx \\frac{f(x-2h) - 4f(x-h) + 3f(x)}{2h}", errTex: "+\\frac{h^2}{3}f'''(\\xi)",
   },
   centrada5: {
-    label: 'Centrada de 5 puntos', short: 'Centrada 5p', libro: false, k: 1, offsets: [-2, -1, 1, 2], coefs: [1, -8, 8, -1], den: 12, p: 4, even: true, errCoef: 1 / 30,
+    label: L('Centrada de 5 puntos', 'Five-point centered'), short: L('Centrada 5p', 'Centered 5p'), libro: false, k: 1, offsets: [-2, -1, 1, 2], coefs: [1, -8, 8, -1], den: 12, p: 4, even: true, errCoef: 1 / 30,
     tex: "f'(x) \\approx \\frac{f(x-2h) - 8f(x-h) + 8f(x+h) - f(x+2h)}{12h}", errTex: '+\\frac{h^4}{30}f^{(5)}(\\xi)',
   },
   segunda5: {
-    label: 'Segunda derivada de 5 puntos', short: "f'' 5 puntos", libro: false, k: 2, offsets: [-2, -1, 0, 1, 2], coefs: [-1, 16, -30, 16, -1], den: 12, p: 4, even: true, errCoef: 1 / 90,
+    label: L('Segunda derivada de 5 puntos', 'Five-point second derivative'), short: L("f'' 5 puntos", "f'' 5-point"), libro: false, k: 2, offsets: [-2, -1, 0, 1, 2], coefs: [-1, 16, -30, 16, -1], den: 12, p: 4, even: true, errCoef: 1 / 90,
     tex: "f''(x) \\approx \\frac{-f(x-2h) + 16f(x-h) - 30f(x) + 16f(x+h) - f(x+2h)}{12h^2}", errTex: '+\\frac{h^4}{90}f^{(6)}(\\xi)',
   },
 }
@@ -201,7 +203,7 @@ export interface NCDef {
 
 export const NC: Record<NCRule, NCDef> = {
   trapecio: {
-    label: 'Regla del trapecio', m: 1, w: [1, 1], num: 1, den: 2, hSym: 'H', eq: '(5.11)', factorTex: '\\frac{H}{2}', C: 1 / 12, Ctex: '\\frac{1}{12}', Csci: '1/12', p: 2, deriv: 2, exact: 1,
+    label: L('Regla del trapecio', 'Trapezoidal rule'), m: 1, w: [1, 1], num: 1, den: 2, hSym: 'H', eq: '(5.11)', factorTex: '\\frac{H}{2}', C: 1 / 12, Ctex: '\\frac{1}{12}', Csci: '1/12', p: 2, deriv: 2, exact: 1,
     simpleTex: '\\int_a^b f(x)\\,dx \\approx \\frac{h}{2}\\big[f(x_0)+f(x_1)\\big],\\quad h=b-a',
     compTex: '\\int_a^b f(x)\\,dx \\approx \\frac{H}{2}\\Big[f(a) + 2\\sum_{k=1}^{N-1} f(x_k) + f(b)\\Big],\\quad H=\\frac{b-a}{N}',
     simpleErrTex: "E_1 = -\\frac{1}{12}(b-a)^3 f''(\\eta)",
@@ -222,7 +224,7 @@ export const NC: Record<NCRule, NCDef> = {
     errTex: 'E = -\\frac{(b-a)h^4}{80}f^{(4)}(\\xi)',
   },
   boole: {
-    label: 'Regla de Boole', m: 4, w: [7, 32, 12, 32, 7], num: 2, den: 45, hSym: 'h', factorTex: '\\frac{2h}{45}', C: 2 / 945, Ctex: '\\frac{2}{945}', Csci: '2/945', p: 6, deriv: 6, exact: 5,
+    label: L('Regla de Boole', "Boole's rule"), m: 4, w: [7, 32, 12, 32, 7], num: 2, den: 45, hSym: 'h', factorTex: '\\frac{2h}{45}', C: 2 / 945, Ctex: '\\frac{2}{945}', Csci: '2/945', p: 6, deriv: 6, exact: 5,
     simpleTex: '\\int_{x_0}^{x_4} f(x)\\,dx \\approx \\frac{2h}{45}\\big[7f_0+32f_1+12f_2+32f_3+7f_4\\big]',
     compTex: '\\int_a^b f(x)\\,dx \\approx \\frac{2h}{45}\\Big[7f_0 + 32f_1 + 12f_2 + 32f_3 + 14f_4 + \\cdots + 7f_n\\Big]',
     simpleErrTex: 'E = -\\frac{8h^7}{945}f^{(6)}(\\xi)',
@@ -240,11 +242,20 @@ export function ncCoefs(n: number, rule: NCRule): number[] {
 
 export function ncValidN(n: number, rule: NCRule): string | null {
   const m = NC[rule].m
-  if (!Number.isInteger(n) || n < 1) return 'n debe ser un entero positivo.'
+  if (!Number.isInteger(n) || n < 1) return L('n debe ser un entero positivo.', 'n must be a positive integer.')
   if (n % m !== 0) {
-    if (rule === 'simpson13') return `Simpson 1/3 requiere un número PAR de subintervalos (n = ${n} es impar). Usa n = ${n + 1}.`
-    if (rule === 'simpson38') return `Simpson 3/8 requiere n múltiplo de 3 (n = ${n}). Usa n = ${Math.ceil(n / 3) * 3}.`
-    if (rule === 'boole') return `Boole requiere n múltiplo de 4 (n = ${n}). Usa n = ${Math.ceil(n / 4) * 4}.`
+    if (rule === 'simpson13') return L(
+        `Simpson 1/3 requiere un número PAR de subintervalos (n = ${n} es impar). Usa n = ${n + 1}.`,
+        `Simpson's 1/3 rule requires an EVEN number of subintervals (n = ${n} is odd). Use n = ${n + 1}.`,
+      )
+    if (rule === 'simpson38') return L(
+        `Simpson 3/8 requiere n múltiplo de 3 (n = ${n}). Usa n = ${Math.ceil(n / 3) * 3}.`,
+        `Simpson's 3/8 rule requires n to be a multiple of 3 (n = ${n}). Use n = ${Math.ceil(n / 3) * 3}.`,
+      )
+    if (rule === 'boole') return L(
+        `Boole requiere n múltiplo de 4 (n = ${n}). Usa n = ${Math.ceil(n / 4) * 4}.`,
+        `Boole's rule requires n to be a multiple of 4 (n = ${n}). Use n = ${Math.ceil(n / 4) * 4}.`,
+      )
   }
   return null
 }
@@ -362,9 +373,12 @@ export function romberg(f: Fn, a: number, b: number, maxLevel: number, tol: numb
     const row = [R[k - 1][0] / 2 + h * s]
     for (let j = 1; j <= k; j++) row.push(row[j - 1] + (row[j - 1] - R[k - 1][j - 1]) / (4 ** j - 1))
     R.push(row)
-    if (!Number.isFinite(row[k])) return { R, hs, sums, converged: false, value: row[k], evals, message: 'Se obtuvo un valor no finito: f tiene una singularidad en [a, b].' }
+    if (!Number.isFinite(row[k])) return { R, hs, sums, converged: false, value: row[k], evals, message: L('Se obtuvo un valor no finito: f tiene una singularidad en [a, b].', 'A non-finite value was obtained: f has a singularity in [a, b].') }
     if (useTol && Math.abs(row[k] - R[k - 1][k - 1]) < tol)
-      return { R, hs, sums, converged: true, value: row[k], evals, message: `Se alcanzó la tolerancia con k_max = ${k}: |I₀⁽${sup(k)}⁾ − I₀⁽${sup(k - 1)}⁾| < tol.` }
+      return { R, hs, sums, converged: true, value: row[k], evals, message: L(
+          `Se alcanzó la tolerancia con k_max = ${k}: |I₀⁽${sup(k)}⁾ − I₀⁽${sup(k - 1)}⁾| < tol.`,
+          `Tolerance reached with k_max = ${k}: |I₀⁽${sup(k)}⁾ − I₀⁽${sup(k - 1)}⁾| < tol.`,
+        ) }
   }
   const last = R[R.length - 1]
   const K = R.length - 1
@@ -375,7 +389,12 @@ export function romberg(f: Fn, a: number, b: number, maxLevel: number, tol: numb
     converged: false,
     value: last[last.length - 1],
     evals,
-    message: useTol ? `No se alcanzó la tolerancia con k_max = ${K}; se muestra I₀⁽${sup(K)}⁾.` : `Tabla completa con k_max = ${K} (${evals} evaluaciones de f); la mejor estimación es I₀⁽${sup(K)}⁾.`,
+    message: useTol
+      ? L(`No se alcanzó la tolerancia con k_max = ${K}; se muestra I₀⁽${sup(K)}⁾.`, `Tolerance not reached with k_max = ${K}; showing I₀⁽${sup(K)}⁾.`)
+      : L(
+          `Tabla completa con k_max = ${K} (${evals} evaluaciones de f); la mejor estimación es I₀⁽${sup(K)}⁾.`,
+          `Full table with k_max = ${K} (${evals} evaluations of f); the best estimate is I₀⁽${sup(K)}⁾.`,
+        ),
   }
 }
 
@@ -396,14 +415,19 @@ export function rombergLibro(R: number[][]): number[][] {
 export function rombergDatos(xs: number[], ys: number[]): RombergResult | { error: string } {
   const n = ys.length - 1
   const K = Math.round(Math.log2(n))
-  if (n < 1 || 2 ** K !== n) return { error: `Romberg con datos necesita 2ᵏ + 1 puntos equiespaciados (hay ${ys.length}: usa 2, 3, 5, 9, 17… puntos).` }
+  if (n < 1 || 2 ** K !== n) return {
+      error: L(
+        `Romberg con datos necesita 2ᵏ + 1 puntos equiespaciados (hay ${ys.length}: usa 2, 3, 5, 9, 17… puntos).`,
+        `Romberg with data needs 2ᵏ + 1 equally spaced points (there are ${ys.length}: use 2, 3, 5, 9, 17… points).`,
+      ),
+    }
   const R: number[][] = []
   const hs: number[] = []
   const sums: number[] = [NaN]
-  const L = xs[n] - xs[0]
+  const len = xs[n] - xs[0]
   for (let k = 0; k <= K; k++) {
     const step = n / 2 ** k
-    const h = L / 2 ** k
+    const h = len / 2 ** k
     let s = 0
     if (k > 0) for (let i = step; i < n; i += 2 * step) s += ys[i]
     const T0 = k === 0 ? (h / 2) * (ys[0] + ys[n]) : R[k - 1][0] / 2 + h * s
@@ -413,7 +437,10 @@ export function rombergDatos(xs: number[], ys: number[]): RombergResult | { erro
     for (let j = 1; j <= k; j++) row.push(row[j - 1] + (row[j - 1] - R[k - 1][j - 1]) / (4 ** j - 1))
     R.push(row)
   }
-  return { R, hs, sums, converged: false, value: R[K][K], evals: n + 1, message: `Tabla completa con k_max = ${K} (los ${n + 1} datos); la mejor estimación es I₀⁽${sup(K)}⁾.` }
+  return { R, hs, sums, converged: false, value: R[K][K], evals: n + 1, message: L(
+    `Tabla completa con k_max = ${K} (los ${n + 1} datos); la mejor estimación es I₀⁽${sup(K)}⁾.`,
+    `Full table with k_max = ${K} (all ${n + 1} data points); the best estimate is I₀⁽${sup(K)}⁾.`,
+  ) }
 }
 
 /* ═════════════════════════ Gauss-Legendre ═════════════════════════ */

@@ -5,6 +5,7 @@ import { useDebounced, useLocalState } from '../../lib/useLocalState'
 import { Plot, sample, sampleRange, SERIES, type Trace } from '../../components/Plot'
 import { Alert, Card, DataTable, Examples, ExprField, MethodPage, ScilabCode, Stats, Steps, Tabs } from '../../components/ui'
 import { THEORY, TITLES, TOPIC } from './theory'
+import { L } from '../../i18n'
 import './errores.css'
 
 interface S {
@@ -20,11 +21,11 @@ interface Var {
 }
 
 const EXAMPLES: { label: string; value: S }[] = [
-  { label: 'Área de un círculo', value: { f: 'pi * r^2', vars: 'r = 2.5 ± 0.01' } },
-  { label: 'Volumen caja x·y·z', value: { f: 'x * y * z', vars: 'x = 3 ± 0.05\ny = 4 ± 0.05\nz = 5 ± 0.1' } },
-  { label: 'Resta x − y (cancelación)', value: { f: 'x - y', vars: 'x = 1.0001 ± 0.00005\ny = 1.0000 ± 0.00005' } },
-  { label: 'Cociente x/y', value: { f: 'x / y', vars: 'x = 10 ± 0.1\ny = 2 ± 1%' } },
-  { label: 'Péndulo g = 4π²L/T²', value: { f: '4 * pi^2 * L / T^2', vars: 'L = 1.2 ± 0.005\nT = 2.2 ± 0.02' } },
+  { label: L('Área de un círculo', 'Area of a circle'), value: { f: 'pi * r^2', vars: 'r = 2.5 ± 0.01' } },
+  { label: L('Volumen caja x·y·z', 'Box volume x·y·z'), value: { f: 'x * y * z', vars: 'x = 3 ± 0.05\ny = 4 ± 0.05\nz = 5 ± 0.1' } },
+  { label: L('Resta x − y (cancelación)', 'Difference x − y (cancellation)'), value: { f: 'x - y', vars: 'x = 1.0001 ± 0.00005\ny = 1.0000 ± 0.00005' } },
+  { label: L('Cociente x/y', 'Quotient x/y'), value: { f: 'x / y', vars: 'x = 10 ± 0.1\ny = 2 ± 1%' } },
+  { label: L('Péndulo g = 4π²L/T²', 'Pendulum g = 4π²L/T²'), value: { f: '4 * pi^2 * L / T^2', vars: 'L = 1.2 ± 0.005\nT = 2.2 ± 0.02' } },
   { label: 'f(x) = eˣ sin x', value: { f: 'exp(x) * sin(x)', vars: 'x = 1.5 ± 0.02' } },
 ]
 
@@ -35,14 +36,14 @@ function parseVars(src: string): { vars: Var[]; error?: string } {
     const line = raw.trim()
     if (!line) continue
     const m = line.match(/^([A-Za-z_]\w*)\s*=\s*(.+?)\s*(?:±|\+-|\+\/-)\s*(.+?)\s*(%)?$/)
-    if (!m) return { vars, error: `Línea inválida: "${line}". Formato: x = 2.5 ± 0.01 (o ± 1%)` }
+    if (!m) return { vars, error: L(`Línea inválida: "${line}". Formato: x = 2.5 ± 0.01 (o ± 1%)`, `Invalid line: "${line}". Format: x = 2.5 ± 0.01 (or ± 1%)`) }
     const value = evalNumber(m[2])
     let delta = evalNumber(m[3])
-    if (!Number.isFinite(value) || !Number.isFinite(delta)) return { vars, error: `Valores inválidos en "${line}"` }
+    if (!Number.isFinite(value) || !Number.isFinite(delta)) return { vars, error: L(`Valores inválidos en "${line}"`, `Invalid values in "${line}"`) }
     if (m[4]) delta = (Math.abs(value) * delta) / 100
     vars.push({ name: m[1], value, delta: Math.abs(delta), src: line })
   }
-  if (!vars.length) return { vars, error: 'Define al menos una variable: x = 2 ± 0.1' }
+  if (!vars.length) return { vars, error: L('Define al menos una variable: x = 2 ± 0.1', 'Define at least one variable: x = 2 ± 0.1') }
   return { vars }
 }
 
@@ -61,17 +62,17 @@ export function Propagacion() {
     if (!f.ok) return { error: 'f: ' + f.error }
     const x0 = vars.map((v) => v.value)
     const f0 = f.f(...x0)
-    if (!Number.isFinite(f0)) return { error: 'f no está definida en el punto dado.' }
+    if (!Number.isFinite(f0)) return { error: L('f no está definida en el punto dado.', 'f is not defined at the given point.') }
     const parts: { v: Var; dTex: string; d: Compiled; dv: number; contrib: number; kappa: number }[] = []
     for (const v of vars) {
       try {
         const dn = derivative(f.node, v.name)
         const dc = compile(dn.toString(), names)
-        if (!dc.ok) return { error: 'No se pudo derivar respecto a ' + v.name }
+        if (!dc.ok) return { error: L('No se pudo derivar respecto a ', 'Could not differentiate with respect to ') + v.name }
         const dv = dc.f(...x0)
         parts.push({ v, dTex: toTex(dn), d: dc, dv, contrib: Math.abs(dv) * v.delta, kappa: Math.abs((v.value * dv) / f0) })
       } catch (e: any) {
-        return { error: 'No se pudo derivar: ' + (e?.message ?? e) }
+        return { error: L('No se pudo derivar: ', 'Could not differentiate: ') + (e?.message ?? e) }
       }
     }
     const df = parts.reduce((a, p) => a + p.contrib, 0)
@@ -95,18 +96,18 @@ export function Propagacion() {
 
   const inputs = (
     <>
-      <ExprField label="Función f" value={s.f} onChange={(f) => set({ f })} vars={names.length ? names : ['x']} texPrefix="f =" hint="Usa las variables definidas abajo" />
+      <ExprField label={L('Función f', 'Function f')} value={s.f} onChange={(f) => set({ f })} vars={names.length ? names : ['x']} texPrefix="f =" hint={L('Usa las variables definidas abajo', 'Use the variables defined below')} />
       <label className="field">
-        <span className="field-label">Datos con su error (uno por línea)</span>
+        <span className="field-label">{L('Datos con su error (uno por línea)', 'Data with their error (one per line)')}</span>
         <textarea className="input mono" rows={4} value={s.vars} spellCheck={false} onChange={(e) => set({ vars: e.target.value })} />
-        <span className="field-hint">Formato: x = 2.5 ± 0.01 (también "+-"). Error relativo: y = 4 ± 2%</span>
+        <span className="field-hint">{L('Formato: x = 2.5 ± 0.01 (también "+-"). Error relativo: y = 4 ± 2%', 'Format: x = 2.5 ± 0.01 ("+-" also works). Relative error: y = 4 ± 2%')}</span>
       </label>
       <Examples items={EXAMPLES} onPick={(v) => set(v)} />
     </>
   )
 
   return (
-    <MethodPage title={TITLES.propagacion} topic={TOPIC} theory={THEORY.propagacion} inputs={inputs} description="Cómo se transmite el error de los datos al resultado: fórmula lineal con derivadas parciales simbólicas, contribución de cada variable y comprobación numérica.">
+    <MethodPage title={TITLES.propagacion} topic={TOPIC} theory={THEORY.propagacion} inputs={inputs} description={L('Cómo se transmite el error de los datos al resultado: fórmula lineal con derivadas parciales simbólicas, contribución de cada variable y comprobación numérica.', 'How the error in the data carries over to the result: linear formula with symbolic partial derivatives, contribution of each variable and a numerical check.')}>
       {'error' in calc ? <Alert kind="error">{calc.error}</Alert> : <Results c={calc} s={d} />}
     </MethodPage>
   )
@@ -129,7 +130,7 @@ function Results({ c, s }: { c: any; s: S }) {
     const dv = parts[0].dv
     const t: Trace[] = [
       { ...g, type: 'scatter', mode: 'lines', name: 'f(x)', line: { color: SERIES[0], width: 2.5 } },
-      { x: [a, b], y: [c.f0 + dv * (a - v.value), c.f0 + dv * (b - v.value)], type: 'scatter', mode: 'lines', name: 'recta tangente', line: { color: SERIES[1], dash: 'dash' } },
+      { x: [a, b], y: [c.f0 + dv * (a - v.value), c.f0 + dv * (b - v.value)], type: 'scatter', mode: 'lines', name: L('recta tangente', 'tangent line'), line: { color: SERIES[1], dash: 'dash' } },
       { x: [v.value - v.delta, v.value + v.delta], y: [c.f0 - c.df, c.f0 - c.df], type: 'scatter', mode: 'lines', showlegend: false, line: { width: 0 }, hoverinfo: 'skip' },
       { x: [v.value - v.delta, v.value + v.delta], y: [c.f0 + c.df, c.f0 + c.df], type: 'scatter', mode: 'lines', name: 'f(x₀) ± Δf', fill: 'tonexty', fillcolor: 'rgba(45,212,191,0.15)', line: { width: 0 } },
       { x: [v.value - v.delta, v.value - v.delta, NaN, v.value + v.delta, v.value + v.delta], y: [sampleRange(g)[0], c.f0 + c.df, NaN, sampleRange(g)[0], c.f0 + c.df], type: 'scatter', mode: 'lines', name: 'x₀ ± Δx', line: { color: SERIES[2], dash: 'dot', width: 1 } },
@@ -139,34 +140,42 @@ function Results({ c, s }: { c: any; s: S }) {
   }, [c])
 
   const stepList = [
-    ...parts.map((p) => ({ text: `Derivada parcial respecto a ${p.v.name}:`, tex: `\\frac{\\partial f}{\\partial ${p.v.name}} = ${p.dTex}\\;\\Big|_{\\text{datos}} = ${N(p.dv)}` })),
-    { text: 'Valor de la función en los datos:', tex: `f(${vars.map((v) => fmt(v.value)).join(', ')}) = ${N(c.f0)}` },
+    ...parts.map((p) => ({ text: L(`Derivada parcial respecto a ${p.v.name}:`, `Partial derivative with respect to ${p.v.name}:`), tex: `\\frac{\\partial f}{\\partial ${p.v.name}} = ${p.dTex}\\;\\Big|_{\\text{${L('datos', 'data')}}} = ${N(p.dv)}` })),
+    { text: L('Valor de la función en los datos:', 'Value of the function at the data:'), tex: `f(${vars.map((v) => fmt(v.value)).join(', ')}) = ${N(c.f0)}` },
     {
-      text: 'Fórmula de propagación (primer orden, peor caso):',
+      text: L('Fórmula de propagación (primer orden, peor caso):', 'Propagation formula (first order, worst case):'),
       tex: `\\Delta f \\approx ${parts.map((p) => `\\left|\\frac{\\partial f}{\\partial ${p.v.name}}\\right|\\Delta ${p.v.name}`).join(' + ')} = ${parts.map((p) => `|${N(p.dv)}|(${N(p.v.delta)})`).join(' + ')} = ${N(c.df)}`,
     },
-    { text: 'Error relativo del resultado:', tex: `\\delta f = \\frac{\\Delta f}{|f|} = \\frac{${N(c.df)}}{${N(Math.abs(c.f0))}} = ${texNum(rel, 5)}\\ (${texNum(rel * 100, 4)}\\,\\%)` },
-    { text: 'Resultado:', tex: `f = ${N(c.f0)} \\pm ${texNum(c.df, 3)}` },
+    { text: L('Error relativo del resultado:', 'Relative error of the result:'), tex: `\\delta f = \\frac{\\Delta f}{|f|} = \\frac{${N(c.df)}}{${N(Math.abs(c.f0))}} = ${texNum(rel, 5)}\\ (${texNum(rel * 100, 4)}\\,\\%)` },
+    { text: L('Resultado:', 'Result:'), tex: `f = ${N(c.f0)} \\pm ${texNum(c.df, 3)}` },
   ]
 
   return (
     <>
       <Stats
         items={[
-          { label: 'f(datos)', value: fmt(c.f0, 12), accent: true },
-          { label: 'Δf (peor caso)', value: c.df.toExponential(4), hint: 'Σ |∂f/∂xᵢ| Δxᵢ' },
-          { label: 'Error relativo δf', value: rel.toExponential(3), hint: `${fmt(rel * 100, 4)} %` },
-          { label: 'Δf estadístico', value: c.dfStat.toExponential(4), hint: '√Σ(∂f/∂xᵢ · Δxᵢ)²' },
+          { label: L('f(datos)', 'f(data)'), value: fmt(c.f0, 12), accent: true },
+          { label: L('Δf (peor caso)', 'Δf (worst case)'), value: c.df.toExponential(4), hint: 'Σ |∂f/∂xᵢ| Δxᵢ' },
+          { label: L('Error relativo δf', 'Relative error δf'), value: rel.toExponential(3), hint: `${fmt(rel * 100, 4)} %` },
+          { label: L('Δf estadístico', 'Statistical Δf'), value: c.dfStat.toExponential(4), hint: '√Σ(∂f/∂xᵢ · Δxᵢ)²' },
         ]}
       />
       <Alert kind="ok">
-        Resultado: <b className="mono">f = {fmt(c.f0, 10)} ± {c.df.toPrecision(2)}</b>. Comprobación evaluando f en los extremos de los datos: f ∈ [{fmt(c.lo, 10)}, {fmt(c.hi, 10)}], desviación máxima real{' '}
-        {c.real.toExponential(3)} ({c.df > 0 ? fmt((c.real / c.df) * 100, 4) : '—'} % de la estimación lineal).
+        {L(
+          <>
+            Resultado: <b className="mono">f = {fmt(c.f0, 10)} ± {c.df.toPrecision(2)}</b>. Comprobación evaluando f en los extremos de los datos: f ∈ [{fmt(c.lo, 10)}, {fmt(c.hi, 10)}], desviación máxima real{' '}
+            {c.real.toExponential(3)} ({c.df > 0 ? fmt((c.real / c.df) * 100, 4) : '—'} % de la estimación lineal).
+          </>,
+          <>
+            Result: <b className="mono">f = {fmt(c.f0, 10)} ± {c.df.toPrecision(2)}</b>. Check by evaluating f at the extremes of the data: f ∈ [{fmt(c.lo, 10)}, {fmt(c.hi, 10)}], actual maximum deviation{' '}
+            {c.real.toExponential(3)} ({c.df > 0 ? fmt((c.real / c.df) * 100, 4) : '—'} % of the linear estimate).
+          </>,
+        )}
       </Alert>
       <Tabs
         tabs={[
           {
-            label: 'Paso a paso',
+            label: L('Paso a paso', 'Step by step'),
             content: (
               <Card>
                 <Steps steps={stepList} />
@@ -174,29 +183,32 @@ function Results({ c, s }: { c: any; s: S }) {
             ),
           },
           {
-            label: 'Contribuciones',
+            label: L('Contribuciones', 'Contributions'),
             content: (
               <Card>
                 <DataTable
                   filename="propagacion"
                   columns={[
-                    { key: 'name', label: 'Variable', align: 'left', get: (r) => r.v.name },
+                    { key: 'name', label: L('Variable', 'Variable'), align: 'left', get: (r) => r.v.name },
                     { key: 'val', tex: 'x_i', get: (r) => fmt(r.v.value, 10) },
                     { key: 'del', tex: '\\Delta x_i', get: (r) => fmt(r.v.delta, 6) },
                     { key: 'dv', tex: '\\partial f/\\partial x_i' },
                     { key: 'contrib', tex: '|\\partial_i f|\\,\\Delta x_i', fmt: 'err' },
-                    { key: 'pct', label: '% del total', get: (r) => (c.df > 0 ? fmt((100 * r.contrib) / c.df, 4) + ' %' : '—') },
+                    { key: 'pct', label: L('% del total', '% of total'), get: (r) => (c.df > 0 ? fmt((100 * r.contrib) / c.df, 4) + ' %' : '—') },
                     { key: 'kappa', tex: '\\kappa_i = \\left|\\frac{x_i\\,\\partial_i f}{f}\\right|', get: (r) => fmt(r.kappa, 5) },
                   ]}
                   rows={parts}
                 />
                 <Plot
                   height={260}
-                  data={[{ x: parts.map((p) => p.v.name), y: parts.map((p) => p.contrib), type: 'bar', marker: { color: parts.map((_, i) => SERIES[i % SERIES.length]) }, name: 'contribución' }]}
+                  data={[{ x: parts.map((p) => p.v.name), y: parts.map((p) => p.contrib), type: 'bar', marker: { color: parts.map((_, i) => SERIES[i % SERIES.length]) }, name: L('contribución', 'contribution') }]}
                   layout={{ yaxis: { title: { text: '|∂f/∂xᵢ| Δxᵢ' }, exponentformat: 'power' }, showlegend: false }}
                 />
                 <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
-                  κᵢ es el número de condición respecto a cada dato: δf ≈ Σ κᵢ δxᵢ. Para mejorar el resultado conviene medir con más precisión la variable que más aporta.
+                  {L(
+                    'κᵢ es el número de condición respecto a cada dato: δf ≈ Σ κᵢ δxᵢ. Para mejorar el resultado conviene medir con más precisión la variable que más aporta.',
+                    'κᵢ is the condition number with respect to each datum: δf ≈ Σ κᵢ δxᵢ. To improve the result, measure the variable that contributes most more precisely.',
+                  )}
                 </p>
               </Card>
             ),
@@ -204,11 +216,16 @@ function Results({ c, s }: { c: any; s: S }) {
           ...(plot1
             ? [
                 {
-                  label: 'Gráfica',
+                  label: L('Gráfica', 'Plot'),
                   content: (
                     <Card>
                       <Plot data={plot1} layout={{ xaxis: { title: { text: vars[0].name } } }} />
-                      <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>La fórmula lineal usa la recta tangente: Δf ≈ |f′(x₀)| Δx. Si la curvatura es grande respecto a Δx, la estimación de primer orden deja de ser buena.</p>
+                      <p className="muted" style={{ fontSize: 12.5, margin: '6px 0 0' }}>
+                        {L(
+                          'La fórmula lineal usa la recta tangente: Δf ≈ |f′(x₀)| Δx. Si la curvatura es grande respecto a Δx, la estimación de primer orden deja de ser buena.',
+                          'The linear formula uses the tangent line: Δf ≈ |f′(x₀)| Δx. If the curvature is large relative to Δx, the first-order estimate is no longer good.',
+                        )}
+                      </p>
                     </Card>
                   ),
                 },
@@ -218,13 +235,13 @@ function Results({ c, s }: { c: any; s: S }) {
       />
       <ScilabCode
         filename="propagacion"
-        code={`// Propagación de errores (primer orden) — generado por NumLab
+        code={`// ${L('Propagación de errores (primer orden) — generado por NumLab', 'Error propagation (first order) — generated by NumLab')}
 clear; clc;
 ${vars.map((v) => `${v.name} = ${v.value}; d${v.name} = ${v.delta};`).join('\n')}
 f = ${toScilab(s.f, false)};
 ${parts.map((p) => `df_d${p.v.name} = ${toScilab(p.d.node, false)};`).join('\n')}
 Df = ${parts.map((p) => `abs(df_d${p.v.name})*d${p.v.name}`).join(' + ')};
-mprintf('f = %.10f +/- %.3e  (error relativo %.3e)\\n', f, Df, Df/abs(f));
+mprintf('f = %.10f +/- %.3e  (${L('error relativo', 'relative error')} %.3e)\\n', f, Df, Df/abs(f));
 `}
       />
     </>

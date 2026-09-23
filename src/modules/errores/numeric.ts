@@ -2,6 +2,7 @@
 // evaluación con redondeo en cada operación (simple/doble) y series de Taylor por diferenciación automática.
 import { create, all, type MathNode } from 'mathjs'
 import { normalize } from '../../lib/expr'
+import { L } from '../../i18n'
 import { exactDecimal, roundP, type Prec } from './float'
 
 /* ───────────────────────── Alta precisión ───────────────────────── */
@@ -104,7 +105,7 @@ export function evalRounded(node: MathNode, scope: Record<string, number>, p: Pr
     if (n.isSymbolNode) {
       if (n.name in scope) return R(scope[n.name])
       if (n.name in CONSTS) return R(CONSTS[n.name])
-      throw new Error('Símbolo desconocido: ' + n.name)
+      throw new Error(L('Símbolo desconocido: ', 'Unknown symbol: ') + n.name)
     }
     if (n.isOperatorNode) {
       const args = n.args.map(ev)
@@ -119,16 +120,16 @@ export function evalRounded(node: MathNode, scope: Record<string, number>, p: Pr
         case 'unaryPlus': return a
         case 'mod': return rec(n, 'mod', R(a % b))
       }
-      throw new Error('Operador no soportado: ' + n.op)
+      throw new Error(L('Operador no soportado: ', 'Unsupported operator: ') + n.op)
     }
     if (n.isFunctionNode) {
       const name = n.fn.name ?? n.name
       const f = FUNCS[name]
-      if (!f) throw new Error('Función no soportada: ' + name)
+      if (!f) throw new Error(L('Función no soportada: ', 'Unsupported function: ') + name)
       const args = n.args.map(ev)
       return rec(n, name, R(f(...args)))
     }
-    throw new Error('Expresión no soportada')
+    throw new Error(L('Expresión no soportada', 'Unsupported expression'))
   }
   return ev(node)
 }
@@ -148,7 +149,7 @@ function sMul(a: Ser, b: Ser): Ser {
 function sDiv(a: Ser, b: Ser): Ser {
   const N = a.length
   const c = new Array(N).fill(0)
-  if (b[0] === 0) throw new Error('División por cero en el desarrollo')
+  if (b[0] === 0) throw new Error(L('División por cero en el desarrollo', 'Division by zero in the expansion'))
   for (let k = 0; k < N; k++) {
     let s = a[k]
     for (let j = 1; j <= k; j++) s -= b[j] * c[k - j]
@@ -170,7 +171,7 @@ function sExp(a: Ser): Ser {
 function sLog(a: Ser): Ser {
   const N = a.length
   const l = new Array(N).fill(0)
-  if (!(a[0] > 0)) throw new Error('log no es analítico en ese punto')
+  if (!(a[0] > 0)) throw new Error(L('log no es analítico en ese punto', 'log is not analytic at that point'))
   l[0] = Math.log(a[0])
   for (let k = 1; k < N; k++) {
     let s = 0
@@ -204,8 +205,8 @@ function sPowConst(a: Ser, p: number): Ser {
     return r
   }
   if (Number.isInteger(p) && p < 0) return sDiv(cst(1, N), sPowConst(a, -p))
-  if (a[0] === 0) throw new Error('Potencia no analítica en ese punto')
-  if (a[0] < 0) throw new Error('Base negativa con exponente no entero')
+  if (a[0] === 0) throw new Error(L('Potencia no analítica en ese punto', 'Power is not analytic at that point'))
+  if (a[0] < 0) throw new Error(L('Base negativa con exponente no entero', 'Negative base with a non-integer exponent'))
   const y = new Array(N).fill(0)
   y[0] = Math.pow(a[0], p)
   for (let k = 1; k < N; k++) {
@@ -246,7 +247,7 @@ export function taylorCoeffs(node: MathNode, x0: number, n: number, v = 'x'): nu
         return r
       }
       if (nd.name in CONSTS) return cst(CONSTS[nd.name], N)
-      throw new Error('Símbolo desconocido: ' + nd.name)
+      throw new Error(L('Símbolo desconocido: ', 'Unknown symbol: ') + nd.name)
     }
     if (nd.isOperatorNode) {
       const A: Ser[] = nd.args.map(ev)
@@ -263,7 +264,7 @@ export function taylorCoeffs(node: MathNode, x0: number, n: number, v = 'x'): nu
           return sExp(sMul(A[1], sLog(A[0])))
         }
       }
-      throw new Error('Operador no soportado: ' + nd.op)
+      throw new Error(L('Operador no soportado: ', 'Unsupported operator: ') + nd.op)
     }
     if (nd.isFunctionNode) {
       const name = nd.fn.name ?? nd.name
@@ -307,11 +308,11 @@ export function taylorCoeffs(node: MathNode, x0: number, n: number, v = 'x'): nu
         case 'atan': return sIntegrate(Math.atan(a[0]), sDiv(sDeriv(a), sAdd(cst(1, N), sMul(a, a))))
         case 'asin': return sIntegrate(Math.asin(a[0]), sDiv(sDeriv(a), sPowConst(sSub(cst(1, N), sMul(a, a)), 0.5)))
         case 'acos': return sIntegrate(Math.acos(a[0]), sDiv(sDeriv(a), sPowConst(sSub(cst(1, N), sMul(a, a)), 0.5)).map((t) => -t))
-        case 'abs': return a[0] === 0 ? (() => { throw new Error('|x| no es derivable en 0') })() : a[0] > 0 ? a : a.map((t) => -t)
+        case 'abs': return a[0] === 0 ? (() => { throw new Error(L('|x| no es derivable en 0', '|x| is not differentiable at 0')) })() : a[0] > 0 ? a : a.map((t) => -t)
       }
-      throw new Error('Función no soportada en el desarrollo: ' + name)
+      throw new Error(L('Función no soportada en el desarrollo: ', 'Function not supported in the expansion: ') + name)
     }
-    throw new Error('Expresión no soportada')
+    throw new Error(L('Expresión no soportada', 'Unsupported expression'))
   }
   // la derivación de sDeriv pierde el último coeficiente; se calcula con un orden extra y se recorta
   return ev(node).slice(0, N)

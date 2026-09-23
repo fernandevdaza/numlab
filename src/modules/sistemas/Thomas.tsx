@@ -9,6 +9,7 @@ import * as A from './algorithms'
 import { N, Note, P, sciVec, texM, TOPIC, vecText, sciFl } from './shared'
 import { CostPlot } from './SystemPlot'
 import { THEORY, TITLES } from './theory'
+import { L } from '../../i18n'
 
 interface S {
   a: string
@@ -24,13 +25,13 @@ interface S {
 const S5 = { a: '-0.46521 3.5023 0.38471', b: '1.3456 3.0576 1.4936 4.46723', c: '0.35679 -1.3925 -0.94618', d: '0 -2.5284 0.38519 -1.3762' }
 
 const EXAMPLES: { label: string; value: Partial<S> }[] = [
-  { label: 'Práct. 04.2 (S₅, 4 cifras)', value: { ...S5, t: 4 } },
-  { label: 'Práct. 04.2 (S₅, doble precisión)', value: { ...S5, t: 0 } },
+  { label: L('Práct. 04.2 (S₅, 4 cifras)', 'Practice 04.2 (S₅, 4 digits)'), value: { ...S5, t: 4 } },
+  { label: L('Práct. 04.2 (S₅, doble precisión)', 'Practice 04.2 (S₅, double precision)'), value: { ...S5, t: 0 } },
   { label: 'Burden (x = 1,1,1,1)', value: { a: '-1 -1 -1', b: '2 2 2 2', c: '-1 -1 -1', d: '1 0 0 1', t: 0 } },
-  { label: 'Calor 1D: u(0)=0, u(1)=100', value: { a: '-1 -1 -1 -1 -1 -1 -1 -1', b: '2 2 2 2 2 2 2 2 2', c: '-1 -1 -1 -1 -1 -1 -1 -1', d: '0 0 0 0 0 0 0 0 100', t: 0 } },
-  { label: 'u″ = −1 (flecha de viga)', value: { a: '1 1 1 1 1 1', b: '-2 -2 -2 -2 -2 -2 -2', c: '1 1 1 1 1 1', d: '-0.015625 -0.015625 -0.015625 -0.015625 -0.015625 -0.015625 -0.015625', t: 0 } },
-  { label: 'Spline natural (1 4 1)', value: { a: '1 1 1', b: '4 4 4 4', c: '1 1 1', d: '6 12 18 24', t: 0 } },
-  { label: 'No dominante', value: { a: '3 1', b: '1 2 1', c: '2 4', d: '3 9 2', t: 0 } },
+  { label: L('Calor 1D: u(0)=0, u(1)=100', '1D heat: u(0)=0, u(1)=100'), value: { a: '-1 -1 -1 -1 -1 -1 -1 -1', b: '2 2 2 2 2 2 2 2 2', c: '-1 -1 -1 -1 -1 -1 -1 -1', d: '0 0 0 0 0 0 0 0 100', t: 0 } },
+  { label: L('u″ = −1 (flecha de viga)', 'u″ = −1 (beam deflection)'), value: { a: '1 1 1 1 1 1', b: '-2 -2 -2 -2 -2 -2 -2', c: '1 1 1 1 1 1', d: '-0.015625 -0.015625 -0.015625 -0.015625 -0.015625 -0.015625 -0.015625', t: 0 } },
+  { label: L('Spline natural (1 4 1)', 'Natural spline (1 4 1)'), value: { a: '1 1 1', b: '4 4 4 4', c: '1 1 1', d: '6 12 18 24', t: 0 } },
+  { label: L('No dominante', 'Not dominant'), value: { a: '3 1', b: '1 2 1', c: '2 4', d: '3 9 2', t: 0 } },
 ]
 
 export function Thomas() {
@@ -41,15 +42,15 @@ export function Thomas() {
 
   const calc = useMemo(() => {
     const b = parseVector(d.b)
-    if (!b) return { error: 'Diagonal principal b inválida.' }
+    if (!b) return { error: L('Diagonal principal b inválida.', 'Invalid main diagonal b.') }
     const n = b.length
-    if (n < 2) return { error: 'Se necesitan al menos 2 ecuaciones.' }
+    if (n < 2) return { error: L('Se necesitan al menos 2 ecuaciones.', 'At least 2 equations are needed.') }
     const a = parseVector(d.a)
     const c = parseVector(d.c)
     const dd = parseVector(d.d)
-    if (!a || a.length !== n - 1) return { error: `La subdiagonal a debe tener n − 1 = ${n - 1} valores (tiene ${a ? a.length : 0}).` }
-    if (!c || c.length !== n - 1) return { error: `La superdiagonal c debe tener n − 1 = ${n - 1} valores (tiene ${c ? c.length : 0}).` }
-    if (!dd || dd.length !== n) return { error: `El lado derecho d debe tener n = ${n} valores (tiene ${dd ? dd.length : 0}).` }
+    if (!a || a.length !== n - 1) return { error: L(`La subdiagonal a debe tener n − 1 = ${n - 1} valores (tiene ${a ? a.length : 0}).`, `The subdiagonal a must have n − 1 = ${n - 1} values (it has ${a ? a.length : 0}).`) }
+    if (!c || c.length !== n - 1) return { error: L(`La superdiagonal c debe tener n − 1 = ${n - 1} valores (tiene ${c ? c.length : 0}).`, `The superdiagonal c must have n − 1 = ${n - 1} values (it has ${c ? c.length : 0}).`) }
+    if (!dd || dd.length !== n) return { error: L(`El lado derecho d debe tener n = ${n} valores (tiene ${dd ? dd.length : 0}).`, `The right-hand side d must have n = ${n} values (it has ${dd ? dd.length : 0}).`) }
     const res = A.thomas(a, b, c, dd, d.t)
     const exact = d.t ? A.thomas(a, b, c, dd) : null
     const M = A.tridiagToMatrix(a, b, c)
@@ -60,20 +61,20 @@ export function Thomas() {
 
   const inputs = (
     <>
-      <VectorField label={<>Subdiagonal <Tex>{'a_2,\\dots,a_n'}</Tex> (n − 1 valores)</>} value={s.a} onChange={(a) => set({ a })} />
-      <VectorField label={<>Diagonal principal <Tex>{'b_1,\\dots,b_n'}</Tex></>} value={s.b} onChange={(b) => set({ b })} />
-      <VectorField label={<>Superdiagonal <Tex>{'c_1,\\dots,c_{n-1}'}</Tex> (n − 1 valores)</>} value={s.c} onChange={(c) => set({ c })} />
-      <VectorField label={<>Lado derecho <Tex>{'d_1,\\dots,d_n'}</Tex></>} value={s.d} onChange={(dd) => set({ d: dd })} />
+      <VectorField label={L(<>Subdiagonal <Tex>{'a_2,\\dots,a_n'}</Tex> (n − 1 valores)</>, <>Subdiagonal <Tex>{'a_2,\\dots,a_n'}</Tex> (n − 1 values)</>)} value={s.a} onChange={(a) => set({ a })} />
+      <VectorField label={L(<>Diagonal principal <Tex>{'b_1,\\dots,b_n'}</Tex></>, <>Main diagonal <Tex>{'b_1,\\dots,b_n'}</Tex></>)} value={s.b} onChange={(b) => set({ b })} />
+      <VectorField label={L(<>Superdiagonal <Tex>{'c_1,\\dots,c_{n-1}'}</Tex> (n − 1 valores)</>, <>Superdiagonal <Tex>{'c_1,\\dots,c_{n-1}'}</Tex> (n − 1 values)</>)} value={s.c} onChange={(c) => set({ c })} />
+      <VectorField label={L(<>Lado derecho <Tex>{'d_1,\\dots,d_n'}</Tex></>, <>Right-hand side <Tex>{'d_1,\\dots,d_n'}</Tex></>)} value={s.d} onChange={(dd) => set({ d: dd })} />
       <SelectField
-        label="Presentación"
+        label={L('Presentación', 'Presentation')}
         value={s.variant}
         onChange={(variant) => set({ variant })}
         options={[
-          { value: 'libro', label: 'Como en el texto: bₖ⁽ᵏ⁻¹⁾, dₖ⁽ᵏ⁻¹⁾ y sustitución regresiva' },
-          { value: 'normalizada', label: 'Normalizada (Burden): c′ᵢ, d′ᵢ' },
+          { value: 'libro', label: L('Como en el texto: bₖ⁽ᵏ⁻¹⁾, dₖ⁽ᵏ⁻¹⁾ y sustitución regresiva', 'As in the textbook: bₖ⁽ᵏ⁻¹⁾, dₖ⁽ᵏ⁻¹⁾ and back substitution') },
+          { value: 'normalizada', label: L('Normalizada (Burden): c′ᵢ, d′ᵢ', 'Normalized (Burden): c′ᵢ, d′ᵢ') },
         ]}
       />
-      <IntField label="Cifras de la mantisa (0 = doble precisión)" value={s.t} onChange={(t) => set({ t })} min={0} max={12} hint="Simula la calculadora de t cifras de la práctica del texto." />
+      <IntField label={L('Cifras de la mantisa (0 = doble precisión)', 'Mantissa digits (0 = double precision)')} value={s.t} onChange={(t) => set({ t })} min={0} max={12} hint={L('Simula la calculadora de t cifras de la práctica del texto.', 'Simulates the t-digit calculator of the textbook practice.')} />
       <Examples items={EXAMPLES} onPick={(v) => set(v)} />
     </>
   )
@@ -84,34 +85,42 @@ export function Thomas() {
         <Alert kind="error">{calc.error}</Alert>
       ) : (
         <>
-          <Card title="Sistema tridiagonal">
+          <Card title={L('Sistema tridiagonal', 'Tridiagonal system')}>
             <Tex block>{texM(calc.M, 5) + '\\,x = ' + texM(calc.d, 5)}</Tex>
           </Card>
           <Stats
             items={[
-              { label: 'Solución x', value: calc.res.ok ? vecText(calc.res.x, d.t || undefined) : '—', accent: true, hint: d.t ? `aritmética de ${d.t} cifras` : undefined },
+              { label: L('Solución x', 'Solution x'), value: calc.res.ok ? vecText(calc.res.x, d.t || undefined) : '—', accent: true, hint: d.t ? L(`aritmética de ${d.t} cifras`, `${d.t}-digit arithmetic`) : undefined },
               { label: 'n', value: calc.n },
-              { label: 'Operaciones', value: 8 * calc.n - 7, hint: `8n − 7 (tabla de la Práctica 04.1) · proporcional a n  vs  Gauss ≈ ${Math.round(A.gaussOps(calc.n).total)}` },
+              { label: L('Operaciones', 'Operations'), value: 8 * calc.n - 7, hint: L(`8n − 7 (tabla de la Práctica 04.1) · proporcional a n  vs  Gauss ≈ ${Math.round(A.gaussOps(calc.n).total)}`, `8n − 7 (table of Practice 04.1) · proportional to n  vs  Gauss ≈ ${Math.round(A.gaussOps(calc.n).total)}`) },
               calc.exact?.ok
-                ? { label: 'x en doble precisión', value: vecText(calc.exact.x), hint: 'para comparar con la aritmética de t cifras' }
-                : { label: 'Residuo ‖d − Ax‖∞', value: calc.res.ok ? fmtErr(A.normInf(calc.residual)) : '—' },
+                ? { label: L('x en doble precisión', 'x in double precision'), value: vecText(calc.exact.x), hint: L('para comparar con la aritmética de t cifras', 'to compare with t-digit arithmetic') }
+                : { label: L('Residuo ‖d − Ax‖∞', 'Residual ‖d − Ax‖∞'), value: calc.res.ok ? fmtErr(A.normInf(calc.residual)) : '—' },
             ]}
           />
           {!calc.res.ok ? (
             <Alert kind="error">{calc.res.error}</Alert>
           ) : calc.dom.strict || calc.dom.weak ? (
-            <Alert kind="ok">La matriz es diagonalmente dominante (|bᵢ| ≥ |aᵢ| + |cᵢ|): Thomas es estable sin pivoteo.</Alert>
+            <Alert kind="ok">{L('La matriz es diagonalmente dominante (|bᵢ| ≥ |aᵢ| + |cᵢ|): Thomas es estable sin pivoteo.', 'The matrix is diagonally dominant (|bᵢ| ≥ |aᵢ| + |cᵢ|): the Thomas algorithm is stable without pivoting.')}</Alert>
           ) : (
             <Alert kind="warn">
-              La matriz no es diagonalmente dominante (filas {calc.dom.rows.filter((r) => !r.weak).map((r) => r.i + 1).join(', ')}): Thomas no hace pivoteo y puede ser inestable o
-              encontrar un pivote nulo. Revisa el residuo.
+              {L(
+                <>
+                  La matriz no es diagonalmente dominante (filas {calc.dom.rows.filter((r) => !r.weak).map((r) => r.i + 1).join(', ')}): Thomas no hace pivoteo y puede ser inestable o
+                  encontrar un pivote nulo. Revisa el residuo.
+                </>,
+                <>
+                  The matrix is not diagonally dominant (rows {calc.dom.rows.filter((r) => !r.weak).map((r) => r.i + 1).join(', ')}): the Thomas algorithm does not pivot and may be unstable
+                  or run into a zero pivot. Check the residual.
+                </>,
+              )}
             </Alert>
           )}
           <Tabs
             tabs={[
-              { label: 'Paso a paso', content: <Card><Steps steps={thomasSteps(calc.res, d.variant, d.t)} /></Card> },
+              { label: L('Paso a paso', 'Step by step'), content: <Card><Steps steps={thomasSteps(calc.res, d.variant, d.t)} /></Card> },
               {
-                label: 'Tabla',
+                label: L('Tabla', 'Table'),
                 content: (
                   <Card>
                     <DataTable
@@ -141,18 +150,18 @@ export function Thomas() {
                 ),
               },
               {
-                label: 'Gráfica',
+                label: L('Gráfica', 'Plot'),
                 content: (
                   <Card>
                     <Plot
                       data={[{ x: calc.res.x.map((_, i) => i + 1), y: calc.res.x, type: 'scatter', mode: 'lines+markers', name: 'xᵢ', line: { color: SERIES[0], width: 2.5 }, marker: { size: 7 } }]}
                       layout={{ xaxis: { title: { text: 'i' }, dtick: 1 }, yaxis: { title: { text: 'xᵢ' } } }}
                     />
-                    <Note>Perfil de la solución. En problemas de diferencias finitas (calor, viga) xᵢ ≈ u(tᵢ) en los nodos interiores.</Note>
+                    <Note>{L('Perfil de la solución. En problemas de diferencias finitas (calor, viga) xᵢ ≈ u(tᵢ) en los nodos interiores.', 'Solution profile. In finite-difference problems (heat, beam) xᵢ ≈ u(tᵢ) at the interior nodes.')}</Note>
                   </Card>
                 ),
               },
-              { label: 'Costo O(n)', content: <Card><CostPlot n={calc.n} extra={[{ name: 'Thomas: 8n − 7', f: (m) => 8 * m - 7 }]} /></Card> },
+              { label: L('Costo O(n)', 'Cost O(n)'), content: <Card><CostPlot n={calc.n} extra={[{ name: 'Thomas: 8n − 7', f: (m) => 8 * m - 7 }]} /></Card> },
             ]}
           />
           <ScilabCode code={scilabThomas(calc.a, calc.b, calc.c, calc.d, d.t)} filename="thomas" />
@@ -169,10 +178,10 @@ function thomasSteps(res: A.ThomasResult, variant: S['variant'], t: number): { t
   const dg = t ? t + 2 : undefined
   const Nd = (x: number) => N(x, dg)
   const Pd = (x: number) => P(x, dg)
-  if (t) out.push({ text: `Aritmética de ${t} cifras: cada dato y cada resultado intermedio se redondea a ${t} cifras significativas.` })
+  if (t) out.push({ text: L(`Aritmética de ${t} cifras: cada dato y cada resultado intermedio se redondea a ${t} cifras significativas.`, `${t}-digit arithmetic: every datum and every intermediate result is rounded to ${t} significant digits.`) })
   const lines: string[] = []
   if (variant === 'libro') {
-    out.push({ text: 'Triangularización: en cada columna se anula el único elemento bajo la diagonal; los cᵢ no cambian (fórmula 3.8):' })
+    out.push({ text: L('Triangularización: en cada columna se anula el único elemento bajo la diagonal; los cᵢ no cambian (fórmula 3.8):', 'Triangular reduction: in each column the only entry below the diagonal is eliminated; the cᵢ do not change (formula 3.8):') })
     rows.forEach((r) => {
       const i = r.i + 1
       if (r.i === 0) {
@@ -184,7 +193,7 @@ function thomasSteps(res: A.ThomasResult, variant: S['variant'], t: number): { t
       }
     })
   } else {
-    out.push({ text: 'Barrido hacia adelante (variante normalizada):' })
+    out.push({ text: L('Barrido hacia adelante (variante normalizada):', 'Forward sweep (normalized variant):') })
     rows.forEach((r) => {
       const i = r.i + 1
       if (r.i === 0) {
@@ -198,12 +207,12 @@ function thomasSteps(res: A.ThomasResult, variant: S['variant'], t: number): { t
     })
   }
   out.push({ tex: '\\begin{aligned}' + lines.slice(0, 12).join(' \\\\ ') + '\\end{aligned}' })
-  if (lines.length > 12) out.push({ text: `… (${lines.length - 12} filas más en la tabla)` })
+  if (lines.length > 12) out.push({ text: L(`… (${lines.length - 12} filas más en la tabla)`, `… (${lines.length - 12} more rows in the table)`) })
   if (!res.ok) {
     out.push({ text: '✕ ' + res.error })
     return out
   }
-  out.push({ text: variant === 'libro' ? 'Sustitución regresiva (fórmula 3.9):' : 'Sustitución regresiva:' })
+  out.push({ text: variant === 'libro' ? L('Sustitución regresiva (fórmula 3.9):', 'Back substitution (formula 3.9):') : L('Sustitución regresiva:', 'Back substitution:') })
   const back: string[] = []
   if (variant === 'libro') {
     back.push(`x_{${n}} &= \\frac{d_{${n}}^{(${n - 1})}}{b_{${n}}^{(${n - 1})}} = \\frac{${Nd(rows[n - 1].dk)}}{${Nd(rows[n - 1].bk)}} = ${Nd(rows[n - 1].x)}`)
@@ -214,28 +223,28 @@ function thomasSteps(res: A.ThomasResult, variant: S['variant'], t: number): { t
     for (let k = n - 2; k >= 0; k--) back.push(`x_{${k + 1}} &= d'_{${k + 1}} - c'_{${k + 1}}x_{${k + 2}} = ${Nd(rows[k].dp)} - ${Pd(rows[k].cp)}\\cdot ${Pd(rows[k + 1].x)} = ${Nd(rows[k].x)}`)
   }
   out.push({ tex: '\\begin{aligned}' + back.slice(0, 12).join(' \\\\ ') + '\\end{aligned}' })
-  if (back.length > 12) out.push({ text: '… (ver tabla)' })
+  if (back.length > 12) out.push({ text: L('… (ver tabla)', '… (see table)') })
   return out
 }
 
 function scilabThomas(a: A.Vec, b: A.Vec, c: A.Vec, d: A.Vec, t: number): string {
   const F = (e: string) => (t ? `fl(${e})` : e)
   const flDef = t ? sciFl(t) : ''
-  return `// Método de Thomas (sistema tridiagonal, fórmulas 3.8-3.9 del texto)${t ? ` — aritmética de ${t} cifras` : ''} — generado por NumLab
+  return `// ${L(`Método de Thomas (sistema tridiagonal, fórmulas 3.8-3.9 del texto)${t ? ` — aritmética de ${t} cifras` : ''} — generado por NumLab`, `Thomas algorithm (tridiagonal system, textbook formulas 3.8-3.9)${t ? ` — ${t}-digit arithmetic` : ''} — generated by NumLab`)}
 clear; clc;
-${flDef}a = ${F(sciVec([0, ...a]))};   // subdiagonal (a(1) no se usa)
+${flDef}a = ${F(sciVec([0, ...a]))};   // ${L('subdiagonal (a(1) no se usa)', 'subdiagonal (a(1) is not used)')}
 b = ${F(sciVec(b))};   // diagonal
-c = ${F(sciVec([...c, 0]))};   // superdiagonal (c(n) no se usa)
-d = ${F(sciVec(d))};   // lado derecho
+c = ${F(sciVec([...c, 0]))};   // ${L('superdiagonal (c(n) no se usa)', 'superdiagonal (c(n) is not used)')}
+d = ${F(sciVec(d))};   // ${L('lado derecho', 'right-hand side')}
 n = length(b);
-// Triangularización: se anula a(k+1); los c(k) no cambian
+// ${L('Triangularización: se anula a(k+1); los c(k) no cambian', 'Triangular reduction: a(k+1) is eliminated; the c(k) do not change')}
 for k = 1:n-1
-  if b(k) == 0 then error('Pivote nulo en la fila ' + string(k)); end
+  if b(k) == 0 then error('${L('Pivote nulo en la fila ', 'Zero pivot in row ')}' + string(k)); end
   m = ${F('a(k+1) / b(k)')};
   b(k+1) = ${F(`b(k+1) - ${F('m * c(k)')}`)};
   d(k+1) = ${F(`d(k+1) - ${F('m * d(k)')}`)};
 end
-// Sustitución regresiva
+// ${L('Sustitución regresiva', 'Back substitution')}
 x = zeros(n, 1);
 x(n) = ${F('d(n) / b(n)')};
 for k = n-1:-1:1
@@ -245,9 +254,9 @@ mprintf('%4s %14s %14s %14s\\n', 'k', 'b(k)', 'd(k)', 'x(k)');
 for k = 1:n
   mprintf('%4d %14.8f %14.8f %14.8f\\n', k, b(k), d(k), x(k));
 end
-// Verificación con la matriz completa (datos originales)
+// ${L('Verificación con la matriz completa (datos originales)', 'Check with the full matrix (original data)')}
 A = diag(${sciVec(b)}) + diag(${sciVec(a)}, -1) + diag(${sciVec(c)}, 1);
 disp('A\\d ='); disp(A \\ ${sciVec(d)});
-plot(1:n, x', '-o'); xtitle('Solución del sistema tridiagonal', 'k', 'x_k');
+plot(1:n, x', '-o'); xtitle('${L('Solución del sistema tridiagonal', 'Solution of the tridiagonal system')}', 'k', 'x_k');
 `
 }

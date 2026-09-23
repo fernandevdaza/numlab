@@ -619,3 +619,18 @@ dialog.modal::backdrop { background: rgba(5, 8, 12, 0.55); backdrop-filter: blur
 @media (hover: none) and (pointer: coarse) {
   .search .kbd, .hero-actions .btn .kbd { display: none; }
 }
+
+/* ════════════════════════════ Selector de idioma (ES | EN) ════════════════════════════ */
+.lang-switch {
+  display: inline-flex; align-items: stretch; height: 34px; padding: 2px; gap: 2px; flex: none;
+  border: 1px solid var(--border-2); border-radius: 9px; background: var(--panel);
+}
+.lang-switch button {
+  padding: 0 7px; min-width: 30px; border: 0; border-radius: 6px; background: transparent; color: var(--muted);
+  font: 600 11.5px var(--mono); letter-spacing: 0.02em; cursor: pointer; transition: color 0.12s, background 0.12s;
+}
+.lang-switch button:hover { color: var(--accent); }
+.lang-switch button[aria-pressed='true'] { color: var(--accent); background: var(--accent-soft); cursor: default; }
+.lang-switch.full { height: 32px; }
+.lang-switch.full button { font: 500 13px var(--sans); padding: 0 12px; }
+@media print { .lang-switch { display: none; } }

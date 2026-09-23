@@ -48,55 +48,70 @@ async function icon() {
 
 async function banner() {
   const scale = 2
-  const win = makeWin(1280, 480, scale)
   const file = path.join(__dirname, 'marca', 'banner.html')
-  await win.loadFile(file).catch(async () => {
-    await sleep(500) // la primera carga de un file:// tras otra ventana a veces falla: se reintenta
-    await win.loadFile(file)
-  })
-  win.webContents.setZoomFactor(scale)
-  await sleep(900)
-  await capture(win, out('docs', 'banner.png'))
-  win.destroy()
+  // docs/banner.png en inglés (README.md) y docs/banner.es.png en español (README.es.md)
+  for (const [lang, name] of [['en', 'banner.png'], ['es', 'banner.es.png']]) {
+    const win = makeWin(1280, 480, scale)
+    await win.loadFile(file, { search: 'lang=' + lang }).catch(async () => {
+      await sleep(500) // la primera carga de un file:// tras otra ventana a veces falla: se reintenta
+      await win.loadFile(file, { search: 'lang=' + lang })
+    })
+    win.webContents.setZoomFactor(scale)
+    await sleep(900)
+    await capture(win, out('docs', name))
+    win.destroy()
+  }
 }
 
 const SHOTS = [
   { name: 'inicio', hash: '/', theme: 'dark' },
   { name: 'newton', hash: '/raices/newton', theme: 'dark' },
-  { name: 'gauss', hash: '/sistemas/gauss', theme: 'dark', tab: 'Paso a paso' },
+  { name: 'gauss', hash: '/sistemas/gauss', theme: 'dark', tab: 'Paso a paso|Step by step' },
   { name: 'splines', hash: '/interpolacion/splines', theme: 'dark' },
   { name: 'simpson', hash: '/integracion/simpson', theme: 'light' },
   { name: 'runge-kutta', hash: '/edo/runge-kutta', theme: 'dark' },
   { name: 'maquina-16', hash: '/errores/maquina-16', theme: 'light' },
   { name: 'graficador', hash: '/cas/graficador', theme: 'dark' },
+  { name: 'cas', hash: '/cas/calculadora', theme: 'dark' },
 ]
 
 async function screenshots() {
   const W = 1440, H = 900, scale = 1.5
   const win = makeWin(W, H, scale)
   const index = path.join(ROOT, 'dist', 'index.html')
-  for (const s of SHOTS) {
-    await win.loadFile(index)
-    await win.webContents.executeJavaScript(`localStorage.setItem('numlab:dark', ${s.theme === 'dark'}); localStorage.setItem('numlab:palette', 'false'); true`)
-    await win.loadFile(index, { hash: s.hash })
-    win.webContents.setZoomFactor(scale)
-    await sleep(1200)
-    // asegurar el tema pedido con el mismo botón que usa el usuario
-    await win.webContents.executeJavaScript(
-      `(() => { const want = ${s.theme === 'dark'}; if ((document.documentElement.dataset.theme === 'dark') !== want) document.querySelector('button[aria-label^="Cambiar a tema"]')?.click(); return true })()`,
-    )
-    await sleep(900)
-    if (s.tab)
+  // una carpeta por idioma: docs/capturas/en (README.md) y docs/capturas/es (README.es.md)
+  for (const lang of ['en', 'es']) {
+    for (const s of SHOTS) {
+      await win.loadFile(index)
       await win.webContents.executeJavaScript(
-        `(() => { const b = [...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes(${JSON.stringify(s.tab)})); b && b.click(); return !!b })()`,
+        `localStorage.setItem('numlab:lang', ${JSON.stringify(JSON.stringify(lang))});` +
+          `localStorage.setItem('numlab:dark', ${s.theme === 'dark'});` +
+          `localStorage.setItem('numlab:palette', 'false');` +
+          // la consola CAS muestra su historial de ejemplo en el idioma elegido
+          `localStorage.removeItem('numlab:cas:historial'); localStorage.removeItem('numlab:cas:borrador'); true`,
       )
-    await sleep(1400)
-    await capture(win, out('docs', 'capturas', s.name + '.png'))
+      await win.loadFile(index, { hash: s.hash })
+      win.webContents.setZoomFactor(scale)
+      await sleep(1200)
+      // asegurar el tema pedido con el mismo botón que usa el usuario
+      await win.webContents.executeJavaScript(
+        `(() => { const want = ${s.theme === 'dark'}; if ((document.documentElement.dataset.theme === 'dark') !== want) document.querySelector('button[aria-label*="theme" i], button[aria-label*="tema" i]')?.click(); return true })()`,
+      )
+      await sleep(900)
+      if (s.tab)
+        await win.webContents.executeJavaScript(
+          `(() => { const b = [...document.querySelectorAll('[role=tab]')].find(t => ${JSON.stringify(s.tab)}.split('|').some(x => t.textContent.includes(x))); b && b.click(); return !!b })()`,
+        )
+      await sleep(1400)
+      await capture(win, out('docs', 'capturas', lang, s.name + '.png'))
+    }
   }
   win.destroy()
 }
 
 app.disableHardwareAcceleration()
+// Por defecto Electron termina al cerrar todas las ventanas: aquí se crean y destruyen varias seguidas.
+app.on('window-all-closed', () => {})
 app.whenReady().then(async () => {
   try {
     const only = process.argv.slice(2).filter((a) => !a.startsWith('-') && !a.endsWith('.cjs'))

@@ -5,6 +5,7 @@ import { compile, evalNumber, type CompileResult } from '../lib/expr'
 import { fmt } from '../lib/format'
 import { useTheme } from './theme'
 import { IconCheck, IconChevronRight, IconCopy, IconDownload } from './icons'
+import { L } from '../i18n'
 
 /* ───────────────────────── Layout ───────────────────────── */
 
@@ -32,7 +33,7 @@ export function MethodPage({ title, topic, description, theory, inputs, children
       {theory && <Theory>{theory}</Theory>}
       <div className="method-grid">
         <aside className="inputs card">
-          <div className="card-title">Parámetros</div>
+          <div className="card-title">{L('Parámetros', 'Parameters')}</div>
           <div className="fields">{inputs}</div>
         </aside>
         <section className="results">{children}</section>
@@ -41,7 +42,7 @@ export function MethodPage({ title, topic, description, theory, inputs, children
   )
 }
 
-export function Theory({ children, title = 'Teoría y fórmulas', defaultOpen = false }: { children: ReactNode; title?: string; defaultOpen?: boolean }) {
+export function Theory({ children, title = L('Teoría y fórmulas', 'Theory & formulas'), defaultOpen = false }: { children: ReactNode; title?: string; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   const id = useId()
   return (
@@ -54,7 +55,7 @@ export function Theory({ children, title = 'Teoría y fórmulas', defaultOpen = 
           ƒ
         </span>
         <span>{title}</span>
-        <span className="theory-hint">{open ? 'Ocultar' : 'Mostrar'}</span>
+        <span className="theory-hint">{open ? L('Ocultar', 'Hide') : L('Mostrar', 'Show')}</span>
       </button>
       {open && (
         <div className="theory-body" id={id}>
@@ -278,7 +279,7 @@ export function NumField({ label, value, onChange, hint, placeholder }: { label:
         onChange={(e) => onChange(e.target.value)}
       />
       {!isPlain && Number.isFinite(v) && <span className="field-preview mono">= {fmt(v, 12)}</span>}
-      {!Number.isFinite(v) && value && <span className="field-error">Número inválido</span>}
+      {!Number.isFinite(v) && value && <span className="field-error">{L('Número inválido', 'Invalid number')}</span>}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
   )
@@ -337,7 +338,7 @@ export function FieldRow({ children }: { children: ReactNode }) {
 export function Examples<T>({ items, onPick }: { items: { label: string; value: T }[]; onPick: (v: T) => void }) {
   return (
     <div className="examples">
-      <span className="field-label">Ejemplos</span>
+      <span className="field-label">{L('Ejemplos', 'Examples')}</span>
       <div className="chips">
         {items.map((it, i) => (
           <button key={i} type="button" className="chip" onClick={() => onPick(it.value)}>
@@ -394,7 +395,9 @@ export function MatrixField({ label, value, onChange, hint, rows = 4 }: { label:
           <Tex>{texMatrix(M)}</Tex>
         </span>
       ) : value ? (
-        <span className="field-error">Matriz inválida: todas las filas deben tener el mismo número de valores</span>
+        <span className="field-error">
+          {L('Matriz inválida: todas las filas deben tener el mismo número de valores', 'Invalid matrix: every row must have the same number of values')}
+        </span>
       ) : null}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
@@ -407,7 +410,7 @@ export function VectorField({ label, value, onChange, hint }: { label: ReactNode
     <label className="field">
       <span className="field-label">{label}</span>
       <input className={'input mono' + (v || !value ? '' : ' invalid')} value={value} spellCheck={false} autoCapitalize="off" autoCorrect="off" autoComplete="off" aria-invalid={!v && !!value} data-palette="num" onChange={(e) => onChange(e.target.value)} />
-      {!v && value && <span className="field-error">Vector inválido</span>}
+      {!v && value && <span className="field-error">{L('Vector inválido', 'Invalid vector')}</span>}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
   )
@@ -432,7 +435,7 @@ export interface Column<R> {
   align?: 'left' | 'right' | 'center'
 }
 
-export function DataTable<R extends Record<string, any>>({ columns, rows, highlightLast = false, maxHeight = 420, filename = 'tabla', highlight }: { columns: Column<R>[]; rows: R[]; highlightLast?: boolean; maxHeight?: number; filename?: string; highlight?: (r: R, i: number) => boolean }) {
+export function DataTable<R extends Record<string, any>>({ columns, rows, highlightLast = false, maxHeight = 420, filename = L('tabla', 'table'), highlight }: { columns: Column<R>[]; rows: R[]; highlightLast?: boolean; maxHeight?: number; filename?: string; highlight?: (r: R, i: number) => boolean }) {
   const { digits } = useTheme()
   const cell = (c: Column<R>, r: R, i: number): ReactNode => {
     if (c.get) return c.get(r, i)
@@ -492,9 +495,9 @@ export function DataTable<R extends Record<string, any>>({ columns, rows, highli
       </div>
       <div className="table-foot">
         <span>
-          {rows.length} {rows.length === 1 ? 'fila' : 'filas'}
+          {rows.length} {rows.length === 1 ? L('fila', 'row') : L('filas', 'rows')}
         </span>
-        <button type="button" className="btn ghost sm" onClick={csv} title="Descargar la tabla como CSV (Excel)">
+        <button type="button" className="btn ghost sm" onClick={csv} title={L('Descargar la tabla como CSV (Excel)', 'Download the table as CSV (Excel)')}>
           <IconDownload size={14} /> CSV
         </button>
       </div>
@@ -514,13 +517,13 @@ export function download(name: string, content: string, type = 'text/plain') {
 }
 
 /** Bloque de código Scilab con botones copiar / descargar .sce */
-export function ScilabCode({ code, filename = 'metodo' }: { code: string; filename?: string }) {
+export function ScilabCode({ code, filename = L('metodo', 'method') }: { code: string; filename?: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <Card
       title={
         <>
-          <span className="sci-badge">Scilab</span> Código equivalente
+          <span className="sci-badge">Scilab</span> {L('Código equivalente', 'Equivalent code')}
         </>
       }
       actions={
@@ -539,9 +542,9 @@ export function ScilabCode({ code, filename = 'metodo' }: { code: string; filena
             }}
             aria-live="polite"
           >
-            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />} {copied ? 'Copiado' : 'Copiar'}
+            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />} {copied ? L('Copiado', 'Copied') : L('Copiar', 'Copy')}
           </button>
-          <button type="button" className="btn ghost sm" onClick={() => download(filename + '.sce', code)} title="Descargar el script para Scilab">
+          <button type="button" className="btn ghost sm" onClick={() => download(filename + '.sce', code)} title={L('Descargar el script para Scilab', 'Download the Scilab script')}>
             <IconDownload size={14} /> .sce
           </button>
         </>

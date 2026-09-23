@@ -3,22 +3,23 @@ import type { ReactNode } from 'react'
 import { fmt, texNum } from '../../lib/format'
 import { parseMatrix, parseVector } from '../../components/ui'
 import type { Mat, Vec } from './linalg'
+import { L } from '../../i18n'
 
-export const TOPIC = 'Tema 3 · Sistemas de ecuaciones lineales'
+export const TOPIC = L('Tema 3 · Sistemas de ecuaciones lineales', 'Topic 3 · Systems of linear equations')
 
 export type Parsed<T> = { ok: true; value: T } | { ok: false; error: string }
 
-/** Lee A (n×n) y b (n) desde texto, con mensajes de error en español. */
+/** Lee A (n×n) y b (n) desde texto, con mensajes de error en el idioma de la interfaz. */
 export function readSystem(Atext: string, btext?: string): { A: Mat; b: Vec; n: number } | { error: string } {
   const A = parseMatrix(Atext)
-  if (!A) return { error: 'Matriz A inválida: escribe una fila por línea (o separadas por “;”) y el mismo número de valores en cada fila.' }
+  if (!A) return { error: L('Matriz A inválida: escribe una fila por línea (o separadas por “;”) y el mismo número de valores en cada fila.', 'Invalid matrix A: write one row per line (or separated by “;”) with the same number of values in each row.') }
   const n = A.length
-  if (A.some((r) => r.length !== n)) return { error: `A debe ser cuadrada (n×n): tiene ${n} fila${n > 1 ? 's' : ''} y ${A[0].length} columna${A[0].length > 1 ? 's' : ''}.` }
-  if (n > 20) return { error: 'Tamaño máximo admitido: 20×20.' }
+  if (A.some((r) => r.length !== n)) return { error: L(`A debe ser cuadrada (n×n): tiene ${n} fila${n > 1 ? 's' : ''} y ${A[0].length} columna${A[0].length > 1 ? 's' : ''}.`, `A must be square (n×n): it has ${n} row${n > 1 ? 's' : ''} and ${A[0].length} column${A[0].length > 1 ? 's' : ''}.`) }
+  if (n > 20) return { error: L('Tamaño máximo admitido: 20×20.', 'Maximum supported size: 20×20.') }
   if (btext === undefined) return { A, b: new Array(n).fill(0), n }
   const b = parseVector(btext)
-  if (!b) return { error: 'Vector b inválido: escribe n números separados por espacios, comas o “;”.' }
-  if (b.length !== n) return { error: `Dimensiones incompatibles: A es ${n}×${n} pero b tiene ${b.length} componente${b.length > 1 ? 's' : ''}.` }
+  if (!b) return { error: L('Vector b inválido: escribe n números separados por espacios, comas o “;”.', 'Invalid vector b: write n numbers separated by spaces, commas or “;”.') }
+  if (b.length !== n) return { error: L(`Dimensiones incompatibles: A es ${n}×${n} pero b tiene ${b.length} componente${b.length > 1 ? 's' : ''}.`, `Incompatible dimensions: A is ${n}×${n} but b has ${b.length} component${b.length > 1 ? 's' : ''}.`) }
   return { A, b, n }
 }
 
@@ -26,8 +27,8 @@ export function readSystem(Atext: string, btext?: string): { A: Mat; b: Vec; n: 
 export function readVec(text: string, n: number, name: string, fill = 0): Vec | string {
   if (!text.trim()) return new Array(n).fill(fill)
   const v = parseVector(text)
-  if (!v) return `${name} inválido.`
-  if (v.length !== n) return `${name} debe tener ${n} componentes (tiene ${v.length}).`
+  if (!v) return L(`${name} inválido.`, `Invalid ${name}.`)
+  if (v.length !== n) return L(`${name} debe tener ${n} componentes (tiene ${v.length}).`, `${name} must have ${n} components (it has ${v.length}).`)
   return v
 }
 
@@ -80,8 +81,8 @@ export const sciRow = (b: Vec) => '[' + b.map(sn).join(' ') + ']'
  * Definición Scilab de fl(x): redondeo a t cifras significativas (como fl() de algorithms.ts). El paso
  * round(r*1e6)/1e6 elimina el ruido binario (p. ej. 0.13365/1e-4 = 1336.4999…) antes de redondear.
  */
-export const sciFl = (t: number) => `t = ${t};              // cifras de la mantisa
-// fl(x): redondeo a t cifras significativas (elemento a elemento)
+export const sciFl = (t: number) => `t = ${t};              // ${L('cifras de la mantisa', 'mantissa digits')}
+// ${L('fl(x): redondeo a t cifras significativas (elemento a elemento)', 'fl(x): rounding to t significant digits (elementwise)')}
 function y = fl(x)
   y = x;
   nz = find(x <> 0);

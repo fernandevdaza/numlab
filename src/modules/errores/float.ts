@@ -1,5 +1,6 @@
 // Algoritmos puros sobre representación en punto flotante (IEEE 754 y sistemas F(β,t,L,U)).
 // Todo lo "exacto" se hace con BigInt para no depender del propio punto flotante.
+import { L } from '../../i18n.ts'
 
 export type Prec = 16 | 32 | 64
 
@@ -14,9 +15,9 @@ export interface FormatInfo {
 }
 
 export const FORMATS: Record<Prec, FormatInfo> = {
-  16: { bits: 16, w: 5, m: 10, bias: 15, name: 'media (binary16)' },
-  32: { bits: 32, w: 8, m: 23, bias: 127, name: 'simple (binary32)' },
-  64: { bits: 64, w: 11, m: 52, bias: 1023, name: 'doble (binary64)' },
+  16: { bits: 16, w: 5, m: 10, bias: 15, name: L('media (binary16)', 'half (binary16)') },
+  32: { bits: 32, w: 8, m: 23, bias: 127, name: L('simple (binary32)', 'single (binary32)') },
+  64: { bits: 64, w: 11, m: 52, bias: 1023, name: L('doble (binary64)', 'double (binary64)') },
 }
 
 /** Redondea al formato indicado (float32 usa Math.fround; float16 se codifica exactamente con BigInt). */

@@ -6,6 +6,7 @@
 
 import { create, all, type MathNode } from 'mathjs'
 import { normalize } from '../../lib/expr.ts'
+import { L } from '../../i18n.ts'
 
 export const dm = create(all, { number: 'BigNumber', precision: 64 })
 export type D = any // Decimal de decimal.js
@@ -136,7 +137,7 @@ export function evalD(node: MathNode, vars: Record<string, D>, M: DitMachine, mo
     if (mode === 'exacto' || (mode === 'datos' && kind === 'operación')) return v
     const s = storeD(v, M)
     if (mode === 'maquina') trace.push({ tex, kind, exact: v, stored: s })
-    if (s.status === 'overflow') throw new MachineError(`Overflow al almacenar ${tex}: el exponente ${s.E} supera ${maxExp(M)}.`, trace)
+    if (s.status === 'overflow') throw new MachineError(L(`Overflow al almacenar ${tex}: el exponente ${s.E} supera ${maxExp(M)}.`, `Overflow when storing ${tex}: the exponent ${s.E} exceeds ${maxExp(M)}.`), trace)
     return s.value
   }
   const ev = (n: any): D => {
@@ -156,7 +157,7 @@ export function evalD(node: MathNode, vars: Record<string, D>, M: DitMachine, mo
         if (name in vars) v = vars[name]
         else if (name === 'pi') v = dm.pi
         else if (name === 'e') v = dm.e
-        else throw new Error(`Variable sin valor: ${name}`)
+        else throw new Error(L(`Variable sin valor: ${name}`, `Variable has no value: ${name}`))
         const key = 's:' + name
         if (!stored.has(key)) stored.set(key, put(name === 'pi' ? '\\pi' : name, 'dato', v))
         return stored.get(key)
@@ -176,23 +177,23 @@ export function evalD(node: MathNode, vars: Record<string, D>, M: DitMachine, mo
           case 'multiply':
             return put(tex, 'operación', args[0].times(args[1]))
           case 'divide':
-            if (args[1].isZero()) throw new MachineError(`División entre cero en ${tex}.`, trace)
+            if (args[1].isZero()) throw new MachineError(L(`División entre cero en ${tex}.`, `Division by zero in ${tex}.`), trace)
             return put(tex, 'operación', args[0].div(args[1]))
           case 'pow':
             return put(tex, 'operación', args[0].pow(args[1]))
         }
-        throw new Error('Operador no soportado: ' + n.op)
+        throw new Error(L('Operador no soportado: ', 'Unsupported operator: ') + n.op)
       }
       case 'FunctionNode': {
         const name = n.fn.name as string
         const f = FUNS[name]
-        if (!f) throw new Error('Función no soportada: ' + name)
+        if (!f) throw new Error(L('Función no soportada: ', 'Unsupported function: ') + name)
         const a = ev(n.args[0])
-        if ((name === 'sqrt' || name === 'log' || name === 'ln') && a.isNegative()) throw new MachineError(`${name} de un número negativo en ${n.toTex()}.`, trace)
+        if ((name === 'sqrt' || name === 'log' || name === 'ln') && a.isNegative()) throw new MachineError(L(`${name} de un número negativo en ${n.toTex()}.`, `${name} of a negative number in ${n.toTex()}.`), trace)
         return put(cleanTex(n.toTex({ parenthesis: 'auto' })), 'operación', f(a))
       }
     }
-    throw new Error('Expresión no soportada: ' + n.type)
+    throw new Error(L('Expresión no soportada: ', 'Unsupported expression: ') + n.type)
   }
   const value = ev(node)
   return { value, trace }

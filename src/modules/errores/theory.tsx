@@ -1,24 +1,25 @@
 import type { ReactNode } from 'react'
 import { Tex } from '../../components/Tex'
+import { L } from '../../i18n'
 
-export const TOPIC = 'Tema 1 · Representación de números y errores'
+export const TOPIC = L('Tema 1 · Representación de números y errores', 'Topic 1 · Number representation and errors')
 
 export type ErrKind = 'ieee754' | 'conversion' | 'sistema-f' | 'epsilon' | 'errores' | 'propagacion' | 'condicion' | 'cancelacion' | 'estabilidad' | 'taylor'
 
 export const TITLES: Record<ErrKind, string> = {
-  ieee754: 'Estándar IEEE 754',
-  conversion: 'Sistemas numéricos y conversión de bases',
-  'sistema-f': 'Sistema de punto flotante F(β, t, L, U)',
-  epsilon: 'Épsilon de máquina',
-  errores: 'Error absoluto, relativo y cifras significativas',
-  propagacion: 'Propagación de errores',
-  condicion: 'Número de condición y estabilidad matemática',
-  cancelacion: 'Cancelación catastrófica',
-  estabilidad: 'Estabilidad numérica de algoritmos',
-  taylor: 'Series de Taylor y error de truncamiento',
+  ieee754: L('Estándar IEEE 754', 'IEEE 754 standard'),
+  conversion: L('Sistemas numéricos y conversión de bases', 'Number systems and base conversion'),
+  'sistema-f': L('Sistema de punto flotante F(β, t, L, U)', 'Floating-point system F(β, t, L, U)'),
+  epsilon: L('Épsilon de máquina', 'Machine epsilon'),
+  errores: L('Error absoluto, relativo y cifras significativas', 'Absolute and relative error, significant digits'),
+  propagacion: L('Propagación de errores', 'Error propagation'),
+  condicion: L('Número de condición y estabilidad matemática', 'Condition number and mathematical stability'),
+  cancelacion: L('Cancelación catastrófica', 'Catastrophic cancellation'),
+  estabilidad: L('Estabilidad numérica de algoritmos', 'Numerical stability of algorithms'),
+  taylor: L('Series de Taylor y error de truncamiento', 'Taylor series and truncation error'),
 }
 
-export const THEORY: Record<ErrKind, ReactNode> = {
+const THEORY_ES: Record<ErrKind, ReactNode> = {
   ieee754: (
     <>
       <p>
@@ -321,3 +322,309 @@ export const THEORY: Record<ErrKind, ReactNode> = {
     </>
   ),
 }
+
+const THEORY_EN: Record<ErrKind, ReactNode> = {
+  ieee754: (
+    <>
+      <p>
+        A binary floating-point number is stored as three fields: the <b>sign</b> <Tex>s</Tex>, the <b>biased exponent</b> <Tex>E</Tex> (<Tex>w</Tex> bits) and the{' '}
+        <b>fraction</b> <Tex>f</Tex> (<Tex>m</Tex> bits). For <b>normal</b> numbers (<Tex>{'0 < E < 2^w-1'}</Tex>) the first bit of the mantissa is an implicit 1 that is not stored:
+      </p>
+      <Tex block>{'x = (-1)^s \\times (1.f)_2 \\times 2^{E - \\text{bias}}, \\qquad \\text{bias} = 2^{w-1}-1'}</Tex>
+      <table className="err-mini">
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Total</th>
+            <th>Sign</th>
+            <th>Exponent w</th>
+            <th>Fraction m</th>
+            <th>Bias</th>
+            <th>ε = 2^(−m)</th>
+            <th>Decimal digits ≈</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Half (float16, GPUs / AI)</td>
+            <td>16</td>
+            <td>1</td>
+            <td>5</td>
+            <td>10</td>
+            <td>15</td>
+            <td>9.77 × 10⁻⁴</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>Single (float32)</td>
+            <td>32</td>
+            <td>1</td>
+            <td>8</td>
+            <td>23</td>
+            <td>127</td>
+            <td>1.19 × 10⁻⁷</td>
+            <td>7</td>
+          </tr>
+          <tr>
+            <td>Double (float64, Scilab)</td>
+            <td>64</td>
+            <td>1</td>
+            <td>11</td>
+            <td>52</td>
+            <td>1023</td>
+            <td>2.22 × 10⁻¹⁶</td>
+            <td>15–16</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Special values according to the exponent field:</p>
+      <ul>
+        <li>
+          <Tex>E = 0,\ f = 0</Tex>: <b>±0</b> (there is a signed zero).
+        </li>
+        <li>
+          <Tex>{'E = 0,\\ f \\ne 0'}</Tex>: <b>subnormals</b> <Tex>{'x = (-1)^s (0.f)_2 \\times 2^{1-\\text{bias}}'}</Tex> (they fill the gap between 0 and the smallest normal: <i>gradual underflow</i>).
+        </li>
+        <li>
+          <Tex>{'E = 2^w-1,\\ f = 0'}</Tex>: <b>±∞</b> (overflow, <Tex>1/0</Tex>).
+        </li>
+        <li>
+          <Tex>{'E = 2^w-1,\\ f \\ne 0'}</Tex>: <b>NaN</b> (<Tex>0/0</Tex>, <Tex>{'\\infty-\\infty'}</Tex>, <Tex>{'\\sqrt{-1}'}</Tex> in the reals).
+        </li>
+      </ul>
+      <p>
+        Every real <Tex>x</Tex> is stored as <Tex>{'fl(x)'}</Tex>, the nearest float (ties rounded to even), with relative error bounded by the <b>unit round-off</b>:
+      </p>
+      <Tex block>{'fl(x) = x(1+\\delta),\\qquad |\\delta| \\le u = \\tfrac{1}{2}\\varepsilon_{mach} = 2^{-(m+1)}'}</Tex>
+      <p>
+        That is why <Tex>0.1</Tex> is not exactly representable: in binary it is repeating, <Tex>{'(0.0\\overline{0011})_2'}</Tex>, and it is cut to 52 bits.
+      </p>
+    </>
+  ),
+  conversion: (
+    <>
+      <p>
+        <b>Integer part → base β:</b> repeated division by β; the <b>remainders</b>, read from bottom to top, are the digits.
+      </p>
+      <p>
+        <b>Fractional part → base β:</b> repeated multiplication by β; the <b>integer part</b> of each product is the next digit, and one continues with the fractional part:
+      </p>
+      <Tex block>{'r_0 = \\text{frac}(x),\\qquad \\beta\\, r_k = d_{k+1} + r_{k+1},\\quad d_{k+1} = \\lfloor \\beta r_k \\rfloor'}</Tex>
+      <p>
+        If some <Tex>r_k</Tex> repeats, the expansion is <b>periodic</b> (repeating). A rational <Tex>p/q</Tex> in lowest terms has a finite base-2 expansion only if <Tex>q</Tex> is a power of 2; that is why 0.1, 0.2 or 1/3
+        are not exact in binary.
+      </p>
+      <p>
+        <b>Base β → decimal:</b> <Tex>{'(d_n\\ldots d_1d_0.d_{-1}d_{-2}\\ldots)_\\beta = \\sum_k d_k\\,\\beta^{k}'}</Tex>.
+      </p>
+      <p>
+        <b>Encoding in IEEE 754 (typical exercise):</b> 1) sign; 2) convert |x| to binary; 3) normalize <Tex>{'1.b_1b_2\\ldots \\times 2^{e}'}</Tex>; 4) biased exponent <Tex>{'E = e + \\text{bias}'}</Tex>{' '}
+        in binary; 5) take <Tex>m</Tex> bits of the fraction and round (guard bit + remaining bits, ties to even); 6) put together <Tex>s\,|\,E\,|\,f</Tex> and write it in hexadecimal.
+      </p>
+    </>
+  ),
+  'sistema-f': (
+    <>
+      <p>
+        A normalized floating-point system <Tex>{'\\mathbb{F}(\\beta,t,L,U)'}</Tex> contains zero and the numbers
+      </p>
+      <Tex block>{'x = \\pm\\, 0.d_1d_2\\ldots d_t \\times \\beta^{e},\\qquad d_1 \\neq 0,\\quad 0\\le d_i \\le \\beta-1,\\quad L \\le e \\le U'}</Tex>
+      <ul>
+        <li>
+          How many numbers: <Tex>{'2(\\beta-1)\\beta^{t-1}(U-L+1) + 1'}</Tex>
+        </li>
+        <li>
+          Smallest positive (UFL): <Tex>{'\\beta^{L-1}'}</Tex>. Largest (OFL): <Tex>{'(1-\\beta^{-t})\\,\\beta^{U}'}</Tex>
+        </li>
+        <li>
+          Machine epsilon (distance from 1 to the next number): <Tex>{'\\varepsilon = \\beta^{1-t}'}</Tex>
+        </li>
+        <li>
+          Unit round-off: <Tex>{'u = \\tfrac12\\beta^{1-t}'}</Tex> (rounding) or <Tex>{'u = \\beta^{1-t}'}</Tex> (chopping), with <Tex>{'\\frac{|x-fl(x)|}{|x|}\\le u'}</Tex>
+        </li>
+      </ul>
+      <p>
+        The numbers are <b>not equally spaced</b>: between <Tex>{'\\beta^{e-1}'}</Tex> and <Tex>{'\\beta^{e}'}</Tex> the spacing is a constant <Tex>{'\\beta^{e-t}'}</Tex>, and it is multiplied by β in
+        each binary/decimal decade. With the convention <Tex>{'d_0.d_1\\ldots d_{t-1}\\times\\beta^e'}</Tex> (the IEEE one) the formulas become UFL <Tex>{'\\beta^L'}</Tex>, OFL{' '}
+        <Tex>{'(\\beta-\\beta^{1-t})\\beta^U'}</Tex>.
+      </p>
+    </>
+  ),
+  epsilon: (
+    <>
+      <p>
+        <b>Machine epsilon</b> <Tex>{'\\varepsilon_{mach}'}</Tex> is the distance between 1 and the next floating-point number; equivalently, the smallest <Tex>{'\\varepsilon=2^{-k}'}</Tex> with{' '}
+        <Tex>{'fl(1+\\varepsilon) > 1'}</Tex>. It is computed with the classic loop:
+      </p>
+      <Tex block>{'\\varepsilon \\leftarrow 1;\\quad \\text{while } fl(1+\\varepsilon) > 1:\\ \\varepsilon \\leftarrow \\varepsilon/2;\\quad \\text{on exit } \\varepsilon_{mach} = 2\\varepsilon'}</Tex>
+      <p>
+        Results: single <Tex>{'2^{-23}\\approx 1.19\\times10^{-7}'}</Tex>, double <Tex>{'2^{-52}\\approx 2.22\\times10^{-16}'}</Tex> (in Scilab: <code>%eps</code>). The unit round-off is{' '}
+        <Tex>{'u=\\varepsilon/2'}</Tex>.
+      </p>
+      <p>
+        The spacing around <Tex>x</Tex> is <Tex>{'\\mathrm{ulp}(x) = \\varepsilon\\,2^{\\lfloor\\log_2|x|\\rfloor}'}</Tex>: it grows with <Tex>|x|</Tex>, but the <b>relative</b> spacing{' '}
+        <Tex>{'\\mathrm{ulp}(x)/|x|'}</Tex> oscillates between <Tex>{'\\varepsilon/2'}</Tex> and <Tex>\varepsilon</Tex>. It is not the smallest positive number! (that one is <Tex>{'2^{-1074}'}</Tex> in double).
+      </p>
+    </>
+  ),
+  errores: (
+    <>
+      <p>
+        If <Tex>{'p^*'}</Tex> approximates the exact value <Tex>p</Tex>:
+      </p>
+      <Tex block>{'E_a = |p - p^*|,\\qquad E_r = \\frac{|p-p^*|}{|p|}\\ (p\\neq0),\\qquad E_\\% = 100\\,E_r'}</Tex>
+      <p>
+        <b>Significant digits (course textbook, Ch. 1):</b> <Tex>{'p^*'}</Tex> has <Tex>m</Tex> significant digits if <Tex>m</Tex> is the largest positive integer such that
+      </p>
+      <Tex block>{'\\frac{|p-p^*|}{|p|} \\le 5\\times 10^{-(m+1)}'}</Tex>
+      <p>
+        Example 1.12: <Tex>{'p=-0.001234,\\ p^*=-0.001229 \\Rightarrow E_r = 4.052\\times10^{-3} \\le 5\\times10^{-3} = 5\\times10^{-(2+1)} \\Rightarrow m = 2'}</Tex>.
+      </p>
+      <p>
+        <b>Burden &amp; Faires</b> use <Tex>{'E_r \\le 5\\times10^{-t}'}</Tex>, which gives one more digit (<Tex>t = m + 1</Tex>): with the same numbers, <Tex>t = 3</Tex>. Use the definition your
+        instructor asks for; the page lets you choose.
+      </p>
+      <p>
+        <b>Correct decimals:</b> the largest <Tex>d</Tex> with <Tex>{'|p-p^*| \\le 0.5\\times10^{-d}'}</Tex>. The absolute error depends on the scale; the relative error does not, which is why it is a
+        better measure of the quality of an approximation.
+      </p>
+      <p>
+        <b>Sources of error:</b> the data (measurement), <b>round-off</b> (finite representation, machine arithmetic), <b>truncation</b> (cutting off an infinite process: series, difference
+        derivatives, iterations) and the model.
+      </p>
+    </>
+  ),
+  propagacion: (
+    <>
+      <p>
+        If the data have errors <Tex>{'\\Delta x_i'}</Tex>, by first-order Taylor the error in <Tex>{'f(x_1,\\ldots,x_n)'}</Tex> is approximately
+      </p>
+      <Tex block>{'\\Delta f \\approx \\sum_{i=1}^{n} \\left|\\frac{\\partial f}{\\partial x_i}\\right|\\Delta x_i \\qquad\\text{(one variable: } \\Delta f \\approx |f\'(x)|\\,\\Delta x)'}</Tex>
+      <p>Special cases (absolute errors Δ and relative errors δ):</p>
+      <ul>
+        <li>
+          Sum/difference: <Tex>{'\\Delta(x\\pm y) \\le \\Delta x + \\Delta y'}</Tex> — the relative error blows up if <Tex>{'x\\approx y'}</Tex> in a subtraction!
+        </li>
+        <li>
+          Product/quotient: <Tex>{'\\delta(xy) \\approx \\delta(x/y) \\approx \\delta x + \\delta y'}</Tex>
+        </li>
+        <li>
+          Power: <Tex>{'\\delta(x^n) \\approx |n|\\,\\delta x'}</Tex>
+        </li>
+      </ul>
+      <p>
+        Besides the worst case (sum of absolute values), the <b>statistical</b> error <Tex>{'\\sqrt{\\sum (\\partial_i f\\,\\Delta x_i)^2}'}</Tex> is often reported when the errors are
+        independent.
+      </p>
+    </>
+  ),
+  condicion: (
+    <>
+      <p>
+        <b>Mathematical stability (textbook, §1.6):</b> a problem <Tex>{'F(y,x)=0'}</Tex> is <b>stable</b> (or <b>well conditioned</b>) if the solution <Tex>y</Tex> depends continuously on the
+        data <Tex>x</Tex>: small changes in <Tex>x</Tex> produce small changes in <Tex>y</Tex>. Otherwise it is <b>unstable</b> (<b>ill conditioned</b>), and it will be so with any algorithm.
+      </p>
+      <p>
+        The <b>condition number</b> <Tex>K</Tex> (on this page also <Tex>{'\\kappa'}</Tex>) measures that sensitivity by comparing relative errors:
+      </p>
+      <Tex block>{"K = \\sup_{\\delta x}\\frac{\\|\\delta y\\|/\\|y\\|}{\\|\\delta x\\|/\\|x\\|}\\qquad\\xrightarrow{\\;y=f(x)\\;}\\qquad K(x) = \\left|\\frac{x\\,f'(x)}{f(x)}\\right|,\\qquad \\frac{|\\delta y|}{|y|}\\approx K\\,\\frac{|\\delta x|}{|x|}"}</Tex>
+      <ul>
+        <li>
+          Small <Tex>K</Tex> (the textbook says “of the order of 10”): <b>well-conditioned</b> problem.
+        </li>
+        <li>
+          <Tex>{'K \\gg 1'}</Tex>: <b>ill conditioned</b>; about <Tex>{'\\log_{10}K'}</Tex> decimal digits are lost, no matter which algorithm is used.
+        </li>
+      </ul>
+      <p>
+        <b>Example 1.21:</b> for <Tex>{'y=a^x'}</Tex> (<Tex>{'a>0,\\ a\\ne1'}</Tex>) one gets <Tex>{'K = |x\\ln a|'}</Tex>: with <Tex>{'K=10^5'}</Tex> and a relative round-off error{' '}
+        <Tex>{'10^{-7}'}</Tex> in <Tex>x</Tex>, the result has a relative error <Tex>{'\\approx10^{-2}'}</Tex>.
+      </p>
+      <p>
+        Others: <Tex>{'\\sqrt{x}'}</Tex> has <Tex>{'K=1/2'}</Tex>; <Tex>{'e^x'}</Tex> has <Tex>{'K=|x|'}</Tex>; <Tex>{'\\ln x'}</Tex> has <Tex>{'K = 1/|\\ln x|'}</Tex> (bad near <Tex>x=1</Tex>);{' '}
+        <Tex>{'x-1'}</Tex> near 1 (cancellation) and <Tex>{'\\tan x'}</Tex> near <Tex>{'\\pi/2'}</Tex> are ill conditioned.
+      </p>
+      <p>
+        Rule of thumb: <Tex>{'\\text{relative error of the result} \\lesssim K \\times \\text{relative error of the data} \\;(+\\text{ algorithm error})'}</Tex>.
+      </p>
+    </>
+  ),
+  cancelacion: (
+    <>
+      <p>
+        <b>Catastrophic cancellation:</b> when subtracting two very close numbers that already carry round-off errors, the equal leading digits cancel and the result is dominated by the error. If{' '}
+        <Tex>{'a\\approx b'}</Tex>:
+      </p>
+      <Tex block>{'\\frac{|fl(a)-fl(b) - (a-b)|}{|a-b|} \\lesssim u\\,\\frac{|a|+|b|}{|a-b|}\\qquad\\Rightarrow\\qquad \\text{about}\\ \\log_{10}\\frac{|a|}{|a-b|}\\ \\text{digits are lost}'}</Tex>
+      <p>
+        The subtraction itself is exact (Sterbenz lemma); the problem is that it <b>exposes</b> the earlier errors. The remedy is to <b>rewrite the expression algebraically</b> to avoid the subtraction:
+      </p>
+      <ul>
+        <li>
+          <Tex>{'\\frac{1-\\cos x}{x^2} = \\frac{2\\sin^2(x/2)}{x^2}'}</Tex>
+        </li>
+        <li>
+          <Tex>{'\\sqrt{x+1}-\\sqrt{x} = \\frac{1}{\\sqrt{x+1}+\\sqrt{x}}'}</Tex> (rationalize)
+        </li>
+        <li>
+          Roots of <Tex>{'ax^2+bx+c'}</Tex> with <Tex>{'b^2\\gg 4ac'}</Tex>: <Tex>{'x_1 = \\frac{-b-\\operatorname{sign}(b)\\sqrt{b^2-4ac}}{2a}'}</Tex>, <Tex>{'x_2 = \\frac{c}{a\\,x_1}'}</Tex>
+        </li>
+        <li>
+          <Tex>{'\\ln(1+x)'}</Tex>, <Tex>{'e^x-1'}</Tex> for small <Tex>x</Tex>: the functions <code>log1p</code>, <code>expm1</code>.
+        </li>
+      </ul>
+      <p>
+        <b>Forward vs. backward error:</b> if the algorithm returns <Tex>{'\\hat y'}</Tex> instead of <Tex>{'y=f(x)'}</Tex>, the <b>forward</b> error is{' '}
+        <Tex>{'|\\hat y - y|'}</Tex>; the <b>backward</b> error is the smallest <Tex>{'|\\Delta x|'}</Tex> such that <Tex>{'\\hat y = f(x+\\Delta x)'}</Tex>. They are related by
+      </p>
+      <Tex block>{'\\text{relative forward error} \\;\\lesssim\\; \\kappa(x)\\times\\text{relative backward error}'}</Tex>
+      <p>
+        An algorithm is <b>backward stable</b> if its backward error is of the order of <Tex>u</Tex>. The naive formula <Tex>{'(1-\\cos x)/x^2'}</Tex> is NOT, even though the problem is well conditioned
+        (<Tex>{'\\kappa\\approx 0'}</Tex> near 0): the algorithm is to blame, not the problem.
+      </p>
+    </>
+  ),
+  estabilidad: (
+    <>
+      <p>
+        <b>Numerical stability (textbook, §1.7):</b> it is a property of the <b>algorithm</b>, not of the problem: a mathematically unstable problem is unstable with any algorithm, but a stable
+        problem can be solved with an unstable algorithm. One must choose algorithms that are no less stable than the problem.
+      </p>
+      <p>
+        An algorithm is <b>stable</b> if the errors (round-off or in the initial data) do not grow uncontrollably during the computation. If <Tex>{'E_0'}</Tex> is the initial error and{' '}
+        <Tex>{'E_n'}</Tex> the error after <Tex>n</Tex> steps:
+      </p>
+      <Tex block>{'E_n \\approx C\\,n\\,E_0\\ \\ \\text{(linear growth: stable)}\\qquad E_n \\approx C^n E_0,\\ C>1\\ \\ \\text{(exponential: unstable)}'}</Tex>
+      <p>
+        <b>Recurrence</b> <Tex>{'I_n = \\int_0^1 x^n e^{x-1}dx = 1 - n\\,I_{n-1}'}</Tex>, <Tex>{'I_0 = 1-e^{-1}'}</Tex>. Going forward, the error in <Tex>{'I_0'}</Tex> is multiplied by{' '}
+        <Tex>{'n!'}</Tex>: <Tex>{'E_n = n!\\,E_0'}</Tex> ⇒ unstable. Going backward, <Tex>{'I_{n-1} = (1-I_n)/n'}</Tex> <b>divides</b> the error by <Tex>n</Tex> at each step: even starting from the
+        absurd <Tex>{'I_M = 0'}</Tex>, one obtains <Tex>{'I_n'}</Tex> to machine precision.
+      </p>
+      <p>
+        <b>Taylor series of <Tex>{'e^{x}'}</Tex> with <Tex>{'x<0'}</Tex>:</b> the terms <Tex>{'x^k/k!'}</Tex> alternate in sign and reach a size <Tex>{'\\sim e^{|x|}'}</Tex>, while the
+        result is <Tex>{'e^{-|x|}'}</Tex>. The relative error is <Tex>{'\\approx u\\,e^{2|x|}'}</Tex>. Stable solution: <Tex>{'e^{x} = 1/e^{|x|}'}</Tex> (all terms positive).
+      </p>
+      <p>
+        <b>Consistency + stability ⇒ convergence:</b> a numerical method is <b>consistent</b> if the discrete problem tends to the continuous one (the local truncation error → 0 under refinement), and it
+        converges if it is also stable.
+      </p>
+    </>
+  ),
+  taylor: (
+    <>
+      <p>
+        If <Tex>f</Tex> has <Tex>n+1</Tex> continuous derivatives on an interval containing <Tex>{'x_0'}</Tex> and <Tex>x</Tex>:
+      </p>
+      <Tex block>{'f(x) = \\underbrace{\\sum_{k=0}^{n} \\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k}_{P_n(x)} + \\underbrace{\\frac{f^{(n+1)}(\\xi)}{(n+1)!}(x-x_0)^{n+1}}_{R_n(x)}'}</Tex>
+      <p>
+        for some <Tex>\xi</Tex> between <Tex>{'x_0'}</Tex> and <Tex>x</Tex> (Lagrange remainder). Bound on the <b>truncation error</b>:
+      </p>
+      <Tex block>{'|f(x)-P_n(x)| \\le \\frac{M_{n+1}}{(n+1)!}|x-x_0|^{n+1},\\qquad M_{n+1} = \\max_{\\xi}|f^{(n+1)}(\\xi)|'}</Tex>
+      <p>
+        The total error of a computation is <b>truncation + round-off</b>. When <Tex>{'x_0=0'}</Tex> it is called the Maclaurin series.
+      </p>
+    </>
+  ),
+}
+
+export const THEORY: Record<ErrKind, ReactNode> = L(THEORY_ES, THEORY_EN)

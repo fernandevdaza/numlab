@@ -34,18 +34,18 @@ h1 { font-weight: 750; font-size: 92px; letter-spacing: -0.045em; line-height: 1
 <body><div class="b"><div class="dots"></div>
   <div class="left">
     <div class="logo"><img src="icono.svg" alt=""><h1>NumLab</h1></div>
-    <div class="tag">Métodos numéricos, <em>paso a paso.</em></div>
-    <div class="sub">RAÍCES · SISTEMAS · INTERPOLACIÓN<br>INTEGRALES · EDO · CÓDIGO SCILAB</div>
+    <div class="tag" data-es="Métodos numéricos, &lt;em&gt;paso a paso.&lt;/em&gt;" data-en="Numerical methods, &lt;em&gt;step by step.&lt;/em&gt;"></div>
+    <div class="sub" data-es="RAÍCES · SISTEMAS · INTERPOLACIÓN&lt;br&gt;INTEGRALES · EDO · CAS · SCILAB" data-en="ROOTS · LINEAR SYSTEMS · INTERPOLATION&lt;br&gt;INTEGRALS · ODEs · CAS · SCILAB"></div>
   </div>
   <div class="flow">
-    <div class="card"><div class="g">f(x)=0</div><div class="t">Raíces</div></div><span class="arr">→</span>
-    <div class="card"><div class="g">Ax=b</div><div class="t">Sistemas</div></div><span class="arr">→</span>
-    <div class="card v"><div class="g">P(x)</div><div class="t">Interpolar</div></div>
+    <div class="card"><div class="g">f(x)=0</div><div class="t" data-es="Raíces" data-en="Roots"></div></div><span class="arr">→</span>
+    <div class="card"><div class="g">Ax=b</div><div class="t" data-es="Sistemas" data-en="Systems"></div></div><span class="arr">→</span>
+    <div class="card v"><div class="g">P(x)</div><div class="t" data-es="Interpolar" data-en="Interpolate"></div></div>
   </div>
   <div class="flow" style="top: 290px; left: 650px;">
-    <div class="card v"><div class="g">∫ f dx</div><div class="t">Integrar</div></div><span class="arr">→</span>
-    <div class="card"><div class="g">y′=f</div><div class="t">EDO</div></div><span class="arr">→</span>
-    <div class="card v"><div class="g" style="font-family:GM,monospace;font-style:normal;font-size:22px">.sce</div><div class="t">Scilab</div></div>
+    <div class="card v"><div class="g">∫ f dx</div><div class="t" data-es="Integrar" data-en="Integrate"></div></div><span class="arr">→</span>
+    <div class="card"><div class="g">y′=f</div><div class="t" data-es="EDO" data-en="ODEs"></div></div><span class="arr">→</span>
+    <div class="card v"><div class="g">d/dx</div><div class="t" data-es="CAS" data-en="CAS"></div></div>
   </div>
   <div class="plot"><svg viewBox="0 0 200 250">
     <g stroke="rgba(148,163,184,.14)"><path d="M20 50H180M20 100H180M20 150H180M20 200H180"/><path d="M60 20V230M100 20V230M140 20V230"/></g>
@@ -60,4 +60,11 @@ h1 { font-weight: 750; font-size: 92px; letter-spacing: -0.045em; line-height: 1
     <text x="22" y="30" fill="#94a3b8" font-family="GM, monospace" font-size="11">Newton</text>
     <text x="22" y="44" fill="#5eead4" font-family="GM, monospace" font-size="11">x* = 1.365230</text>
   </svg></div>
-</div></body></html>
+</div>
+<script>
+  // ?lang=en | es  (por defecto es)
+  const lang = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'es'
+  document.documentElement.lang = lang
+  for (const el of document.querySelectorAll('[data-es]')) el.innerHTML = el.dataset[lang]
+</script>
+</body></html>

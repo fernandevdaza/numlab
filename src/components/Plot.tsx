@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useTheme } from './theme'
 import { sampleFn, type SamplePoint } from '../lib/plotmath'
 import { SERIES } from './palette'
+import { LANG } from '../i18n'
 
 export type Trace = Record<string, any>
 
@@ -81,7 +82,7 @@ export function Plot({ data, layout, height = 380, equalAxes }: Props) {
       const sa = { ...axis3, backgroundcolor: 'rgba(0,0,0,0)', showbackground: false }
       L.scene = { xaxis: sa, yaxis: sa, zaxis: sa, ...layout.scene }
     }
-    Plotly.react(ref.current, data as any, L, { responsive: true, displaylogo: false, locale: 'es' } as any)
+    Plotly.react(ref.current, data as any, L, { responsive: true, displaylogo: false, locale: LANG } as any)
   }, [data, layout, height, dark, equalAxes])
   useEffect(() => {
     const el = ref.current

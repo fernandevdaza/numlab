@@ -4,6 +4,7 @@ import type { MethodDef } from './modules/types'
 import { CONFIG, type ExamDef } from './config'
 import { MOD_KEY, type HelpTab } from './components/Help'
 import { IconGithub, IconHelp, IconSearch } from './components/icons'
+import { L, LOCALE } from './i18n'
 
 /** Días completos hasta la fecha (0 = hoy, negativo = ya pasó). Compara fechas de calendario locales. */
 function daysUntil(iso: string) {
@@ -17,7 +18,7 @@ function daysUntil(iso: string) {
 function examDate(iso: string) {
   const [y, m, d] = iso.split('-').map(Number)
   const dt = new Date(y, (m || 1) - 1, d || 1)
-  return Number.isNaN(dt.getTime()) ? iso : dt.toLocaleDateString(CONFIG.locale || undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+  return Number.isNaN(dt.getTime()) ? iso : dt.toLocaleDateString(CONFIG.locale || LOCALE, { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 function Exams({ exams }: { exams: ExamDef[] }) {
@@ -25,23 +26,29 @@ function Exams({ exams }: { exams: ExamDef[] }) {
   if (!valid.length) return null
   const next = valid.find((e) => daysUntil(e.date) >= 0)
   return (
-    <div className="exams" aria-label="Próximas evaluaciones">
+    <div className="exams" aria-label={L('Próximas evaluaciones', 'Upcoming exams')}>
       {valid.map((e) => {
         const d = daysUntil(e.date)
         return (
           <div key={e.label + e.date} className={'exam' + (e === next ? ' next' : '') + (d < 0 ? ' past' : '')}>
             <div className="exam-days" aria-hidden="true">
-              {d < 0 ? '✓' : d === 0 ? '¡Hoy!' : (
+              {d < 0 ? '✓' : d === 0 ? L('¡Hoy!', 'Today!') : (
                 <span>
                   {d}
-                  <small> {d === 1 ? 'día' : 'días'}</small>
+                  <small> {d === 1 ? L('día', 'day') : L('días', 'days')}</small>
                 </span>
               )}
             </div>
             <div>
               <div className="exam-label">{e.label}</div>
               <div className="exam-sub">
-                <span className="sr-only">{d < 0 ? 'Ya rendido. ' : d === 0 ? 'Es hoy. ' : `Faltan ${d} ${d === 1 ? 'día' : 'días'}. `}</span>
+                <span className="sr-only">
+                  {d < 0
+                    ? L('Ya rendido. ', 'Already taken. ')
+                    : d === 0
+                      ? L('Es hoy. ', 'It is today. ')
+                      : L(`Faltan ${d} ${d === 1 ? 'día' : 'días'}. `, `${d} ${d === 1 ? 'day' : 'days'} left. `)}
+                </span>
                 {examDate(e.date)}
                 {e.topics ? ` · ${e.topics}` : ''}
               </div>
@@ -113,26 +120,30 @@ export function Home({ onSearch, onHelp }: { onSearch?: () => void; onHelp?: (ta
         <div className="hero-text">
           {eyebrow && <div className="eyebrow">{eyebrow}</div>}
           <h1>
-            Tu laboratorio de <em>{CONFIG.courseName ? CONFIG.courseName.toLowerCase() : 'métodos numéricos'}</em>
+            {L('Tu laboratorio de ', 'Your ')}
+            <em>{CONFIG.courseName ? CONFIG.courseName.toLowerCase() : L('métodos numéricos', 'numerical methods')}</em>
+            {L('', ' lab')}
           </h1>
           <p className="lead">
-            Cada método del sílabo con tabla de iteraciones, gráficas interactivas, análisis de error, desarrollo paso a paso y exportación a
-            Scilab. Escribe tu función y todo se recalcula al instante.
+            {L(
+              'Cada método del sílabo con tabla de iteraciones, gráficas interactivas, análisis de error, desarrollo paso a paso y exportación a Scilab. Escribe tu función y todo se recalcula al instante.',
+              'Every method in the syllabus with an iteration table, interactive plots, error analysis, a step-by-step solution and export to Scilab. Type your function and everything is recomputed instantly.',
+            )}
           </p>
           <div className="hero-actions">
             {first?.methods[0] && (
               <a className="btn primary" href={`#/${first.id}/${first.methods[0].id}`}>
-                Empezar por {first.shortTitle || first.title}
+                {L('Empezar por', 'Start with')} {first.shortTitle || first.title}
               </a>
             )}
             {onSearch && (
               <button type="button" className="btn" onClick={onSearch}>
-                <IconSearch size={15} /> Buscar un método <span className="kbd">{MOD_KEY === '⌘' ? '⌘K' : 'Ctrl K'}</span>
+                <IconSearch size={15} /> {L('Buscar un método', 'Search for a method')} <span className="kbd">{MOD_KEY === '⌘' ? '⌘K' : 'Ctrl K'}</span>
               </button>
             )}
             {onHelp && (
               <button type="button" className="btn ghost" onClick={() => onHelp('sintaxis')}>
-                <IconHelp size={15} /> Cómo escribir funciones
+                <IconHelp size={15} /> {L('Cómo escribir funciones', 'How to write functions')}
               </button>
             )}
           </div>
@@ -141,16 +152,16 @@ export function Home({ onSearch, onHelp }: { onSearch?: () => void; onHelp?: (ta
       </section>
 
       <div className="section-head">
-        <h2>Temas</h2>
+        <h2>{L('Temas', 'Topics')}</h2>
         <span className="muted">
-          {topics.length} temas · {total} páginas
+          {L(`${topics.length} temas · ${total} páginas`, `${topics.length} topics · ${total} pages`)}
         </span>
       </div>
       <section className="topic-grid">
         {topics.map((t) => (
           <article key={t.id} className="topic-card card">
             <div className="topic-head">
-              <span className="topic-num">{t.num > 0 ? `Tema ${t.num}` : 'Herramientas'}</span>
+              <span className="topic-num">{t.num > 0 ? `${L('Tema', 'Topic')} ${t.num}` : L('Herramientas', 'Tools')}</span>
               <span className="topic-glyph" aria-hidden="true">
                 {t.glyph}
               </span>
@@ -178,23 +189,23 @@ export function Home({ onSearch, onHelp }: { onSearch?: () => void; onHelp?: (ta
       <footer className="home-foot">
         <span>
           {CONFIG.appName}
-          {CONFIG.license ? ` · Código abierto (${CONFIG.license})` : ' · Código abierto'}
+          {' · ' + L('Código abierto', 'Open source') + (CONFIG.license ? ` (${CONFIG.license})` : '')}
           {CONFIG.repoUrl && (
             <>
               {' · '}
               <a href={CONFIG.repoUrl} target="_blank" rel="noopener noreferrer">
-                <IconGithub size={13} style={{ verticalAlign: '-2px' }} /> Repositorio
+                <IconGithub size={13} style={{ verticalAlign: '-2px' }} /> {L('Repositorio', 'Repository')}
               </a>
             </>
           )}
         </span>
         <span>
-          Pulsa <span className="kbd">?</span> para ver la ayuda y los atajos
+          {L('Pulsa', 'Press')} <span className="kbd">?</span> {L('para ver la ayuda y los atajos', 'for help and keyboard shortcuts')}
           {onHelp && (
             <>
               {' · '}
               <button type="button" className="link-btn" onClick={() => onHelp('acerca')}>
-                Acerca de
+                {L('Acerca de', 'About')}
               </button>
             </>
           )}

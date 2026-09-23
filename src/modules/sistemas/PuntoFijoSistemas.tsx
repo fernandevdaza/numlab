@@ -9,6 +9,7 @@ import { Alert, Card, DataTable, Examples, ExprField, FieldRow, IntField, Method
 import * as A from './algorithms'
 import { N, Note, readVec, sciVec, texM, TOPIC, vecText } from './shared'
 import { THEORY, TITLES } from './theory'
+import { L } from '../../i18n'
 
 const VARS = ['x', 'y', 'z', 'w']
 
@@ -28,12 +29,12 @@ const EJ37 = { n: 2, fs: ['x^2 - 2x - y + 0.5', 'x^2 + 4y^2 - 4', '', ''] }
 const P62 = { n: 2, fs: ['x^2 - y - 0.2', 'y^2 - x - 0.3', '', ''] }
 
 const EXAMPLES: { label: string; value: Partial<S> }[] = [
-  { label: 'Ej. 3.7 raíz cerca de (1.9, 0.3)', value: { ...EJ37, gs: ['sqrt(2x + y - 0.5)', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 100, seidel: false } },
-  { label: 'Ej. 3.7 con Seidel', value: { ...EJ37, gs: ['sqrt(2x + y - 0.5)', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 100, seidel: true } },
-  { label: 'Ej. 3.7 raíz cerca de (−0.2, 1)', value: { ...EJ37, gs: ['(x^2 - y + 0.5)/2', 'sqrt(4 - x^2)/2', '', ''], x0: '-0.2 1', tol: '1e-9', maxIter: 100, seidel: false } },
-  { label: 'Práct. 6.2 cerca de (1.2, 1.2)', value: { ...P62, gs: ['sqrt(y + 0.2)', 'sqrt(x + 0.3)', '', ''], x0: '1.2 1.2', tol: '1e-6', maxIter: 100, seidel: false } },
-  { label: 'Práct. 6.2 cerca de (−0.3, −0.2)', value: { ...P62, gs: ['y^2 - 0.3', 'x^2 - 0.2', '', ''], x0: '-0.3 -0.2', tol: '1e-6', maxIter: 100, seidel: false } },
-  { label: 'Ej. 3.7: 2.º despeje desde (1.6, 0.1)', value: { ...EJ37, gs: ['(x^2 - y + 0.5)/2', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 60, seidel: false } },
+  { label: L('Ej. 3.7 raíz cerca de (1.9, 0.3)', 'Ex. 3.7 root near (1.9, 0.3)'), value: { ...EJ37, gs: ['sqrt(2x + y - 0.5)', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 100, seidel: false } },
+  { label: L('Ej. 3.7 con Seidel', 'Ex. 3.7 with Seidel'), value: { ...EJ37, gs: ['sqrt(2x + y - 0.5)', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 100, seidel: true } },
+  { label: L('Ej. 3.7 raíz cerca de (−0.2, 1)', 'Ex. 3.7 root near (−0.2, 1)'), value: { ...EJ37, gs: ['(x^2 - y + 0.5)/2', 'sqrt(4 - x^2)/2', '', ''], x0: '-0.2 1', tol: '1e-9', maxIter: 100, seidel: false } },
+  { label: L('Práct. 6.2 cerca de (1.2, 1.2)', 'Practice 6.2 near (1.2, 1.2)'), value: { ...P62, gs: ['sqrt(y + 0.2)', 'sqrt(x + 0.3)', '', ''], x0: '1.2 1.2', tol: '1e-6', maxIter: 100, seidel: false } },
+  { label: L('Práct. 6.2 cerca de (−0.3, −0.2)', 'Practice 6.2 near (−0.3, −0.2)'), value: { ...P62, gs: ['y^2 - 0.3', 'x^2 - 0.2', '', ''], x0: '-0.3 -0.2', tol: '1e-6', maxIter: 100, seidel: false } },
+  { label: L('Ej. 3.7: 2.º despeje desde (1.6, 0.1)', 'Ex. 3.7: 2nd rearrangement from (1.6, 0.1)'), value: { ...EJ37, gs: ['(x^2 - y + 0.5)/2', 'sqrt(4 - x^2)/2', '', ''], x0: '1.6 0.1', tol: '1e-7', maxIter: 60, seidel: false } },
 ]
 
 export function PuntoFijoSistemas() {
@@ -69,7 +70,7 @@ export function PuntoFijoSistemas() {
         try {
           node = derivative(G[i].node, vs[j])
         } catch (e: any) {
-          return { error: `No se pudo derivar g${i + 1} respecto de ${vs[j]}: ${e?.message ?? e}` }
+          return { error: L(`No se pudo derivar g${i + 1} respecto de ${vs[j]}: ${e?.message ?? e}`, `Could not differentiate g${i + 1} with respect to ${vs[j]}: ${e?.message ?? e}`) }
         }
         const c = compile(node.toString(), vs)
         if (!c.ok) return { error: `∂g${i + 1}/∂${vs[j]}: ${c.error}` }
@@ -80,7 +81,7 @@ export function PuntoFijoSistemas() {
     const x0 = readVec(d.x0, n, 'x⁽⁰⁾')
     if (typeof x0 === 'string') return { error: x0 }
     const tol = evalNumber(d.tol)
-    if (!(tol > 0)) return { error: 'La precisión eps debe ser un número positivo.' }
+    if (!(tol > 0)) return { error: L('La precisión eps debe ser un número positivo.', 'The tolerance eps must be a positive number.') }
     const res = A.puntoFijoSistema(
       G.map((g) => g.f),
       x0,
@@ -92,29 +93,31 @@ export function PuntoFijoSistemas() {
 
   const inputs = (
     <>
-      <IntField label="Número de ecuaciones n" value={s.n} onChange={(n) => set({ n })} min={2} max={4} hint={`Variables: ${vars.join(', ')}`} />
+      <IntField label={L('Número de ecuaciones n', 'Number of equations n')} value={s.n} onChange={(n) => set({ n })} min={2} max={4} hint={`Variables: ${vars.join(', ')}`} />
       {vars.map((v, i) => (
         <ExprField key={'g' + i} label={`${v} = g${i + 1}(${vars.join(', ')})`} value={s.gs[i] ?? ''} onChange={(e) => setArr('gs', i, e)} vars={vars} texPrefix={`g_{${i + 1}} =`} />
       ))}
       <details>
-        <summary className="muted" style={{ cursor: 'pointer', fontSize: 13 }}>Sistema original fᵢ = 0 (opcional: residuo y gráfica)</summary>
+        <summary className="muted" style={{ cursor: 'pointer', fontSize: 13 }}>
+          {L('Sistema original fᵢ = 0 (opcional: residuo y gráfica)', 'Original system fᵢ = 0 (optional: residual and plot)')}
+        </summary>
         {vars.map((_, i) => (
           <ExprField key={'f' + i} label={`f${i + 1}(${vars.join(', ')}) = 0`} value={s.fs[i] ?? ''} onChange={(e) => setArr('fs', i, e)} vars={vars} texPrefix={`f_{${i + 1}} =`} />
         ))}
       </details>
-      <VectorField label={<>Valor inicial <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>} value={s.x0} onChange={(x0) => set({ x0 })} />
+      <VectorField label={L(<>Valor inicial <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>, <>Initial value <Tex>{'\\mathbf{x}^{(0)}'}</Tex> ({vars.join(', ')})</>)} value={s.x0} onChange={(x0) => set({ x0 })} />
       <SelectField
-        label="Variante"
+        label={L('Variante', 'Variant')}
         value={s.seidel ? 'seidel' : 'simple'}
         onChange={(v) => set({ seidel: v === 'seidel' })}
         options={[
-          { value: 'simple', label: 'Punto fijo: todas las gᵢ con x⁽ᵏ⁾' },
-          { value: 'seidel', label: 'Seidel: usa de inmediato las componentes ya calculadas' },
+          { value: 'simple', label: L('Punto fijo: todas las gᵢ con x⁽ᵏ⁾', 'Fixed point: all gᵢ with x⁽ᵏ⁾') },
+          { value: 'seidel', label: L('Seidel: usa de inmediato las componentes ya calculadas', 'Seidel: uses the already computed components immediately') },
         ]}
       />
       <FieldRow>
-        <NumField label="Precisión eps" value={s.tol} onChange={(tol) => set({ tol })} />
-        <IntField label="Máx. iteraciones" value={s.maxIter} onChange={(maxIter) => set({ maxIter })} min={1} max={1000} />
+        <NumField label={L('Precisión eps', 'Tolerance eps')} value={s.tol} onChange={(tol) => set({ tol })} />
+        <IntField label={L('Máx. iteraciones', 'Max. iterations')} value={s.maxIter} onChange={(maxIter) => set({ maxIter })} min={1} max={1000} />
       </FieldRow>
       <Examples items={EXAMPLES} onPick={(v) => set(v)} />
     </>
@@ -161,48 +164,58 @@ function PFResults({ c, s, digits }: { c: Calc; s: S; digits: number }) {
     <>
       <Stats
         items={[
-          { label: `Solución (${vs.join(', ')})`, value: vecText(res.x, Math.min(digits, 10)), accent: true },
-          { label: 'Iteraciones', value: res.rows.length - 1, hint: res.converged ? 'convergió' : 'no convergió' },
-          { label: 'Condición en x⁽⁰⁾', value: ok0 ? 'se cumple' : 'no se cumple', hint: `máx Σⱼ|∂gᵢ/∂xⱼ| = ${fmt(Math.max(...c.suf0), 4)}` },
+          { label: L(`Solución (${vs.join(', ')})`, `Solution (${vs.join(', ')})`), value: vecText(res.x, Math.min(digits, 10)), accent: true },
+          { label: L('Iteraciones', 'Iterations'), value: res.rows.length - 1, hint: res.converged ? L('convergió', 'converged') : L('no convergió', 'did not converge') },
+          { label: L('Condición en x⁽⁰⁾', 'Condition at x⁽⁰⁾'), value: ok0 ? L('se cumple', 'holds') : L('no se cumple', 'does not hold'), hint: L(`máx Σⱼ|∂gᵢ/∂xⱼ| = ${fmt(Math.max(...c.suf0), 4)}`, `max Σⱼ|∂gᵢ/∂xⱼ| = ${fmt(Math.max(...c.suf0), 4)}`) },
           hasF ? { label: '‖F(x)‖∞', value: fmtErr(A.normInf(Fx)) } : { label: '‖g(x) − x‖∞', value: fmtErr(A.normInf(A.vsub(c.G.map((g) => g.f(...res.x)), res.x))) },
         ]}
       />
       <Alert kind={res.converged ? 'ok' : 'warn'}>{res.message}</Alert>
-      <Card title="Condición de suficiencia (en el valor inicial, como sugiere el texto)">
+      <Card title={L('Condición de suficiencia (en el valor inicial, como sugiere el texto)', 'Sufficient condition (at the initial value, as the textbook suggests)')}>
         <DataTable
           filename="suficiencia_punto_fijo"
           columns={[
-            { key: 'g', label: 'Función', align: 'left' },
+            { key: 'g', label: L('Función', 'Function'), align: 'left' },
             ...vs.map((v, j) => ({ key: 'd' + j, tex: `|\\partial g_i/\\partial ${v}|` })),
-            { key: 's0', tex: '\\sum_j \\text{ en } \\mathbf{x}^{(0)}' },
-            ...(c.sufX ? [{ key: 'sx', tex: '\\sum_j \\text{ en la solución}' }] : []),
+            { key: 's0', tex: L('\\sum_j \\text{ en } \\mathbf{x}^{(0)}', '\\sum_j \\text{ at } \\mathbf{x}^{(0)}') },
+            ...(c.sufX ? [{ key: 'sx', tex: L('\\sum_j \\text{ en la solución}', '\\sum_j \\text{ at the solution}') }] : []),
           ]}
           rows={c.DG.map((r, i) => ({ g: `g${i + 1}`, ...Object.fromEntries(r.map((g, j) => ['d' + j, Math.abs(g.f(...c.x0))])), s0: c.suf0[i], sx: c.sufX?.[i] }))}
         />
         <Note>
-          {ok0 ? 'Todas las sumas son < 1 en x⁽⁰⁾: se puede esperar que el proceso converja.' : 'Alguna suma es ≥ 1 en x⁽⁰⁾: probablemente no converja; prueba otro despeje o un valor inicial más cercano.'}{' '}
-          Derivadas simbólicas: {c.DG.map((r, i) => r.map((g, j) => `∂g${i + 1}/∂${vs[j]} = ${g.node.toString()}`).join('; ')).join('; ')}.
+          {ok0
+            ? L('Todas las sumas son < 1 en x⁽⁰⁾: se puede esperar que el proceso converja.', 'All sums are < 1 at x⁽⁰⁾: the process can be expected to converge.')
+            : L(
+                'Alguna suma es ≥ 1 en x⁽⁰⁾: probablemente no converja; prueba otro despeje o un valor inicial más cercano.',
+                'Some sum is ≥ 1 at x⁽⁰⁾: it will probably not converge; try another rearrangement or a closer initial value.',
+              )}{' '}
+          {L('Derivadas simbólicas', 'Symbolic derivatives')}: {c.DG.map((r, i) => r.map((g, j) => `∂g${i + 1}/∂${vs[j]} = ${g.node.toString()}`).join('; ')).join('; ')}.
         </Note>
       </Card>
       <Tabs
         tabs={[
-          ...(c.n === 2 ? [{ label: 'Gráfica', content: <Card><PFPlot c={c} /></Card> }] : []),
-          { label: 'Paso a paso', content: <Card><Steps steps={pfSteps(c, s.seidel)} /></Card> },
+          ...(c.n === 2 ? [{ label: L('Gráfica', 'Plot'), content: <Card><PFPlot c={c} /></Card> }] : []),
+          { label: L('Paso a paso', 'Step by step'), content: <Card><Steps steps={pfSteps(c, s.seidel)} /></Card> },
           {
-            label: 'Convergencia',
+            label: L('Convergencia', 'Convergence'),
             content: (
               <Card>
                 <Plot
                   data={[{ x: res.rows.slice(1).map((r) => r.k), y: res.rows.slice(1).map((r) => (r.err > 0 ? r.err : null)), type: 'scatter', mode: 'lines+markers', name: '‖xₖ − xₖ₋₁‖∞', line: { color: SERIES[0], width: 2.5 } }]}
-                  layout={{ yaxis: { type: 'log', title: { text: 'escala log' }, exponentformat: 'power' }, xaxis: { title: { text: 'k' } } }}
+                  layout={{ yaxis: { type: 'log', title: { text: L('escala log', 'log scale') }, exponentformat: 'power' }, xaxis: { title: { text: 'k' } } }}
                 />
-                <Note>Convergencia lineal: el error baja aproximadamente un factor constante por iteración (una recta en escala logarítmica). Seidel suele reducir ese factor.</Note>
+                <Note>
+                  {L(
+                    'Convergencia lineal: el error baja aproximadamente un factor constante por iteración (una recta en escala logarítmica). Seidel suele reducir ese factor.',
+                    'Linear convergence: the error decreases by roughly a constant factor per iteration (a straight line on a logarithmic scale). Seidel usually reduces that factor.',
+                  )}
+                </Note>
               </Card>
             ),
           },
         ]}
       />
-      <Card title="Tabla de iteraciones">
+      <Card title={L('Tabla de iteraciones', 'Iteration table')}>
         <DataTable columns={cols} rows={rows} highlightLast={res.converged} filename="punto_fijo_sistemas" />
       </Card>
       <ScilabCode code={scilabPF(c, s)} filename="punto_fijo_sistemas" />
@@ -213,9 +226,12 @@ function PFResults({ c, s, digits }: { c: Calc; s: S; digits: number }) {
 function pfSteps(c: Calc, seidel: boolean): { text?: string; tex?: string }[] {
   const { vs, res } = c
   const out: { text?: string; tex?: string }[] = []
-  if (c.F.length) out.push({ text: 'Sistema original:', tex: '\\begin{cases}' + c.F.map((f) => `${f.tex} = 0`).join(' \\\\ ') + '\\end{cases}' })
+  if (c.F.length) out.push({ text: L('Sistema original:', 'Original system:'), tex: '\\begin{cases}' + c.F.map((f) => `${f.tex} = 0`).join(' \\\\ ') + '\\end{cases}' })
   out.push({
-    text: `Despejes e iteración${seidel ? ' de Seidel (cada gᵢ usa las componentes ya actualizadas)' : ''}:`,
+    text: L(
+      `Despejes e iteración${seidel ? ' de Seidel (cada gᵢ usa las componentes ya actualizadas)' : ''}:`,
+      `Rearrangements and ${seidel ? 'Seidel iteration (each gᵢ uses the already updated components)' : 'iteration'}:`,
+    ),
     tex:
       '\\begin{aligned}' +
       c.G.map((g, i) => {
@@ -225,17 +241,17 @@ function pfSteps(c: Calc, seidel: boolean): { text?: string; tex?: string }[] {
       '\\end{aligned}',
   })
   out.push({
-    text: 'Condición de suficiencia evaluada en x⁽⁰⁾:',
+    text: L('Condición de suficiencia evaluada en x⁽⁰⁾:', 'Sufficient condition evaluated at x⁽⁰⁾:'),
     tex: '\\begin{aligned}' + c.DG.map((r, i) => `\\textstyle\\sum_j \\left|\\frac{\\partial g_{${i + 1}}}{\\partial x_j}\\right| &= ${r.map((g) => N(Math.abs(g.f(...c.x0)), 4)).join(' + ')} = ${N(c.suf0[i], 4)} ${c.suf0[i] < 1 ? '< 1' : '\\ge 1'}`).join(' \\\\ ') + '\\end{aligned}',
   })
   res.rows.slice(1, 4).forEach((r) => {
     const prev = res.rows[r.k - 1].x
     out.push({
-      text: `Iteración ${r.k}: partiendo de (${prev.map((v) => fmt(v, 8)).join(', ')})`,
+      text: L(`Iteración ${r.k}: partiendo de (${prev.map((v) => fmt(v, 8)).join(', ')})`, `Iteration ${r.k}: starting from (${prev.map((v) => fmt(v, 8)).join(', ')})`),
       tex: '\\begin{aligned}' + c.G.map((_, i) => `${vs[i]}_{${r.k}} &= g_{${i + 1}}(\\dots) = ${N(r.x[i])}`).join(' \\\\ ') + `\\end{aligned}\\qquad \\|\\mathbf{x}_{${r.k}} - \\mathbf{x}_{${r.k - 1}}\\|_\\infty = ${N(r.err)}`,
     })
   })
-  if (res.rows.length > 4) out.push({ text: `… hasta la iteración ${res.rows.length - 1} (ver tabla).`, tex: `\\mathbf{x} \\approx ${texM(res.x)}` })
+  if (res.rows.length > 4) out.push({ text: L(`… hasta la iteración ${res.rows.length - 1} (ver tabla).`, `… up to iteration ${res.rows.length - 1} (see table).`), tex: `\\mathbf{x} \\approx ${texM(res.x)}` })
   if (!res.converged) out.push({ text: '⚠ ' + res.message })
   return out
 }
@@ -263,14 +279,19 @@ function PFPlot({ c }: { c: Calc }) {
       return { type: 'contour', x: gx, y: gy, z, contours: { start: 0, end: 0, size: 1, coloring: 'lines' }, colorscale: [[0, col], [1, col]], line: { width: 2.5 }, showscale: false, name: c.F.length ? `f${i + 1} = 0` : `${c.vs[i]} = g${i + 1}`, showlegend: true, hoverinfo: 'skip' }
     })
     const it = c.res.rows.slice(0, 25).map((r) => r.x)
-    traces.push({ x: it.map((p) => p[0]), y: it.map((p) => p[1]), type: 'scatter', mode: 'lines+markers', name: 'iteraciones', line: { color: SERIES[2], width: 1.3, dash: 'dot' }, marker: { color: SERIES[3], size: 6 } })
-    if (c.res.converged) traces.push({ x: [c.res.x[0]], y: [c.res.x[1]], type: 'scatter', mode: 'markers', name: 'punto fijo', marker: { color: SERIES[5], size: 13, symbol: 'star' } })
+    traces.push({ x: it.map((p) => p[0]), y: it.map((p) => p[1]), type: 'scatter', mode: 'lines+markers', name: L('iteraciones', 'iterations'), line: { color: SERIES[2], width: 1.3, dash: 'dot' }, marker: { color: SERIES[3], size: 6 } })
+    if (c.res.converged) traces.push({ x: [c.res.x[0]], y: [c.res.x[1]], type: 'scatter', mode: 'markers', name: L('punto fijo', 'fixed point'), marker: { color: SERIES[5], size: 13, symbol: 'star' } })
     return { traces, range: [x0, x1, y0, y1] }
   }, [c])
   return (
     <>
       <Plot data={data.traces} height={440} layout={{ xaxis: { title: { text: 'x' }, range: data.range.slice(0, 2) }, yaxis: { title: { text: 'y' }, range: data.range.slice(2) } }} />
-      <Note>Cada intersección de las curvas es una solución. Un despeje gᵢ sólo sirve cerca de la raíz donde se cumple la condición de suficiencia.</Note>
+      <Note>
+        {L(
+          'Cada intersección de las curvas es una solución. Un despeje gᵢ sólo sirve cerca de la raíz donde se cumple la condición de suficiencia.',
+          'Each intersection of the curves is a solution. A rearrangement gᵢ only works near the root where the sufficient condition holds.',
+        )}
+      </Note>
     </>
   )
 }
@@ -286,7 +307,7 @@ function sciExpr(node: any, vs: string[]): string {
 function scilabPF(c: Calc, s: S): string {
   const n = c.n
   const upd = c.G.map((g, i) => `  xn(${i + 1}) = ${sciExpr(g.node, c.vs).replace(/(?<![A-Za-z_])x\((\d)\)/g, s.seidel ? 'xn($1)' : 'x($1)')};`).join('\n')
-  return `// Punto fijo para sistemas no lineales${s.seidel ? ' (variante de Seidel)' : ''} — generado por NumLab
+  return `// ${L(`Punto fijo para sistemas no lineales${s.seidel ? ' (variante de Seidel)' : ''} — generado por NumLab`, `Fixed point for nonlinear systems${s.seidel ? ' (Seidel variant)' : ''} — generated by NumLab`)}
 // Variables: ${c.vs.map((v, i) => `${v} = x(${i + 1})`).join(', ')}
 clear; clc;
 x = ${sciVec(c.x0)};
@@ -300,6 +321,6 @@ ${upd}
   mprintf('%4d', k); mprintf('%20.15f', x); mprintf('%14.3e\\n', err);
   if err < eps_ then break; end
 end
-disp('Solución aproximada:'); disp(x);
+disp('${L('Solución aproximada:', 'Approximate solution:')}'); disp(x);
 `
 }

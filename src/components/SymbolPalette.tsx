@@ -9,6 +9,7 @@
 //   · data-vars="x,y"  → muestra teclas para esas variables.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type SyntheticEvent } from 'react'
 import { IconArrowLeft, IconArrowRight, IconBackspace, IconClose, IconHelp } from './icons'
+import { L } from '../i18n'
 
 type Field = HTMLInputElement | HTMLTextAreaElement
 
@@ -45,41 +46,41 @@ const fn = (name: string, title: string, label: ReactNode = name): Key => ({ lab
 
 const BASIC: Key[] = [
   { label: 'π', ins: 'pi', title: 'pi (π ≈ 3.14159)', cls: 'op', val: true },
-  { label: 'e', ins: 'e', title: 'e (número de Euler ≈ 2.71828)', cls: 'op', val: true },
-  { label: '+', ins: ' + ', title: 'suma' },
-  { label: '−', ins: ' - ', title: 'resta' },
-  { label: '×', ins: '*', title: 'multiplicación (*)' },
-  { label: '÷', ins: '/', title: 'división (/)' },
-  { label: 'xʸ', ins: '^', title: 'potencia (^)' },
-  { label: 'x²', ins: '^2', title: 'al cuadrado (^2)' },
-  { label: 'x³', ins: '^3', title: 'al cubo (^3)' },
-  { label: '(', ins: '(', title: 'abrir paréntesis' },
-  { label: ')', ins: ')', title: 'cerrar paréntesis' },
-  { label: '( )', ins: '()', back: 1, wrap: ['(', ')'], title: 'paréntesis (envuelve la selección)' },
-  { label: ',', ins: ', ', title: 'coma (separa argumentos)' },
-  { label: '√', ins: 'sqrt()', back: 1, wrap: ['sqrt(', ')'], title: 'raíz cuadrada sqrt()', cls: 'op', fn: 'sqrt' },
-  { label: '|x|', ins: 'abs()', back: 1, wrap: ['abs(', ')'], title: 'valor absoluto abs()', cls: 'op', fn: 'abs' },
-  { label: '10ⁿ', ins: 'e-', title: 'notación científica: 1e-6 = 1·10⁻⁶', cls: 'op' },
+  { label: 'e', ins: 'e', title: L('e (número de Euler ≈ 2.71828)', 'e (Euler’s number ≈ 2.71828)'), cls: 'op', val: true },
+  { label: '+', ins: ' + ', title: L('suma', 'addition') },
+  { label: '−', ins: ' - ', title: L('resta', 'subtraction') },
+  { label: '×', ins: '*', title: L('multiplicación (*)', 'multiplication (*)') },
+  { label: '÷', ins: '/', title: L('división (/)', 'division (/)') },
+  { label: 'xʸ', ins: '^', title: L('potencia (^)', 'power (^)') },
+  { label: 'x²', ins: '^2', title: L('al cuadrado (^2)', 'squared (^2)') },
+  { label: 'x³', ins: '^3', title: L('al cubo (^3)', 'cubed (^3)') },
+  { label: '(', ins: '(', title: L('abrir paréntesis', 'open parenthesis') },
+  { label: ')', ins: ')', title: L('cerrar paréntesis', 'close parenthesis') },
+  { label: '( )', ins: '()', back: 1, wrap: ['(', ')'], title: L('paréntesis (envuelve la selección)', 'parentheses (wrap the selection)') },
+  { label: ',', ins: ', ', title: L('coma (separa argumentos)', 'comma (separates arguments)') },
+  { label: '√', ins: 'sqrt()', back: 1, wrap: ['sqrt(', ')'], title: L('raíz cuadrada sqrt()', 'square root sqrt()'), cls: 'op', fn: 'sqrt' },
+  { label: '|x|', ins: 'abs()', back: 1, wrap: ['abs(', ')'], title: L('valor absoluto abs()', 'absolute value abs()'), cls: 'op', fn: 'abs' },
+  { label: '10ⁿ', ins: 'e-', title: L('notación científica: 1e-6 = 1·10⁻⁶', 'scientific notation: 1e-6 = 1·10⁻⁶'), cls: 'op' },
 ]
 
 const FUNCS: Key[] = [
-  fn('sin', 'seno (también sen)'),
-  fn('cos', 'coseno'),
-  fn('tan', 'tangente (también tg)'),
-  fn('asin', 'arcoseno (también arcsen)'),
-  fn('acos', 'arcocoseno'),
-  fn('atan', 'arcotangente (también arctg)'),
-  fn('exp', 'exponencial eˣ'),
-  fn('ln', 'logaritmo natural (= log)'),
-  fn('log10', 'logaritmo en base 10'),
-  fn('sinh', 'seno hiperbólico'),
-  fn('cosh', 'coseno hiperbólico'),
-  fn('tanh', 'tangente hiperbólica'),
+  fn('sin', L('seno (también sen)', 'sine (also sen)')),
+  fn('cos', L('coseno', 'cosine')),
+  fn('tan', L('tangente (también tg)', 'tangent (also tg)')),
+  fn('asin', L('arcoseno (también arcsen)', 'arcsine (also arcsen)')),
+  fn('acos', L('arcocoseno', 'arccosine')),
+  fn('atan', L('arcotangente (también arctg)', 'arctangent (also arctg)')),
+  fn('exp', L('exponencial eˣ', 'exponential eˣ')),
+  fn('ln', L('logaritmo natural (= log)', 'natural logarithm (= log)')),
+  fn('log10', L('logaritmo en base 10', 'base-10 logarithm')),
+  fn('sinh', L('seno hiperbólico', 'hyperbolic sine')),
+  fn('cosh', L('coseno hiperbólico', 'hyperbolic cosine')),
+  fn('tanh', L('tangente hiperbólica', 'hyperbolic tangent')),
 ]
 
 const MATRIX: Key[] = [
-  { label: ';', ins: '; ', title: 'nueva fila (;)', cls: 'op' },
-  { label: '↵', ins: '\n', title: 'nueva fila (salto de línea)', cls: 'op' },
+  { label: ';', ins: '; ', title: L('nueva fila (;)', 'new row (;)'), cls: 'op' },
+  { label: '↵', ins: '\n', title: L('nueva fila (salto de línea)', 'new row (line break)'), cls: 'op' },
 ]
 
 /** Inserta texto en el campo en la posición del cursor, disparando el evento `input` (compatible con React).
@@ -292,8 +293,8 @@ export function SymbolPalette({ enabled, setEnabled, onHelp }: { enabled: boolea
 
   if (!enabled) {
     return (
-      <button type="button" className="sympad-fab" onPointerDown={keep} onMouseDown={keep} onClick={() => setEnabled(true)} title="Mostrar el teclado de símbolos">
-        <b>∑</b> Símbolos
+      <button type="button" className="sympad-fab" onPointerDown={keep} onMouseDown={keep} onClick={() => setEnabled(true)} title={L('Mostrar el teclado de símbolos', 'Show the symbol keyboard')}>
+        <b>∑</b> {L('Símbolos', 'Symbols')}
       </button>
     )
   }
@@ -310,34 +311,34 @@ export function SymbolPalette({ enabled, setEnabled, onHelp }: { enabled: boolea
 
   return (
     <div className="sympad-dock">
-      <div className="sympad" ref={panelRef} role="toolbar" aria-label="Teclado de símbolos matemáticos" onPointerDown={keep} onMouseDown={keep}>
+      <div className="sympad" ref={panelRef} role="toolbar" aria-label={L('Teclado de símbolos matemáticos', 'Math symbol keyboard')} onPointerDown={keep} onMouseDown={keep}>
         <div className="sympad-row">
           {varKeys.map(render)}
           {varKeys.length > 0 && <span className="sympad-sep" />}
           {BASIC.map(render)}
           {extra.map(render)}
           <div className="sympad-end">
-            <button type="button" tabIndex={-1} className="sympad-key ctl" title="Mover el cursor a la izquierda" aria-label="Cursor a la izquierda" onPointerDown={keep} onMouseDown={keep} onClick={() => moveCaret(target, -1)}>
+            <button type="button" tabIndex={-1} className="sympad-key ctl" title={L('Mover el cursor a la izquierda', 'Move the cursor left')} aria-label={L('Cursor a la izquierda', 'Cursor left')} onPointerDown={keep} onMouseDown={keep} onClick={() => moveCaret(target, -1)}>
               <IconArrowLeft size={15} />
             </button>
-            <button type="button" tabIndex={-1} className="sympad-key ctl" title="Mover el cursor a la derecha" aria-label="Cursor a la derecha" onPointerDown={keep} onMouseDown={keep} onClick={() => moveCaret(target, 1)}>
+            <button type="button" tabIndex={-1} className="sympad-key ctl" title={L('Mover el cursor a la derecha', 'Move the cursor right')} aria-label={L('Cursor a la derecha', 'Cursor right')} onPointerDown={keep} onMouseDown={keep} onClick={() => moveCaret(target, 1)}>
               <IconArrowRight size={15} />
             </button>
-            <button type="button" tabIndex={-1} className="sympad-key ctl" title="Borrar" aria-label="Borrar" onPointerDown={keep} onMouseDown={keep} onClick={() => backspace(target)}>
+            <button type="button" tabIndex={-1} className="sympad-key ctl" title={L('Borrar', 'Backspace')} aria-label={L('Borrar', 'Backspace')} onPointerDown={keep} onMouseDown={keep} onClick={() => backspace(target)}>
               <IconBackspace size={16} />
             </button>
           </div>
         </div>
         <div className="sympad-row">
-          <span className="sympad-title">Funciones</span>
+          <span className="sympad-title">{L('Funciones', 'Functions')}</span>
           {FUNCS.map(render)}
           <div className="sympad-end">
             {onHelp && (
-              <button type="button" tabIndex={-1} className="sympad-key ctl" title="Guía de sintaxis" aria-label="Guía de sintaxis" onPointerDown={keep} onMouseDown={keep} onClick={onHelp}>
+              <button type="button" tabIndex={-1} className="sympad-key ctl" title={L('Guía de sintaxis', 'Syntax guide')} aria-label={L('Guía de sintaxis', 'Syntax guide')} onPointerDown={keep} onMouseDown={keep} onClick={onHelp}>
                 <IconHelp size={15} />
               </button>
             )}
-            <button type="button" tabIndex={-1} className="sympad-key ctl" title="Ocultar el teclado de símbolos" aria-label="Ocultar el teclado de símbolos" onPointerDown={keep} onMouseDown={keep} onClick={() => setEnabled(false)}>
+            <button type="button" tabIndex={-1} className="sympad-key ctl" title={L('Ocultar el teclado de símbolos', 'Hide the symbol keyboard')} aria-label={L('Ocultar el teclado de símbolos', 'Hide the symbol keyboard')} onPointerDown={keep} onMouseDown={keep} onClick={() => setEnabled(false)}>
               <IconClose size={15} />
             </button>
           </div>

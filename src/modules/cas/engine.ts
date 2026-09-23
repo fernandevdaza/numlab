@@ -9,6 +9,7 @@ import { texMatrix } from '../../components/ui'
 import { fmt, texNum } from '../../lib/format'
 import { eigenvalues, solve as linSolve, type Complex } from '../sistemas/linalg'
 import { integrateNumeric, numericRoots } from './numerico'
+import { L, LANG } from '../../i18n'
 
 export { integrateNumeric, numericRoots }
 
@@ -155,7 +156,7 @@ function nDec(e: nerdamer.Expression): string | null {
 /** Número con formato TeX; complejos incluidos. */
 function valueTex(v: any): string {
   if (typeof v === 'number') return texNum(v, 14)
-  if (typeof v === 'boolean') return v ? '\\text{verdadero}' : '\\text{falso}'
+  if (typeof v === 'boolean') return v ? L('\\text{verdadero}', '\\text{true}') : L('\\text{falso}', '\\text{false}')
   if (v && v.isComplex) {
     const re = v.re, im = v.im
     if (Math.abs(im) < 1e-15) return texNum(re, 14)
@@ -239,6 +240,9 @@ M.import(
     traspuesta: (A: any) => M.transpose(A),
     transpuesta: (A: any) => M.transpose(A),
     traza: (A: any) => M.trace(A),
+    inverse: (A: any) => M.inv(A),
+    determinante: (A: any) => M.det(A),
+    determinant: (A: any) => M.det(A),
     norma: (A: any, p?: any) => (p === undefined ? M.norm(A) : M.norm(A, p)),
     raiz: (x: number) => Math.sqrt(x),
   },
@@ -248,14 +252,14 @@ M.import(
 /* ───────────────────────── Comandos simbólicos anidados ───────────────────────── */
 
 const INLINE: Record<string, (args: string[]) => string> = {
-  derivada: (a) => nerdamer(`diff(${a[0]}, ${a[1] ?? 'x'}, ${a[2] ?? 1})`).toString(),
-  derivar: (a) => INLINE.derivada(a),
-  diff: (a) => INLINE.derivada(a),
-  integrar: (a) => (a.length >= 4 ? nerdamer(`defint(${a[0]}, ${a[2]}, ${a[3]}, ${a[1]})`).toString() : nerdamer(`integrate(${a[0]}, ${a[1] ?? 'x'})`).toString()),
-  simplificar: (a) => nerdamer(`simplify(${a[0]})`).toString(),
-  expandir: (a) => nerdamer(`expand(${a[0]})`).toString(),
-  factorizar: (a) => nerdamer(`factor(${a[0]})`).toString(),
+  diff: (a) => nerdamer(`diff(${a[0]}, ${a[1] ?? 'x'}, ${a[2] ?? 1})`).toString(),
+  integrate: (a) => (a.length >= 4 ? nerdamer(`defint(${a[0]}, ${a[2]}, ${a[3]}, ${a[1]})`).toString() : nerdamer(`integrate(${a[0]}, ${a[1] ?? 'x'})`).toString()),
+  simplify: (a) => nerdamer(`simplify(${a[0]})`).toString(),
+  expand: (a) => nerdamer(`expand(${a[0]})`).toString(),
+  factor: (a) => nerdamer(`factor(${a[0]})`).toString(),
 }
+/** Nombres (español e inglés) de los comandos que se pueden anidar dentro de otra expresión. */
+const INLINE_NAMES = 'derivada|derivar|derivative|diff|integrar|integrate|simplificar|simplify|expandir|expand|factorizar|factor'
 
 /**
  * Reemplaza llamadas simbólicas ANIDADAS (p. ej. graficar(f(x), derivada(f(x), x))) por su resultado,
@@ -264,7 +268,7 @@ const INLINE: Record<string, (args: string[]) => string> = {
 function inlineSymbolic(src: string): string {
   let s = src
   for (let guard = 0; guard < 20; guard++) {
-    const re = /\b(derivada|derivar|diff|integrar|simplificar|expandir|factorizar)\s*\(/g
+    const re = new RegExp(`\\b(${INLINE_NAMES})\\s*\\(`, 'g')
     let m: RegExpExecArray | null
     let replaced = false
     while ((m = re.exec(s))) {
@@ -273,7 +277,7 @@ function inlineSymbolic(src: string): string {
       if (close < 0) break
       const args = splitArgs(s.slice(open + 1, close))
       // resolver primero lo más interno
-      if (args.some((a) => /\b(derivada|derivar|diff|integrar|simplificar|expandir|factorizar)\s*\(/.test(a))) {
+      if (args.some((a) => new RegExp(`\\b(${INLINE_NAMES})\\s*\\(`).test(a))) {
         const inner = inlineSymbolic(s.slice(open + 1, close))
         s = s.slice(0, open + 1) + inner + s.slice(close)
         replaced = true
@@ -281,7 +285,7 @@ function inlineSymbolic(src: string): string {
       }
       let res: string
       try {
-        res = INLINE[m[1]](args)
+        res = INLINE[CMD[m[1]]](args)
       } catch {
         continue
       }
@@ -315,15 +319,30 @@ const factorial = (n: number) => {
   return f
 }
 
-const SYMBOLIC_CMDS = new Set([
-  'derivada', 'derivar', 'diff',
-  'integrar', 'integral', 'integrate',
-  'simplificar', 'simplify', 'expandir', 'expand', 'factorizar', 'factor', 'fracciones_parciales', 'partfrac',
-  'resolver', 'solve', 'resolver_sistema', 'sistema',
-  'taylor', 'limite', 'limit', 'sumatoria', 'suma', 'sum',
-  'graficar', 'plot', 'raices', 'roots', 'N', 'num', 'aprox',
-  'eig', 'eigenvalores', 'valores_propios', 'espec', 'spec', 'lu', 'cond',
-])
+/**
+ * Comandos de la calculadora: cada nombre (en español o en inglés) → nombre canónico.
+ * Ambos idiomas funcionan siempre, sea cual sea el idioma de la interfaz.
+ */
+export const CMD: Record<string, string> = {
+  derivada: 'diff', derivar: 'diff', diff: 'diff', derivative: 'diff',
+  integrar: 'integrate', integral: 'integrate', integrate: 'integrate',
+  simplificar: 'simplify', simplify: 'simplify',
+  expandir: 'expand', expand: 'expand',
+  factorizar: 'factor', factor: 'factor',
+  fracciones_parciales: 'partfrac', partfrac: 'partfrac', partial_fractions: 'partfrac', apart: 'partfrac',
+  resolver: 'solve', solve: 'solve',
+  resolver_sistema: 'solve_system', sistema: 'solve_system', solve_system: 'solve_system',
+  taylor: 'taylor', series: 'taylor',
+  limite: 'limit', límite: 'limit', limit: 'limit',
+  sumatoria: 'sum', suma: 'sum', sum: 'sum', summation: 'sum',
+  graficar: 'plot', plot: 'plot',
+  raices: 'roots', raíces: 'roots', roots: 'roots',
+  N: 'N', num: 'N', aprox: 'N', approx: 'N',
+  eig: 'eig', eigenvalores: 'eig', valores_propios: 'eig', espec: 'eig', spec: 'eig', eigenvalues: 'eig',
+  lu: 'lu',
+  cond: 'cond',
+}
+const SYMBOLIC_CMDS = new Set(Object.keys(CMD))
 
 export class Session {
   vars: Record<string, any> = {}
@@ -427,7 +446,7 @@ export class Session {
         this.fns[name] = { params, body: prep(body) }
         delete this.vars[name]
         delete this.exprs[name]
-        return { kind: 'tex', tex: `${name}(${params.join(', ')}) := ${texOf(prep(body))}`, note: 'función definida' }
+        return { kind: 'tex', tex: `${name}(${params.join(', ')}) := ${texOf(prep(body))}`, note: L('función definida', 'function defined') }
       }
       // asignación: a = ...
       const asg = src.match(/^([A-Za-z_]\w*)\s*=(?!=)\s*(.+)$/)
@@ -446,7 +465,7 @@ export class Session {
         if (symVal) {
           this.exprs[name] = symVal
           delete this.vars[name]
-          return { kind: 'tex', tex: `${name} = ${(res as any).__symTex ?? texOf(symVal)}`, note: 'expresión simbólica guardada' }
+          return { kind: 'tex', tex: `${name} = ${(res as any).__symTex ?? texOf(symVal)}`, note: L('expresión simbólica guardada', 'symbolic expression stored') }
         }
         return res
       }
@@ -461,7 +480,7 @@ export class Session {
     for (const [k, v] of Object.entries(this.vars)) lines.push(`${k} = ${valueTex(v)}`)
     for (const [k, v] of Object.entries(this.exprs)) lines.push(`${k} = ${texOf(v)}`)
     for (const [k, f] of Object.entries(this.fns)) lines.push(`${k}(${f.params.join(',')}) = ${texOf(f.body)}`)
-    if (!lines.length) return { kind: 'text', text: 'No hay variables definidas.' }
+    if (!lines.length) return { kind: 'text', text: L('No hay variables definidas.', 'No variables defined.') }
     return { kind: 'tex', tex: '\\begin{array}{l}' + lines.join('\\\\ ') + '\\end{array}' }
   }
 
@@ -474,7 +493,7 @@ export class Session {
     const expanded = this.expand(src)
     try {
       const v = M.evaluate(expanded, this.scope())
-      if (typeof v === 'function') return { kind: 'text', text: 'función' }
+      if (typeof v === 'function') return { kind: 'text', text: L('función', 'function') }
       if (v && v.entries && Array.isArray(v.entries)) {
         const last = v.entries[v.entries.length - 1]
         this.vars.ans = last
@@ -494,7 +513,7 @@ export class Session {
           try {
             const ex = nerdamer(this.sym(src))
             const t = nTex(ex)
-            if (!/^-?[\d.]+$/.test(ex.toString()) || ex.toString().includes('/')) extra = ['\\text{exacto: } ' + t]
+            if (!/^-?[\d.]+$/.test(ex.toString()) || ex.toString().includes('/')) extra = [L('\\text{exacto: } ', '\\text{exact: } ') + t]
           } catch {
             /* sin forma exacta */
           }
@@ -517,14 +536,12 @@ export class Session {
 
   command(name: string, args: string[]): Out {
     const needs = (k: number, usage: string) => {
-      if (args.length < k) throw new Error('Uso: ' + usage)
+      if (args.length < k) throw new Error(L('Uso: ', 'Usage: ') + name + usage)
     }
     const v = (i: number, def = 'x') => (args[i] ?? def).trim()
-    switch (name) {
-      case 'derivada':
-      case 'derivar':
+    switch (CMD[name] ?? name) {
       case 'diff': {
-        needs(1, 'derivada(expr, x, n)')
+        needs(1, '(expr, x, n)')
         const x = v(1)
         const n = args[2] ? Math.round(this.num(args[2])) : 1
         const e = this.sym(args[0], [x])
@@ -532,10 +549,8 @@ export class Session {
         const lhs = n === 1 ? `\\frac{d}{d${x}}` : `\\frac{d^{${n}}}{d${x}^{${n}}}`
         return { kind: 'tex', tex: `${lhs}\\left(${texOf(this.expand(prep(args[0]), [x]))}\\right) = ${nTex(r)}`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'integrar':
-      case 'integral':
       case 'integrate': {
-        needs(1, 'integrar(expr, x) o integrar(expr, x, a, b)')
+        needs(1, `(expr, x) ${L('o', 'or')} ${name}(expr, x, a, b)`)
         const x = v(1)
         const e = this.sym(args[0], [x])
         const inTex = texOf(this.expand(prep(args[0]), [x]))
@@ -554,40 +569,35 @@ export class Session {
           }
           const tex = `\\int_{${texOf(prep(args[2]))}}^{${texOf(prep(args[3]))}} ${inTex}\\,d${x} = ${exact && exact !== texNum(numeric, 14) ? exact + ' \\approx ' : ''}${texNum(numeric, 14)}`
           this.vars.ans = numeric
-          return { kind: 'tex', tex, note: exact ? undefined : 'valor numérico (Simpson adaptativo)' }
+          return { kind: 'tex', tex, note: exact ? undefined : L('valor numérico (Simpson adaptativo)', 'numerical value (adaptive Simpson)') }
         }
         const r = nerdamer(`integrate(${e}, ${x})`)
-        if (r.toString().includes('integrate(')) return { kind: 'tex', tex: `\\int ${inTex}\\,d${x}`, note: 'No se encontró una primitiva en forma cerrada. Prueba la integral definida: integrar(expr, x, a, b).' }
+        if (r.toString().includes('integrate(')) return { kind: 'tex', tex: `\\int ${inTex}\\,d${x}`, note: L(`No se encontró una primitiva en forma cerrada. Prueba la integral definida: ${name}(expr, x, a, b).`, `No closed-form antiderivative found. Try the definite integral: ${name}(expr, x, a, b).`) }
         return { kind: 'tex', tex: `\\int ${inTex}\\,d${x} = ${nTex(r)} + C`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'simplificar':
       case 'simplify': {
-        needs(1, 'simplificar(expr)')
+        needs(1, '(expr)')
         const r = nerdamer(`simplify(${this.sym(args[0])})`)
         return { kind: 'tex', tex: `${texOf(this.expand(prep(args[0])))} = ${nTex(r)}`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'expandir':
       case 'expand': {
-        needs(1, 'expandir(expr)')
+        needs(1, '(expr)')
         const r = nerdamer(`expand(${this.sym(args[0])})`)
         return { kind: 'tex', tex: `${texOf(this.expand(prep(args[0])))} = ${nTex(r)}`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'factorizar':
       case 'factor': {
-        needs(1, 'factorizar(expr)')
+        needs(1, '(expr)')
         const r = nerdamer(`factor(${this.sym(args[0])})`)
         return { kind: 'tex', tex: `${texOf(this.expand(prep(args[0])))} = ${nTex(r)}`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'fracciones_parciales':
       case 'partfrac': {
-        needs(1, 'fracciones_parciales(expr, x)')
+        needs(1, '(expr, x)')
         const x = v(1)
         const r = nerdamer(`partfrac(${this.sym(args[0], [x])}, ${x})`)
         return { kind: 'tex', tex: `${texOf(this.expand(prep(args[0]), [x]))} = ${nTex(r)}` }
       }
-      case 'resolver':
       case 'solve': {
-        needs(1, 'resolver(ecuación, x)')
+        needs(1, L('(ecuación, x)', '(equation, x)'))
         const x = v(1)
         const eq = this.sym(args[0], [x])
         let sols: string[] = []
@@ -603,8 +613,8 @@ export class Session {
           const [lhs, rhs = '0'] = eq.split('=')
           const f = this.compileFn(`(${lhs}) - (${rhs})`, x)
           const roots = numericRoots(f, -100, 100, 20000)
-          if (!roots.length) return { kind: 'tex', tex: eqTex, note: 'Sin soluciones simbólicas ni raíces reales en [−100, 100].' }
-          return { kind: 'tex', tex: `${eqTex}\\;\\Rightarrow\\; ${roots.map((r) => `${x} \\approx ${texNum(r, 12)}`).join(',\\quad ')}`, note: 'raíces numéricas en [−100, 100]' }
+          if (!roots.length) return { kind: 'tex', tex: eqTex, note: L('Sin soluciones simbólicas ni raíces reales en [−100, 100].', 'No symbolic solutions and no real roots in [−100, 100].') }
+          return { kind: 'tex', tex: `${eqTex}\\;\\Rightarrow\\; ${roots.map((r) => `${x} \\approx ${texNum(r, 12)}`).join(',\\quad ')}`, note: L('raíces numéricas en [−100, 100]', 'numerical roots in [−100, 100]') }
         }
         const items = sols.map((s) => {
           const e = nerdamer(s)
@@ -622,27 +632,26 @@ export class Session {
         return {
           kind: 'tex',
           tex: `${eqTex}\\;\\Rightarrow\\; ` + shown.map((it) => `${x} = ${it.t}${it.d ? ` \\approx ${it.d}` : ''}`).join(',\\quad '),
-          note: items.length > 12 ? `se muestran las 12 soluciones de menor módulo (de ${items.length})` : undefined,
+          note: items.length > 12 ? L(`se muestran las 12 soluciones de menor módulo (de ${items.length})`, `showing the 12 solutions of smallest modulus (out of ${items.length})`) : undefined,
         }
       }
-      case 'resolver_sistema':
-      case 'sistema': {
-        needs(2, 'resolver_sistema(ec1, ec2, ...)')
+      case 'solve_system': {
+        needs(2, L('(ec1, ec2, ...)', '(eq1, eq2, ...)'))
         const eqs = args.map((a) => this.sym(a))
         const r: any = (nerdamer as any).solveEquations(eqs.slice()) // (nerdamer modifica el arreglo)
         const pairs: [string, any][] = Array.isArray(r) ? r : []
-        if (!pairs.length) return { kind: 'text', text: 'No se encontró solución.' }
+        if (!pairs.length) return { kind: 'text', text: L('No se encontró solución.', 'No solution found.') }
         return {
           kind: 'tex',
           tex: `\\begin{cases}${eqs.map((e) => (e.includes('=') ? e.split('=').map(texOf).join(' = ') : texOf(e) + ' = 0')).join('\\\\ ')}\\end{cases}\\;\\Rightarrow\\; ${pairs.map(([k, val]) => `${k} = ${nTex(nerdamer(String(val)))}`).join(',\\ ')}`,
         }
       }
       case 'taylor': {
-        needs(1, 'taylor(expr, x, x0, n)')
+        needs(1, '(expr, x, x0, n)')
         const x = v(1)
         const x0 = args[2] ? this.sym(args[2]) : '0'
         const n = args[3] ? Math.round(this.num(args[3])) : 5
-        if (n > 20) throw new Error('Orden máximo 20')
+        if (n > 20) throw new Error(L('Orden máximo 20', 'Maximum order is 20'))
         const e = this.sym(args[0], [x])
         let d = e
         const terms: string[] = []
@@ -656,9 +665,8 @@ export class Session {
         const x0t = texOf(prep(args[2] ?? '0'))
         return { kind: 'tex', tex: `${texOf(this.expand(prep(args[0]), [x]))} \\approx ${nTex(r)} + O\\left(${x0 === '0' ? x : `(${x}-${x0t})`}^{${n + 1}}\\right)`, __sym: r.toString(), __symTex: nTex(r) } as any
       }
-      case 'limite':
       case 'limit': {
-        needs(2, 'limite(expr, x, a)')
+        needs(2, '(expr, x, a)')
         const x = args.length >= 3 ? v(1) : 'x'
         const aSrc = (args.length >= 3 ? args[2] : args[1]).trim().replace(/^(inf|infinito|oo)$/i, 'Infinity').replace(/^-(inf|infinito|oo)$/i, '-Infinity')
         const r = nerdamer(`limit(${this.sym(args[0], [x])}, ${x}, ${this.sym(aSrc)})`)
@@ -670,30 +678,25 @@ export class Session {
           const f = this.compileFn(args[0], x)
           const a = this.num(aSrc)
           const est = Number.isFinite(a) ? [1e-4, 1e-6, 1e-8].map((h) => (f(a + h) + f(a - h)) / 2) : [1e4, 1e6, 1e8].map((h) => f(Math.sign(a) * h))
-          numTex = `\\approx ${texNum(est[2], 10)}\\ \\text{(numérico)}`
+          numTex = `\\approx ${texNum(est[2], 10)}\\ ${L('\\text{(numérico)}', '\\text{(numerical)}')}`
         }
         return { kind: 'tex', tex: `\\lim_{${x} \\to ${aTex}} ${texOf(this.expand(prep(args[0]), [x]))} ${res ? '= ' + res.replace(/infinity/g, '\\infty').replace(/Infinity/g, '\\infty') : numTex}` }
       }
-      case 'sumatoria':
-      case 'suma':
       case 'sum': {
-        needs(4, 'sumatoria(expr, k, a, b)')
+        needs(4, '(expr, k, a, b)')
         const k = v(1, 'k')
         const r = nerdamer(`sum(${this.sym(args[0], [k])}, ${k}, ${this.sym(args[2])}, ${this.sym(args[3])})`)
         const dec = nDec(r)
         return { kind: 'tex', tex: `\\sum_{${k}=${texOf(prep(args[2]))}}^{${texOf(prep(args[3]))}} ${texOf(prep(args[0]))} = ${nTex(r)}${dec && dec !== nTex(r) ? ' \\approx ' + dec : ''}` }
       }
-      case 'N':
-      case 'num':
-      case 'aprox': {
-        needs(1, 'N(expr)')
+      case 'N': {
+        needs(1, '(expr)')
         const val = M.evaluate(this.expand(prep(args[0])), this.scope())
         this.vars.ans = val
         return { kind: 'tex', tex: `${texOf(prep(args[0]))} \\approx ${valueTex(val)}`, __value: val } as any
       }
-      case 'graficar':
       case 'plot': {
-        needs(1, 'graficar(f(x), a, b)')
+        needs(1, '(f(x), a, b)')
         let list = args.slice()
         let a = -10, b = 10
         const isConst = (s: string) => {
@@ -710,63 +713,60 @@ export class Session {
           list = list.slice(0, -2)
         }
         if (list.length === 1 && /^\[.*\]$/.test(list[0])) list = splitArgs(list[0].slice(1, -1))
-        if (!(a < b)) throw new Error('El intervalo debe cumplir a < b')
+        if (!(a < b)) throw new Error(L('El intervalo debe cumplir a < b', 'The interval must satisfy a < b'))
         const fns = list.map((s) => ({ label: s, f: this.compileFn(s, 'x') }))
         return { kind: 'plot', fns, a, b, tex: list.map((s) => texOf(this.expand(prep(s), ['x']))).join(',\\quad ') }
       }
-      case 'raices':
       case 'roots': {
-        needs(1, 'raices(f, a, b)')
+        needs(1, '(f, a, b)')
         const a = args[1] ? this.num(args[1]) : -10, b = args[2] ? this.num(args[2]) : 10
         const f = this.compileFn(args[0], 'x')
         const r = numericRoots(f, a, b, 20000)
-        if (!r.length) return { kind: 'text', text: `No se encontraron cambios de signo en [${a}, ${b}].` }
+        if (!r.length) return { kind: 'text', text: L(`No se encontraron cambios de signo en [${a}, ${b}].`, `No sign changes found in [${a}, ${b}].`) }
         this.vars.ans = r[0]
-        return { kind: 'tex', tex: `${texOf(prep(args[0]))} = 0\\;\\Rightarrow\\; ${r.map((x) => `x \\approx ${texNum(x, 13)}`).join(',\\ ')}`, note: `raíces reales en [${fmt(a)}, ${fmt(b)}] (muestreo + bisección)` }
+        return { kind: 'tex', tex: `${texOf(prep(args[0]))} = 0\\;\\Rightarrow\\; ${r.map((x) => `x \\approx ${texNum(x, 13)}`).join(',\\ ')}`, note: L(`raíces reales en [${fmt(a)}, ${fmt(b)}] (muestreo + bisección)`, `real roots in [${fmt(a)}, ${fmt(b)}] (sampling + bisection)`) }
       }
-      case 'eig':
-      case 'eigenvalores':
-      case 'valores_propios':
-      case 'espec':
-      case 'spec': {
-        needs(1, 'eig(A)')
+      case 'eig': {
+        needs(1, '(A)')
         const A = toMat(M.evaluate(this.expand(prep(args[0])), this.scope()))
-        if (!A || A.length !== A[0].length) throw new Error('eig requiere una matriz cuadrada')
-        if (A.length > 60) throw new Error('Matriz demasiado grande (máx. 60×60)')
+        if (!A || A.length !== A[0].length) throw new Error(L(`${name} requiere una matriz cuadrada`, `${name} requires a square matrix`))
+        if (A.length > 60) throw new Error(L('Matriz demasiado grande (máx. 60×60)', 'Matrix too large (max. 60×60)'))
         const ev = eigenvalues(A)
-        if (!ev) throw new Error('El algoritmo QR no convergió')
+        if (!ev) throw new Error(L('El algoritmo QR no convergió', 'The QR algorithm did not converge'))
         ev.sort((p, q) => Math.hypot(q.re, q.im) - Math.hypot(p.re, p.im))
         const lamTex = (c: Complex) => (Math.abs(c.im) < 1e-12 ? texNum(c.re, 10) : `${texNum(c.re, 8)} ${c.im < 0 ? '-' : '+'} ${texNum(Math.abs(c.im), 8)}\\,i`)
         const vecs = ev.map((c) => (Math.abs(c.im) < 1e-12 ? eigvec(A, c.re) : null))
-        const extra = vecs.some(Boolean) ? ['\\text{vectores propios (norma 1):}\\quad ' + ev.map((c, i) => (vecs[i] ? `v_{${i + 1}} = ${texMatrix(vecs[i]!, 6)}` : '')).filter(Boolean).join(',\\ ')] : undefined
+        const extra = vecs.some(Boolean) ? [L('\\text{vectores propios (norma 1):}\\quad ', '\\text{eigenvectors (unit norm):}\\quad ') + ev.map((c, i) => (vecs[i] ? `v_{${i + 1}} = ${texMatrix(vecs[i]!, 6)}` : '')).filter(Boolean).join(',\\ ')] : undefined
         this.vars.ans = ev.every((c) => Math.abs(c.im) < 1e-12) ? M.matrix(ev.map((c) => c.re)) : ev.map((c) => M.complex(c.re, c.im))
         return { kind: 'tex', tex: `\\lambda(${texOf(prep(args[0]))}) = \\left\\{${ev.map(lamTex).join(',\\ ')}\\right\\}`, extra }
       }
       case 'lu': {
-        needs(1, 'lu(A)')
+        needs(1, '(A)')
         const r: any = M.lup(M.evaluate(this.expand(prep(args[0])), this.scope()))
         const n = r.p.length
         const P = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (r.p[i] === j ? 1 : 0)))
         return { kind: 'tex', tex: `PA = LU:\\quad L = ${valueTex(r.L)},\\quad U = ${valueTex(r.U)},\\quad P = ${texMatrix(P, 3)}` }
       }
       case 'cond': {
-        needs(1, 'cond(A)')
+        needs(1, '(A)')
         const A = toMat(M.evaluate(this.expand(prep(args[0])), this.scope()))
-        if (!A || A.length !== A[0].length) throw new Error('cond requiere una matriz cuadrada')
+        if (!A || A.length !== A[0].length) throw new Error(L('cond requiere una matriz cuadrada', 'cond requires a square matrix'))
         const AtA = A[0].map((_, i) => A[0].map((__, j) => A.reduce((s, r) => s + r[i] * r[j], 0)))
         const ev = eigenvalues(AtA)
-        if (!ev) throw new Error('No convergió')
+        if (!ev) throw new Error(L('No convergió', 'Did not converge'))
         const sv = ev.map((c) => Math.sqrt(Math.max(0, c.re)))
         const k = Math.max(...sv) / Math.min(...sv)
         this.vars.ans = k
-        return { kind: 'tex', tex: `\\kappa_2(${texOf(prep(args[0]))}) = \\frac{\\sigma_{\\max}}{\\sigma_{\\min}} = ${Number.isFinite(k) ? texNum(k, 8) : '\\infty'}`, note: Number.isFinite(k) ? `se pierden ≈ ${Math.max(0, Math.log10(k)).toFixed(1)} cifras al resolver Ax = b` : 'matriz singular' }
+        return { kind: 'tex', tex: `\\kappa_2(${texOf(prep(args[0]))}) = \\frac{\\sigma_{\\max}}{\\sigma_{\\min}} = ${Number.isFinite(k) ? texNum(k, 8) : '\\infty'}`, note: Number.isFinite(k) ? L(`se pierden ≈ ${Math.max(0, Math.log10(k)).toFixed(1)} cifras al resolver Ax = b`, `≈ ${Math.max(0, Math.log10(k)).toFixed(1)} digits are lost when solving Ax = b`) : L('matriz singular', 'singular matrix') }
       }
     }
-    return { kind: 'error', text: 'Comando desconocido: ' + name }
+    return { kind: 'error', text: L('Comando desconocido: ', 'Unknown command: ') + name }
   }
 }
 
+/** Traduce al español los mensajes de error de mathjs (que ya están en inglés). */
 function traducir(msg: string): string {
+  if (LANG === 'en') return msg
   return msg
     .replace('Unexpected end of expression', 'Expresión incompleta')
     .replace(/Parenthesis \) expected.*/, 'Falta cerrar paréntesis )')

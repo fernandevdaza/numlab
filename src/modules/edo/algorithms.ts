@@ -1,6 +1,7 @@
 // Algoritmos para ecuaciones diferenciales ordinarias (Tema 6).
 // Problema de valor inicial  Y' = F(t, Y),  Y(t0) = Y0  (escalar o vectorial).
 // Todas las funciones son puras: devuelven la malla completa y los valores intermedios.
+import { L } from '../../i18n.ts'
 
 export type Vec = number[]
 export type OdeFn = (t: number, y: Vec) => Vec
@@ -27,12 +28,12 @@ export type TableauId = 'euler' | 'punto-medio' | 'heun' | 'ralston' | 'rk3' | '
 
 export const TABLEAUS: Record<TableauId, Tableau> = {
   euler: { id: 'euler', name: 'Euler', order: 1, c: [0], a: [[]], b: [1] },
-  'punto-medio': { id: 'punto-medio', name: 'RK2 del punto medio', order: 2, c: [0, 1 / 2], a: [[], [1 / 2]], b: [0, 1] },
-  heun: { id: 'heun', name: 'Trapecio o Euler modificado (predictor-corrector)', order: 2, c: [0, 1], a: [[], [1]], b: [1 / 2, 1 / 2] },
-  ralston: { id: 'ralston', name: 'RK2 del texto (γ₂ = 3/4, Ralston)', order: 2, c: [0, 2 / 3], a: [[], [2 / 3]], b: [1 / 4, 3 / 4] },
+  'punto-medio': { id: 'punto-medio', name: L('RK2 del punto medio', 'Midpoint RK2'), order: 2, c: [0, 1 / 2], a: [[], [1 / 2]], b: [0, 1] },
+  heun: { id: 'heun', name: L('Trapecio o Euler modificado (predictor-corrector)', 'Trapezoidal or modified Euler (predictor-corrector)'), order: 2, c: [0, 1], a: [[], [1]], b: [1 / 2, 1 / 2] },
+  ralston: { id: 'ralston', name: L('RK2 del texto (γ₂ = 3/4, Ralston)', 'Textbook RK2 (γ₂ = 3/4, Ralston)'), order: 2, c: [0, 2 / 3], a: [[], [2 / 3]], b: [1 / 4, 3 / 4] },
   rk3: { id: 'rk3', name: 'RK3 (Kutta)', order: 3, c: [0, 1 / 2, 1], a: [[], [1 / 2], [-1, 2]], b: [1 / 6, 4 / 6, 1 / 6] },
-  rk4: { id: 'rk4', name: 'RK4 clásico', order: 4, c: [0, 1 / 2, 1 / 2, 1], a: [[], [1 / 2], [0, 1 / 2], [0, 0, 1]], b: [1 / 6, 1 / 3, 1 / 3, 1 / 6] },
-  rk38: { id: 'rk38', name: 'RK4 regla 3/8', order: 4, c: [0, 1 / 3, 2 / 3, 1], a: [[], [1 / 3], [-1 / 3, 1], [1, -1, 1]], b: [1 / 8, 3 / 8, 3 / 8, 1 / 8] },
+  rk4: { id: 'rk4', name: L('RK4 clásico', 'Classical RK4'), order: 4, c: [0, 1 / 2, 1 / 2, 1], a: [[], [1 / 2], [0, 1 / 2], [0, 0, 1]], b: [1 / 6, 1 / 3, 1 / 3, 1 / 6] },
+  rk38: { id: 'rk38', name: L('RK4 regla 3/8', 'RK4 3/8 rule'), order: 4, c: [0, 1 / 3, 2 / 3, 1], a: [[], [1 / 3], [-1 / 3, 1], [1, -1, 1]], b: [1 / 8, 3 / 8, 3 / 8, 1 / 8] },
 }
 
 /* ───────────────────────── Resultado común ───────────────────────── */
@@ -58,7 +59,10 @@ export interface OdeResult {
 const isBad = (v: Vec) => v.some((x) => !Number.isFinite(x) || Math.abs(x) > BLOW)
 
 function blowMsg(t: number) {
-  return `La solución numérica explotó (valor no finito o |w| > 10¹⁵⁰) cerca de t = ${+t.toPrecision(6)}. Posibles causas: paso h demasiado grande (inestabilidad del método) o la solución exacta tiene una asíntota vertical.`
+  return L(
+    `La solución numérica explotó (valor no finito o |w| > 10¹⁵⁰) cerca de t = ${+t.toPrecision(6)}. Posibles causas: paso h demasiado grande (inestabilidad del método) o la solución exacta tiene una asíntota vertical.`,
+    `The numerical solution blew up (non-finite value or |w| > 10¹⁵⁰) near t = ${+t.toPrecision(6)}. Possible causes: step size h too large (method instability) or the exact solution has a vertical asymptote.`,
+  )
 }
 
 function safe(F: OdeFn): OdeFn {
@@ -73,21 +77,21 @@ function safe(F: OdeFn): OdeFn {
 
 /** Malla uniforme: a partir de h o de N. */
 export function mesh(t0: number, tf: number, mode: 'h' | 'N', h: number, N: number): { h: number; N: number; error?: string; warn?: string } {
-  if (!Number.isFinite(t0) || !Number.isFinite(tf)) return { h: NaN, N: 0, error: 'Intervalo [t₀, t_f] inválido.' }
-  if (tf === t0) return { h: NaN, N: 0, error: 't_f debe ser distinto de t₀.' }
-  const L = tf - t0
+  if (!Number.isFinite(t0) || !Number.isFinite(tf)) return { h: NaN, N: 0, error: L('Intervalo [t₀, t_f] inválido.', 'Invalid interval [t₀, t_f].') }
+  if (tf === t0) return { h: NaN, N: 0, error: L('t_f debe ser distinto de t₀.', 't_f must differ from t₀.') }
+  const len = tf - t0
   if (mode === 'N') {
-    if (!(N >= 1)) return { h: NaN, N: 0, error: 'N debe ser un entero ≥ 1.' }
-    if (N > MAX_STEPS) return { h: NaN, N: 0, error: `N es demasiado grande (máximo ${MAX_STEPS} pasos).` }
-    return { h: L / N, N }
+    if (!(N >= 1)) return { h: NaN, N: 0, error: L('N debe ser un entero ≥ 1.', 'N must be an integer ≥ 1.') }
+    if (N > MAX_STEPS) return { h: NaN, N: 0, error: L(`N es demasiado grande (máximo ${MAX_STEPS} pasos).`, `N is too large (maximum ${MAX_STEPS} steps).`) }
+    return { h: len / N, N }
   }
-  if (!Number.isFinite(h) || h === 0) return { h: NaN, N: 0, error: 'El paso h debe ser un número distinto de cero.' }
-  if (Math.sign(h) !== Math.sign(L)) return { h: NaN, N: 0, error: 'El signo de h debe coincidir con el sentido de t₀ → t_f.' }
-  const raw = L / h
+  if (!Number.isFinite(h) || h === 0) return { h: NaN, N: 0, error: L('El paso h debe ser un número distinto de cero.', 'The step size h must be a nonzero number.') }
+  if (Math.sign(h) !== Math.sign(len)) return { h: NaN, N: 0, error: L('El signo de h debe coincidir con el sentido de t₀ → t_f.', 'The sign of h must match the direction t₀ → t_f.') }
+  const raw = len / h
   const n = Math.max(1, Math.round(raw))
-  if (n > MAX_STEPS) return { h: NaN, N: 0, error: `h es demasiado pequeño: se necesitarían ${Math.round(raw)} pasos (máximo ${MAX_STEPS}).` }
-  if (Math.abs(raw - n) > 1e-9 * Math.max(1, Math.abs(raw))) return { h: L / n, N: n, warn: `h = ${h} no divide exactamente a t_f − t₀; se usa N = ${n} y h = ${+(L / n).toPrecision(10)}.` }
-  return { h: L / n, N: n }
+  if (n > MAX_STEPS) return { h: NaN, N: 0, error: L(`h es demasiado pequeño: se necesitarían ${Math.round(raw)} pasos (máximo ${MAX_STEPS}).`, `h is too small: ${Math.round(raw)} steps would be needed (maximum ${MAX_STEPS}).`) }
+  if (Math.abs(raw - n) > 1e-9 * Math.max(1, Math.abs(raw))) return { h: len / n, N: n, warn: L(`h = ${h} no divide exactamente a t_f − t₀; se usa N = ${n} y h = ${+(len / n).toPrecision(10)}.`, `h = ${h} does not divide t_f − t₀ exactly; using N = ${n} and h = ${+(len / n).toPrecision(10)}.`) }
+  return { h: len / n, N: n }
 }
 
 /* ───────────────────────── Runge-Kutta explícito (general) ───────────────────────── */
@@ -114,7 +118,7 @@ export function rkSolve(F0: OdeFn, tab: Tableau, t0: number, y0: Vec, h: number,
   const t = [t0]
   const w = [y0.slice()]
   const k: (Vec[] | null)[] = [null]
-  if (isBad(y0)) return { t, w, k, ok: false, message: 'La condición inicial no es un número finito.', nevals: 0 }
+  if (isBad(y0)) return { t, w, k, ok: false, message: L('La condición inicial no es un número finito.', 'The initial condition is not a finite number.'), nevals: 0 }
   let nevals = 0
   for (let i = 0; i < N; i++) {
     const st = rkStep(F, tab, t[i], w[i], h)
@@ -125,7 +129,7 @@ export function rkSolve(F0: OdeFn, tab: Tableau, t0: number, y0: Vec, h: number,
     k.push(st.k)
     if (isBad(st.y) || st.k.some(isBad)) return { t, w, k, ok: false, message: blowMsg(ti), nevals }
   }
-  return { t, w, k, ok: true, message: `${tab.name}: ${N} pasos con h = ${+h.toPrecision(8)}.`, nevals }
+  return { t, w, k, ok: true, message: L(`${tab.name}: ${N} pasos con h = ${+h.toPrecision(8)}.`, `${tab.name}: ${N} steps with h = ${+h.toPrecision(8)}.`), nevals }
 }
 
 /* ───────────────────────── Trapecio (implícito) ───────────────────────── */
@@ -194,11 +198,16 @@ export function trapecio(f0: ScalarFn, fy: ScalarFn | null, t0: number, y0: numb
     if (i < 3) trace.push(hist)
     if (!Number.isFinite(x) || Math.abs(x) > BLOW) return { t, w, k, extra, trace, ok: false, message: blowMsg(t1), nevals }
   }
-  const how = solver === 'newton' ? 'Newton' : 'punto fijo'
+  const how = solver === 'newton' ? 'Newton' : L('punto fijo', 'fixed-point iteration')
   return {
     t, w, k, extra, trace, nevals,
     ok: fails === 0,
-    message: fails === 0 ? `Trapecio: ${N} pasos; cada paso resuelto con ${how} (tolerancia ${tol}).` : `En ${fails} paso(s) la iteración de ${how} no convergió en ${maxIt} iteraciones${solver === 'punto-fijo' ? ' (se requiere (h/2)|f_y| < 1; prueba con Newton o un h menor)' : ''}.`,
+    message: fails === 0
+      ? L(`Trapecio: ${N} pasos; cada paso resuelto con ${how} (tolerancia ${tol}).`, `Trapezoidal: ${N} steps; each step solved with ${how} (tolerance ${tol}).`)
+      : L(
+          `En ${fails} paso(s) la iteración de ${how} no convergió en ${maxIt} iteraciones${solver === 'punto-fijo' ? ' (se requiere (h/2)|f_y| < 1; prueba con Newton o un h menor)' : ''}.`,
+          `In ${fails} step(s) the ${how === 'Newton' ? 'Newton iteration' : how} did not converge in ${maxIt} iterations${solver === 'punto-fijo' ? ' ((h/2)|f_y| < 1 is required; try Newton or a smaller h)' : ''}.`,
+        ),
   }
 }
 
@@ -215,7 +224,7 @@ export function taylorSolveVec(ds0: OdeFn[], t0: number, y0: Vec, h: number, N: 
   const w: Vec[] = [y0.slice()]
   const k: (Vec[] | null)[] = [null]
   let nevals = 0
-  if (isBad(y0)) return { t, w, k, ok: false, message: 'La condición inicial no es un número finito.', nevals: 0 }
+  if (isBad(y0)) return { t, w, k, ok: false, message: L('La condición inicial no es un número finito.', 'The initial condition is not a finite number.'), nevals: 0 }
   for (let i = 0; i < N; i++) {
     const ti = t[i], wi = w[i]
     const vals = ds.map((d) => d(ti, wi))
@@ -234,7 +243,7 @@ export function taylorSolveVec(ds0: OdeFn[], t0: number, y0: Vec, h: number, N: 
     k.push(vals)
     if (isBad(wn)) return { t, w, k, ok: false, message: blowMsg(t1), nevals }
   }
-  return { t, w, k, ok: true, message: `Taylor de orden ${ds.length}: ${N} pasos con h = ${+h.toPrecision(8)}.`, nevals }
+  return { t, w, k, ok: true, message: L(`Taylor de orden ${ds.length}: ${N} pasos con h = ${+h.toPrecision(8)}.`, `Taylor of order ${ds.length}: ${N} steps with h = ${+h.toPrecision(8)}.`), nevals }
 }
 
 /** Taylor escalar: ds[j](t, y) = y^{(j+1)}. */
@@ -262,7 +271,7 @@ export function puntoMedio2(F0: OdeFn, t0: number, y0: Vec, h: number, N: number
   const t = [t0]
   const w: Vec[] = [y0.slice()]
   const k: (Vec[] | null)[] = [null]
-  if (isBad(y0)) return { t, w, k, ok: false, message: 'La condición inicial no es un número finito.', nevals: 0 }
+  if (isBad(y0)) return { t, w, k, ok: false, message: L('La condición inicial no es un número finito.', 'The initial condition is not a finite number.'), nevals: 0 }
   let nevals = 0
   for (let i = 0; i < N; i++) {
     const fi = F(t[i], w[i])
@@ -276,7 +285,7 @@ export function puntoMedio2(F0: OdeFn, t0: number, y0: Vec, h: number, N: number
     k.push([fi])
     if (isBad(wn) || isBad(fi)) return { t, w, k, ok: false, message: blowMsg(t1), nevals }
   }
-  return { t, w, k, ok: true, message: `Punto medio (2 pasos): y₁ con Euler y ${Math.max(0, N - 1)} pasos de y_{n+1} = y_{n−1} + 2h f(x_n, y_n), h = ${+h.toPrecision(8)}.`, nevals }
+  return { t, w, k, ok: true, message: L(`Punto medio (2 pasos): y₁ con Euler y ${Math.max(0, N - 1)} pasos de y_{n+1} = y_{n−1} + 2h f(x_n, y_n), h = ${+h.toPrecision(8)}.`, `Midpoint (two-step): y₁ with Euler and ${Math.max(0, N - 1)} steps of y_{n+1} = y_{n−1} + 2h f(x_n, y_n), h = ${+h.toPrecision(8)}.`), nevals }
 }
 
 /* ───────────────────────── Adams-Moulton (predictor-corrector de 4 pasos) ───────────────────────── */
@@ -299,7 +308,7 @@ export function adamsMoulton(F0: OdeFn, t0: number, y0: Vec, h: number, N: numbe
   const w: Vec[] = [y0.slice()]
   const k: (Vec[] | null)[] = [null]
   const extra: (Record<string, number> | null)[] = [null]
-  if (isBad(y0)) return { t, w, k, extra, ok: false, message: 'La condición inicial no es un número finito.', nevals: 0 }
+  if (isBad(y0)) return { t, w, k, extra, ok: false, message: L('La condición inicial no es un número finito.', 'The initial condition is not a finite number.'), nevals: 0 }
   let nevals = 0
   const fs: Vec[] = []
   const n = y0.length
@@ -330,10 +339,12 @@ export function adamsMoulton(F0: OdeFn, t0: number, y0: Vec, h: number, N: numbe
     extra.push({ am: 1, pred: pred[0] })
     if (isBad(wn) || isBad(pred)) return { t, w, k, extra, ok: false, message: blowMsg(t1), nevals }
   }
-  const name = start === 'rk4' ? 'RK4' : 'trapecio (Euler modificado)'
+  const name = start === 'rk4' ? 'RK4' : L('trapecio (Euler modificado)', 'trapezoidal (modified Euler)')
   return {
     t, w, k, extra, nevals, ok: true,
-    message: N < 4 ? `Con N = ${N} sólo se calculan los valores de arranque (${name}); Adams-Moulton empieza en y₄.` : `Adams-Moulton: y₁, y₂, y₃ con ${name} y ${N - 3} pasos predictor (Adams-Bashforth) – corrector (Adams-Moulton).`,
+    message: N < 4
+      ? L(`Con N = ${N} sólo se calculan los valores de arranque (${name}); Adams-Moulton empieza en y₄.`, `With N = ${N} only the starting values are computed (${name}); Adams-Moulton starts at y₄.`)
+      : L(`Adams-Moulton: y₁, y₂, y₃ con ${name} y ${N - 3} pasos predictor (Adams-Bashforth) – corrector (Adams-Moulton).`, `Adams-Moulton: y₁, y₂, y₃ with ${name} and ${N - 3} predictor (Adams-Bashforth) – corrector (Adams-Moulton) steps.`),
   }
 }
 
@@ -375,7 +386,7 @@ export function rkf45(F0: OdeFn, t0: number, y0: Vec, tf: number, tol: number, h
   }
   let guard = 0
   while (dir * (tf - ti) > 1e-14 * Math.max(1, Math.abs(tf))) {
-    if (++guard > MAX_STEPS * 4) return { t, w, k, extra, log, ok: false, message: `Se superó el máximo de ${MAX_STEPS} pasos.`, nevals }
+    if (++guard > MAX_STEPS * 4) return { t, w, k, extra, log, ok: false, message: L(`Se superó el máximo de ${MAX_STEPS} pasos.`, `Exceeded the maximum of ${MAX_STEPS} steps.`), nevals }
     if (h > Math.abs(tf - ti)) h = Math.abs(tf - ti)
     const hs = dir * h
     const k1 = F(ti, wi)
@@ -408,10 +419,10 @@ export function rkf45(F0: OdeFn, t0: number, y0: Vec, tf: number, tol: number, h
     if (h > Math.abs(hmax)) h = Math.abs(hmax)
     if (dir * (tf - ti) <= 1e-14 * Math.max(1, Math.abs(tf))) break
     if (h < Math.abs(hmin) && Math.abs(tf - ti) > Math.abs(hmin)) {
-      return { t, w, k, extra, log, ok: false, message: `El paso requerido cayó por debajo de h_min = ${hmin} en t = ${+ti.toPrecision(6)}: no se puede alcanzar la tolerancia (¿problema rígido o singularidad?).`, nevals }
+      return { t, w, k, extra, log, ok: false, message: L(`El paso requerido cayó por debajo de h_min = ${hmin} en t = ${+ti.toPrecision(6)}: no se puede alcanzar la tolerancia (¿problema rígido o singularidad?).`, `The required step fell below h_min = ${hmin} at t = ${+ti.toPrecision(6)}: the tolerance cannot be met (stiff problem or singularity?).`), nevals }
     }
   }
-  return { t, w, k, extra, log, ok: true, message: `RKF45: ${t.length - 1} pasos aceptados y ${rejected} rechazados (TOL = ${tol}).`, nevals }
+  return { t, w, k, extra, log, ok: true, message: L(`RKF45: ${t.length - 1} pasos aceptados y ${rejected} rechazados (TOL = ${tol}).`, `RKF45: ${t.length - 1} steps accepted and ${rejected} rejected (TOL = ${tol}).`), nevals }
 }
 
 /* ───────────────────────── Persecución (misil) ───────────────────────── */
@@ -454,8 +465,8 @@ export function pursuit(target: (t: number) => Vec, rM0: Vec, vM: number, t0: nu
   const ks: Vec[][] = []
   let minDist = dist[0], tMin = t0
   const base = { k: ks }
-  if (isBad(T0) || isBad(rM0)) return { ...base, t, M, T, dist, captured: false, tCapture: NaN, pCapture: [NaN, NaN, NaN], minDist, tMin, ok: false, message: 'La posición inicial del blanco o del misil no es finita.' }
-  if (dist[0] <= eps) return { ...base, t, M, T, dist, captured: true, tCapture: t0, pCapture: rM0, minDist, tMin, ok: true, message: 'El misil ya está dentro de la distancia de captura en t₀.' }
+  if (isBad(T0) || isBad(rM0)) return { ...base, t, M, T, dist, captured: false, tCapture: NaN, pCapture: [NaN, NaN, NaN], minDist, tMin, ok: false, message: L('La posición inicial del blanco o del misil no es finita.', 'The initial position of the target or the missile is not finite.') }
+  if (dist[0] <= eps) return { ...base, t, M, T, dist, captured: true, tCapture: t0, pCapture: rM0, minDist, tMin, ok: true, message: L('El misil ya está dentro de la distancia de captura en t₀.', 'The missile is already within the capture distance at t₀.') }
   const N = Math.min(MAX_STEPS, Math.ceil((tMax - t0) / h))
   for (let i = 0; i < N; i++) {
     const st = rkStep(F, tab, t[i], M[i], h)
@@ -478,12 +489,15 @@ export function pursuit(target: (t: number) => Vec, rM0: Vec, vM: number, t0: nu
       const s = d0 === d1 ? 1 : Math.min(1, Math.max(0, (d0 - eps) / (d0 - d1)))
       const tc = t[i] + s * h
       const pc = M[i].map((x, m) => x + s * (st.y[m] - x))
-      return { ...base, t, M, T, dist, captured: true, tCapture: tc, pCapture: pc, minDist, tMin, ok: true, message: `¡Blanco interceptado! |r_T − r_M| < ε en t ≈ ${+tc.toPrecision(8)}.` }
+      return { ...base, t, M, T, dist, captured: true, tCapture: tc, pCapture: pc, minDist, tMin, ok: true, message: L(`¡Blanco interceptado! |r_T − r_M| < ε en t ≈ ${+tc.toPrecision(8)}.`, `Target intercepted! |r_T − r_M| < ε at t ≈ ${+tc.toPrecision(8)}.`) }
     }
   }
   return {
     ...base, t, M, T, dist, captured: false, tCapture: NaN, pCapture: [NaN, NaN, NaN], minDist, tMin, ok: true,
-    message: `No hubo captura hasta t = ${+t[t.length - 1].toPrecision(6)}. Distancia mínima ${+minDist.toPrecision(5)} en t ≈ ${+tMin.toPrecision(5)}.`,
+    message: L(
+      `No hubo captura hasta t = ${+t[t.length - 1].toPrecision(6)}. Distancia mínima ${+minDist.toPrecision(5)} en t ≈ ${+tMin.toPrecision(5)}.`,
+      `No capture up to t = ${+t[t.length - 1].toPrecision(6)}. Minimum distance ${+minDist.toPrecision(5)} at t ≈ ${+tMin.toPrecision(5)}.`,
+    ),
   }
 }
 

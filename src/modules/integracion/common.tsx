@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react'
 import { Tex } from '../../components/Tex'
 import { Alert } from '../../components/ui'
+import { L } from '../../i18n'
 import { toScilab, toTex } from '../../lib/expr'
 import { fmt, fmtErr, texNum } from '../../lib/format'
 import type { Reference } from './exact'
@@ -18,17 +19,22 @@ export const sci = (src: string) => toScilab(src.trim() || '0', false)
 /** Límite escrito por el usuario → TeX (pi/2 → \\frac{\\pi}{2}). */
 export const limTex = (src: string) => toTex(src.trim() || '0')
 
-const cifras = (k: number) => `≈ ${k} ${k === 1 ? 'cifra significativa' : 'cifras significativas'}`
+const cifras = (k: number) =>
+  `≈ ${k} ${k === 1 ? L('cifra significativa', 'significant digit') : L('cifras significativas', 'significant digits')}`
 
 /** Stats de valor de referencia y errores. */
 export function refStats(approx: number, ref: Reference | null) {
-  if (!ref || !Number.isFinite(ref.value)) return [{ label: 'Valor de referencia', value: '—', hint: ref?.label ?? 'no disponible' }]
+  if (!ref || !Number.isFinite(ref.value)) return [{ label: L('Valor de referencia', 'Reference value'), value: '—', hint: ref?.label ?? L('no disponible', 'not available') }]
   const abs = Math.abs(approx - ref.value)
   const rel = ref.value !== 0 ? abs / Math.abs(ref.value) : NaN
   return [
-    { label: ref.kind === 'simbolico' ? 'Valor exacto' : 'Referencia numérica', value: fmt(ref.value, 15), hint: ref.kind === 'simbolico' ? 'antiderivada simbólica' : 'Gauss-Kronrod adaptativo' },
-    { label: 'Error absoluto', value: fmtErr(abs) },
-    { label: 'Error relativo', value: Number.isFinite(rel) ? fmtErr(rel) : '—', hint: Number.isFinite(rel) && rel > 0 ? cifras(Math.max(0, Math.floor(-Math.log10(2 * rel)))) : undefined },
+    {
+      label: ref.kind === 'simbolico' ? L('Valor exacto', 'Exact value') : L('Referencia numérica', 'Numerical reference'),
+      value: fmt(ref.value, 15),
+      hint: ref.kind === 'simbolico' ? L('antiderivada simbólica', 'symbolic antiderivative') : L('Gauss-Kronrod adaptativo', 'adaptive Gauss–Kronrod'),
+    },
+    { label: L('Error absoluto', 'Absolute error'), value: fmtErr(abs) },
+    { label: L('Error relativo', 'Relative error'), value: Number.isFinite(rel) ? fmtErr(rel) : '—', hint: Number.isFinite(rel) && rel > 0 ? cifras(Math.max(0, Math.floor(-Math.log10(2 * rel)))) : undefined },
   ]
 }
 
@@ -43,19 +49,27 @@ export function RefNote({ ref }: { ref: Reference | null; integral?: string }) {
         <>
           {ref.antiTex && (
             <>
-              Antiderivada: <Tex>{`F(x) = ${ref.antiTex}`}</Tex>.{' '}
+              {L('Antiderivada', 'Antiderivative')}: <Tex>{`F(x) = ${ref.antiTex}`}</Tex>.{' '}
             </>
           )}
           {ref.valueTex ? (
             <>
-              Valor exacto: <Tex>{`I = F(b) - F(a) = ${ref.valueTex}${/^-?[\d.]+$/.test(ref.valueTex) ? '' : ` \\approx ${texNum(ref.value, 15)}`}`}</Tex>
+              {L('Valor exacto', 'Exact value')}: <Tex>{`I = F(b) - F(a) = ${ref.valueTex}${/^-?[\d.]+$/.test(ref.valueTex) ? '' : ` \\approx ${texNum(ref.value, 15)}`}`}</Tex>
             </>
           ) : (
-            <>Valor exacto ≈ {fmt(ref.value, 15)}</>
+            <>
+              {L('Valor exacto', 'Exact value')} ≈ {fmt(ref.value, 15)}
+            </>
           )}
         </>
       ) : (
-        <>No se encontró una antiderivada elemental verificable; se usa integración adaptativa con error estimado {fmtErr(ref.err ?? NaN)}.</>
+        <>
+          {L(
+            'No se encontró una antiderivada elemental verificable; se usa integración adaptativa con error estimado',
+            'No verifiable elementary antiderivative was found; adaptive integration is used, with estimated error',
+          )}{' '}
+          {fmtErr(ref.err ?? NaN)}.
+        </>
       )}
     </Alert>
   )
