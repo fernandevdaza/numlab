@@ -1,0 +1,4 @@
+# Dependencias a las que pnpm permite ejecutar scripts de instalación.
+allowBuilds:
+  electron: true              # descarga el binario de Electron
+  electron-winstaller: false  # no se usa (los instaladores de Windows son NSIS)

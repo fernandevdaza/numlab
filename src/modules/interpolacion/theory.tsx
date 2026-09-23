@@ -126,7 +126,7 @@ export const THEORY: Record<InterpKind, ReactNode> = {
       <p>
         <b>1. Añadir un punto</b> <Tex>{'(x_{n+1}, f(x_{n+1}))'}</Tex> y reemplazar <Tex>x</Tex> por <Tex>{'x_{n+1}'}</Tex> en la diferencia dividida (4.31):
       </p>
-      <Tex block>{'R_n(x) \\approx \\prod_{i=0}^{n}(x-x_i)\;f[x_0,\\dots,x_n,x_{n+1}]'}</Tex>
+      <Tex block>{'R_n(x) \\approx \\prod_{i=0}^{n}(x-x_i)\\;f[x_0,\\dots,x_n,x_{n+1}]'}</Tex>
       <p>
         <b>2. Usar la derivada.</b> Como <Tex>{'f[x_0,\\dots,x_k] = f^{(k)}(\\eta)/k!'}</Tex> para algún <Tex>\eta</Tex> entre los nodos (para <Tex>k=1</Tex> es el teorema del valor
         medio):

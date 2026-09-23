@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+@font-face { font-family: G; src: url(../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2) format('woff2'); font-weight: 100 900; }
+@font-face { font-family: GM; src: url(../../node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2) format('woff2'); font-weight: 100 900; }
+@font-face { font-family: N; src: url(../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2) format('woff2'); font-weight: 200 800; font-style: italic; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1280px; height: 480px; overflow: hidden; background: #05070b; }
+.b { position: relative; width: 1280px; height: 480px; overflow: hidden; font-family: G, sans-serif; color: #e2e8f0;
+  background:
+    radial-gradient(900px 420px at 108% 118%, rgba(99, 102, 241, .55), transparent 60%),
+    radial-gradient(520px 260px at 96% 110%, rgba(34, 211, 238, .45), transparent 65%),
+    radial-gradient(600px 300px at -5% -20%, rgba(45, 212, 191, .10), transparent 60%),
+    #05070b; }
+.dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(148,163,184,.13) 1px, transparent 1.2px); background-size: 22px 22px; mask-image: linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,.25)); }
+.left { position: absolute; left: 64px; top: 128px; }
+.logo { display: flex; align-items: center; gap: 18px; }
+.logo img { width: 76px; height: 76px; }
+h1 { font-weight: 750; font-size: 92px; letter-spacing: -0.045em; line-height: 1; color: #f8fafc; }
+.tag { margin-top: 22px; font-size: 25px; font-weight: 500; color: #e2e8f0; letter-spacing: -0.01em; }
+.tag em { font-family: N, serif; font-style: italic; font-weight: 500; font-size: 28px; color: #5eead4; }
+.sub { margin-top: 18px; max-width: 520px; font-family: GM, monospace; font-size: 13px; line-height: 1.9; letter-spacing: .18em; color: #94a3b8; }
+.flow { position: absolute; left: 650px; top: 150px; display: flex; align-items: center; gap: 10px; }
+.card { width: 96px; height: 112px; border-radius: 14px; border: 1.5px solid rgba(94, 234, 212, .55); background: rgba(8, 20, 28, .75);
+  box-shadow: 0 0 22px rgba(45, 212, 191, .18), inset 0 0 18px rgba(45, 212, 191, .06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.card.v { border-color: rgba(167, 139, 250, .6); box-shadow: 0 0 22px rgba(139, 92, 246, .22), inset 0 0 18px rgba(139, 92, 246, .08); }
+.card .g { font-family: N, serif; font-style: italic; font-size: 30px; color: #5eead4; line-height: 1; }
+.card.v .g { color: #c4b5fd; }
+.card .t { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+.arr { color: #5eead4; font-size: 20px; opacity: .85; }
+.plot { position: absolute; left: 1050px; top: 88px; width: 200px; height: 250px; border-radius: 14px; border: 1.5px solid rgba(226, 232, 240, .65); background: rgba(5, 8, 12, .6); box-shadow: 0 0 30px rgba(99,102,241,.25); }
+.plot svg { position: absolute; inset: 0; }
+</style></head>
+<body><div class="b"><div class="dots"></div>
+  <div class="left">
+    <div class="logo"><img src="icono.svg" alt=""><h1>NumLab</h1></div>
+    <div class="tag">Métodos numéricos, <em>paso a paso.</em></div>
+    <div class="sub">RAÍCES · SISTEMAS · INTERPOLACIÓN<br>INTEGRALES · EDO · CÓDIGO SCILAB</div>
+  </div>
+  <div class="flow">
+    <div class="card"><div class="g">f(x)=0</div><div class="t">Raíces</div></div><span class="arr">→</span>
+    <div class="card"><div class="g">Ax=b</div><div class="t">Sistemas</div></div><span class="arr">→</span>
+    <div class="card v"><div class="g">P(x)</div><div class="t">Interpolar</div></div>
+  </div>
+  <div class="flow" style="top: 290px; left: 650px;">
+    <div class="card v"><div class="g">∫ f dx</div><div class="t">Integrar</div></div><span class="arr">→</span>
+    <div class="card"><div class="g">y′=f</div><div class="t">EDO</div></div><span class="arr">→</span>
+    <div class="card v"><div class="g" style="font-family:GM,monospace;font-style:normal;font-size:22px">.sce</div><div class="t">Scilab</div></div>
+  </div>
+  <div class="plot"><svg viewBox="0 0 200 250">
+    <g stroke="rgba(148,163,184,.14)"><path d="M20 50H180M20 100H180M20 150H180M20 200H180"/><path d="M60 20V230M100 20V230M140 20V230"/></g>
+    <path d="M14 170H186" stroke="rgba(203,213,225,.6)" stroke-width="1.5"/>
+    <path d="M22.0 192.4 L24.7 191.8 L27.4 191.3 L30.1 190.7 L32.8 190.0 L35.5 189.4 L38.2 188.7 L40.9 188.0 L43.6 187.3 L46.3 186.5 L49.0 185.7 L51.7 184.9 L54.4 184.0 L57.1 183.1 L59.8 182.2 L62.5 181.2 L65.2 180.1 L67.9 179.0 L70.6 177.9 L73.3 176.7 L76.0 175.5 L78.7 174.2 L81.4 172.9 L84.1 171.5 L86.8 170.0 L89.5 168.5 L92.2 166.9 L94.9 165.2 L97.6 163.5 L100.3 161.6 L103.0 159.7 L105.7 157.7 L108.4 155.7 L111.1 153.5 L113.8 151.2 L116.5 148.9 L119.2 146.4 L121.9 143.8 L124.6 141.1 L127.3 138.3 L130.0 135.4 L132.7 132.3 L135.4 129.1 L138.1 125.8 L140.8 122.3 L143.5 118.7 L146.2 114.9 L148.9 110.9 L151.6 106.7 L154.3 102.4 L157.0 97.9 L159.7 93.2 L162.4 88.2 L165.1 83.1 L167.8 77.7 L170.5 72.1 L173.2 66.2 L175.9 60.1 L178.6 53.7 L181.3 47.0 L184.0 40.0" fill="none" stroke="#2dd4bf" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M175.9 64.2L100.5 199.0" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5 5"/>
+    <path d="M159.7 93.2V170" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="3 4" opacity=".6"/>
+    <path d="M116.7 170V148.7" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="3 4" opacity=".6"/>
+    <circle cx="159.7" cy="93.2" r="5" fill="#fff"/>
+    <circle cx="116.7" cy="170" r="5" fill="#fbbf24"/>
+    <circle cx="86.8" cy="170" r="6" fill="none" stroke="#f472b6" stroke-width="2"/>
+    <text x="22" y="30" fill="#94a3b8" font-family="GM, monospace" font-size="11">Newton</text>
+    <text x="22" y="44" fill="#5eead4" font-family="GM, monospace" font-size="11">x* = 1.365230</text>
+  </svg></div>
+</div></body></html>

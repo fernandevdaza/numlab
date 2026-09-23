@@ -92,7 +92,7 @@ function GaussResults({ s, sys, res, exact, cond, digits }: { s: S; sys: { A: A.
       <Stats
         items={[
           { label: 'Solución x', value: res.ok ? vecText(res.x, s.t || Math.min(digits, 8)) : '—', accent: true, hint: s.t ? `aritmética de ${s.t} cifras` : undefined },
-          { label: 'det(A)', value: fmt(res.det, s.t || undefined), hint: `(−1)^${res.swaps} · ∏ aᵢᵢ⁽ⁱ⁻¹⁾` },
+          { label: 'det(A)', value: fmt(res.det, s.t || undefined), hint: `(−1)${String(res.swaps).replace(/\d/g, (c) => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+c])} · ∏ aᵢᵢ⁽ⁱ⁻¹⁾` },
           rounded
             ? { label: 'Error relativo máx.', value: Number.isFinite(maxEr) ? `${fmt(100 * maxEr, 2)} %` : '—', hint: 'respecto de la solución en doble precisión' }
             : { label: 'cond∞(A)', value: fmt(cond, 4), hint: Number.isFinite(cond) ? `≈ ${Math.max(0, Math.log10(cond)).toFixed(1)} cifras perdidas` : 'matriz singular' },
@@ -168,11 +168,11 @@ function gaussSteps(res: A.GaussResult, n: number, pivot: A.Pivot, t: number): {
           : pivot === 'escalado'
             ? `la mayor razón |aᵢ${k + 1}|/sᵢ está en la fila ${p + 1}`
             : `el pivote a${k + 1}${k + 1} es cero`
-      out.push({ text: `Columna ${k + 1} — pivoteo: ${why} ⇒ intercambiamos E${a + 1} ↔ E${p + 1}.`, tex: (st.ratios ? st.ratios.map((r, j) => `\\tfrac{|a_{${idx(n, k + j, k)}}|}{s_{${k + j + 1}}} = ${N(r, 5)}`).join(',\; ') + '\\qquad ' : '') + texAug(st.before, d, { box: [k, k] }) })
+      out.push({ text: `Columna ${k + 1} — pivoteo: ${why} ⇒ intercambiamos E${a + 1} ↔ E${p + 1}.`, tex: (st.ratios ? st.ratios.map((r, j) => `\\tfrac{|a_{${idx(n, k + j, k)}}|}{s_{${k + j + 1}}} = ${N(r, 5)}`).join(',\\; ') + '\\qquad ' : '') + texAug(st.before, d, { box: [k, k] }) })
     } else {
       out.push({
         text: `Columna ${k + 1} — pivote a${k + 1}${k + 1} = ${fmt(st.pivot, d)}${pivot === 'parcial' ? ' (ya es el de mayor valor absoluto en su columna)' : ''}. Anulamos x${k + 1} en las ecuaciones ${k + 2}…${n}:`,
-        tex: st.ratios ? st.ratios.map((r, j) => `\\tfrac{|a_{${idx(n, k + j, k)}}|}{s_{${k + j + 1}}} = ${N(r, 5)}`).join(',\; ') : undefined,
+        tex: st.ratios ? st.ratios.map((r, j) => `\\tfrac{|a_{${idx(n, k + j, k)}}|}{s_{${k + j + 1}}} = ${N(r, 5)}`).join(',\\; ') : undefined,
       })
     }
     if (st.swap) out.push({ text: `Anulamos x${k + 1} en las ecuaciones ${k + 2}…${n} con el pivote a${k + 1}${k + 1} = ${fmt(st.pivot, d)}:` })
@@ -180,11 +180,11 @@ function gaussSteps(res: A.GaussResult, n: number, pivot: A.Pivot, t: number): {
       tex:
         '\\begin{aligned}' +
         st.mult
-          .map(({ i, m }) => `m_{${idx(n, i, k)}} = \\frac{a_{${idx(n, i, k)}}}{a_{${idx(n, k, k)}}} &= \\frac{${Nd(st.before[i][k])}}{${Nd(st.pivot)}} = ${Nd(m)} &&\\Rightarrow\; E_{${i + 1}} \\leftarrow E_{${i + 1}} - ${Pd(m)}\\,E_{${k + 1}}`)
+          .map(({ i, m }) => `m_{${idx(n, i, k)}} = \\frac{a_{${idx(n, i, k)}}}{a_{${idx(n, k, k)}}} &= \\frac{${Nd(st.before[i][k])}}{${Nd(st.pivot)}} = ${Nd(m)} &&\\Rightarrow\\; E_{${i + 1}} \\leftarrow E_{${i + 1}} - ${Pd(m)}\\,E_{${k + 1}}`)
           .join(' \\\\ ') +
         '\\end{aligned}',
     })
-    out.push({ tex: '\\longrightarrow\;' + texAug(st.after, d, { hl: st.mult.map((m) => m.i) }) })
+    out.push({ tex: '\\longrightarrow\\;' + texAug(st.after, d, { hl: st.mult.map((m) => m.i) }) })
   }
   if (!res.ok) {
     out.push({ text: '✕ ' + res.error })

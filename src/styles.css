@@ -39,9 +39,9 @@
   --radius: 14px;
   --radius-sm: 9px;
   /* tipografía */
-  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --display: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   /* layout */
   --sidebar-w: 284px;
   --topbar-h: 52px;

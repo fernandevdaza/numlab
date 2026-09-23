@@ -510,28 +510,28 @@ function stepsFor(kind: RootKind, s: State, c: Required<Calc>): { text?: string;
   switch (kind) {
     case 'biseccion': {
       const a = evalNumber(s.a), b = evalNumber(s.b)
-      out.push({ text: 'Verificamos el cambio de signo (teorema de Bolzano):', tex: `f(x_I) = f(${N(a)}) = ${N(c.f.f(a))},\\quad f(x_D) = f(${N(b)}) = ${N(c.f.f(b))}\;\\Rightarrow\; f(x_I)f(x_D) ${c.f.f(a) * c.f.f(b) < 0 ? '<' : '>'} 0` })
+      out.push({ text: 'Verificamos el cambio de signo (teorema de Bolzano):', tex: `f(x_I) = f(${N(a)}) = ${N(c.f.f(a))},\\quad f(x_D) = f(${N(b)}) = ${N(c.f.f(b))}\\;\\Rightarrow\\; f(x_I)f(x_D) ${c.f.f(a) * c.f.f(b) < 0 ? '<' : '>'} 0` })
       const tol = evalNumber(s.tol)
       if (tol > 0 && b !== a)
-        out.push({ text: 'Número de iteraciones para garantizar |α − x_M| ≤ EPS (relación 2.6):', tex: `n \\ge \\frac{\\ln(${N(Math.abs(b - a))}) - \\ln(${N(tol)})}{\\ln 2} = ${N(Math.log(Math.abs(b - a) / tol) / Math.LN2)}\;\\Rightarrow\; n = ${A.biseccionIterMin(a, b, tol)}` })
+        out.push({ text: 'Número de iteraciones para garantizar |α − x_M| ≤ EPS (relación 2.6):', tex: `n \\ge \\frac{\\ln(${N(Math.abs(b - a))}) - \\ln(${N(tol)})}{\\ln 2} = ${N(Math.log(Math.abs(b - a) / tol) / Math.LN2)}\\;\\Rightarrow\\; n = ${A.biseccionIterMin(a, b, tol)}` })
       take.forEach((x) => {
         const sameAsI = x.fa * x.fc > 0
         out.push({
           text: `Iteración ${x.n}:`,
-          tex: `x_M = \\frac{${N(x.a)} + ${N(x.b)}}{2} = ${N(x.c)},\\quad f(x_M) = ${N(x.fc)}\;\\Rightarrow\; ${sameAsI ? `f(x_M)f(x_I) > 0,\\ x_I = ${N(x.c)}` : `f(x_M)f(x_I) < 0,\\ x_D = ${N(x.c)}`}`,
+          tex: `x_M = \\frac{${N(x.a)} + ${N(x.b)}}{2} = ${N(x.c)},\\quad f(x_M) = ${N(x.fc)}\\;\\Rightarrow\\; ${sameAsI ? `f(x_M)f(x_I) > 0,\\ x_I = ${N(x.c)}` : `f(x_M)f(x_I) < 0,\\ x_D = ${N(x.c)}`}`,
         })
       })
       break
     }
     case 'posicion-falsa': {
       const a = evalNumber(s.a), b = evalNumber(s.b)
-      out.push({ text: 'Verificamos el cambio de signo:', tex: `f(x_I) = f(${N(a)}) = ${N(c.f.f(a))},\\quad f(x_D) = f(${N(b)}) = ${N(c.f.f(b))}\;\\Rightarrow\; f(x_I)f(x_D) ${c.f.f(a) * c.f.f(b) < 0 ? '<' : '>'} 0` })
+      out.push({ text: 'Verificamos el cambio de signo:', tex: `f(x_I) = f(${N(a)}) = ${N(c.f.f(a))},\\quad f(x_D) = f(${N(b)}) = ${N(c.f.f(b))}\\;\\Rightarrow\\; f(x_I)f(x_D) ${c.f.f(a) * c.f.f(b) < 0 ? '<' : '>'} 0` })
       out.push({ text: 'Raíz de la secante que une (x_I, f(x_I)) y (x_D, f(x_D)) — relación (2.19):', tex: '\\alpha_S = x_D - \\frac{x_D - x_I}{f(x_D) - f(x_I)}\\,f(x_D)' })
       take.forEach((x) => {
         const sameAsI = x.fa * x.fc > 0
         out.push({
           text: `Iteración ${x.n}${x.mod ? ' (se usa la mitad del valor de f en el extremo que no cambió en dos iteraciones)' : ''}:`,
-          tex: `\\alpha_S = ${N(x.b)} - \\frac{${N(x.b)} - ${N(x.a)}}{${N(x.fb)} - (${N(x.fa)})}\\,(${N(x.fb)}) = ${N(x.c)},\\quad f(\\alpha_S) = ${N(x.fc)}\;\\Rightarrow\; ${sameAsI ? 'x_I = \\alpha_S' : 'x_D = \\alpha_S'}`,
+          tex: `\\alpha_S = ${N(x.b)} - \\frac{${N(x.b)} - ${N(x.a)}}{${N(x.fb)} - (${N(x.fa)})}\\,(${N(x.fb)}) = ${N(x.c)},\\quad f(\\alpha_S) = ${N(x.fc)}\\;\\Rightarrow\\; ${sameAsI ? 'x_I = \\alpha_S' : 'x_D = \\alpha_S'}`,
         })
       })
       break

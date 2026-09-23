@@ -289,7 +289,7 @@ function iterSteps(c: Calc, method: A.IterMethod, norm: A.VecNorm): { text?: str
     d.rows
       .map((r) => {
         const others = (byCol ? Am.map((row) => row[r.i]) : Am[r.i]).filter((_, j) => j !== r.i).map((v) => N(Math.abs(v))).join(' + ')
-        return `${byCol ? 'j' : 'i'} = ${r.i + 1}:\; |a_{${r.i + 1}${r.i + 1}}| = ${N(r.diag)} &\;${r.strict ? '>' : r.weak ? '=' : '<'}\; ${others} = ${N(r.off)} & ${r.strict ? '\\text{sí}' : '\\text{no}'}`
+        return `${byCol ? 'j' : 'i'} = ${r.i + 1}:\\; |a_{${r.i + 1}${r.i + 1}}| = ${N(r.diag)} &\\;${r.strict ? '>' : r.weak ? '=' : '<'}\\; ${others} = ${N(r.off)} & ${r.strict ? '\\text{sí}' : '\\text{no}'}`
       })
       .join(' \\\\ ') +
     '\\end{aligned}'

@@ -24,3 +24,6 @@ Thumbs.db
 !.vscode/extensions.json
 .idea
 *.swp
+
+# Escritorio (electron-builder)
+release

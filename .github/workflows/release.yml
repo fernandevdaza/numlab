@@ -1,0 +1,52 @@
+name: Aplicación de escritorio
+
+# Al subir una etiqueta vX.Y.Z se compilan los instaladores para macOS, Windows y Linux
+# y se adjuntan a un borrador de release en GitHub (se publica a mano desde la pestaña Releases).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  escritorio:
+    name: ${{ matrix.nombre }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            nombre: macOS (dmg · Apple Silicon e Intel)
+            args: --mac
+          - os: windows-latest
+            nombre: Windows (instalador)
+            args: --win
+          - os: ubuntu-latest
+            nombre: Linux (AppImage · deb)
+            args: --linux
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Empaquetar con electron-builder
+        run: pnpm exec electron-builder ${{ matrix.args }} --publish ${{ startsWith(github.ref, 'refs/tags/') && 'always' || 'never' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: numlab-${{ runner.os }}
+          path: |
+            release/*.dmg
+            release/*.exe
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: ignore

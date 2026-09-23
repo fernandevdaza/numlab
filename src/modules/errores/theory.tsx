@@ -222,7 +222,7 @@ export const THEORY: Record<ErrKind, ReactNode> = {
       <p>
         El <b>número de condición</b> <Tex>K</Tex> (en esta página también <Tex>{'\\kappa'}</Tex>) mide esa sensibilidad comparando errores relativos:
       </p>
-      <Tex block>{"K = \\sup_{\\delta x}\\frac{\\|\\delta y\\|/\\|y\\|}{\\|\\delta x\\|/\\|x\\|}\\qquad\\xrightarrow{\;y=f(x)\;}\\qquad K(x) = \\left|\\frac{x\\,f'(x)}{f(x)}\\right|,\\qquad \\frac{|\\delta y|}{|y|}\\approx K\\,\\frac{|\\delta x|}{|x|}"}</Tex>
+      <Tex block>{"K = \\sup_{\\delta x}\\frac{\\|\\delta y\\|/\\|y\\|}{\\|\\delta x\\|/\\|x\\|}\\qquad\\xrightarrow{\\;y=f(x)\\;}\\qquad K(x) = \\left|\\frac{x\\,f'(x)}{f(x)}\\right|,\\qquad \\frac{|\\delta y|}{|y|}\\approx K\\,\\frac{|\\delta x|}{|x|}"}</Tex>
       <ul>
         <li>
           <Tex>K</Tex> pequeño (el texto dice “del orden de 10”): problema <b>bien condicionado</b>.
@@ -240,7 +240,7 @@ export const THEORY: Record<ErrKind, ReactNode> = {
         <Tex>{'x-1'}</Tex> cerca de 1 (cancelación) y <Tex>{'\\tan x'}</Tex> cerca de <Tex>{'\\pi/2'}</Tex> están mal condicionados.
       </p>
       <p>
-        Regla práctica: <Tex>{'\\text{error relativo del resultado} \\lesssim K \\times \\text{error relativo de los datos} \;(+\\text{ error del algoritmo})'}</Tex>.
+        Regla práctica: <Tex>{'\\text{error relativo del resultado} \\lesssim K \\times \\text{error relativo de los datos} \\;(+\\text{ error del algoritmo})'}</Tex>.
       </p>
     </>
   ),

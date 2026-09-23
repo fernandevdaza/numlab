@@ -358,8 +358,8 @@ function steps(s: S, c: Calc, may: { bound: number; M: number }, highName: strin
   const num = sc.offsets.map((_, i) => `${i === 0 ? (sc.coefs[i] < 0 ? '-' : '') : sc.coefs[i] < 0 ? ' - ' : ' + '}${Math.abs(sc.coefs[i]) === 1 ? '' : Math.abs(sc.coefs[i])}(${N(vals[i], 12)})`).join('')
   const den = `${sc.den === 1 ? '' : sc.den + '\\cdot '}${sc.k === 1 ? P(c.h) : `(${N(c.h)})^2`}`
   out.push({ text: 'Sustituimos:', tex: `${dName}(x) \\approx \\frac{${num}}{${den}} = ${N(c.D, 14)}` })
-  if (c.exact) out.push({ text: 'Derivada exacta (simbólica) para comparar:', tex: `${dName}(x) = ${c.exact.tex}\;\\Rightarrow\; ${dName}(${N(c.x0)}) = ${N(c.ex, 14)}` })
-  out.push({ text: 'Error exacto y relativo:', tex: `|${N(c.ex, 14)} - ${P(c.D, 14)}| = ${texNum(Math.abs(c.D - c.ex), 4)}${c.ex !== 0 ? `\;\;(${texNum((100 * Math.abs(c.D - c.ex)) / Math.abs(c.ex), 4)}\\,\\%)` : ''}` })
+  if (c.exact) out.push({ text: 'Derivada exacta (simbólica) para comparar:', tex: `${dName}(x) = ${c.exact.tex}\\;\\Rightarrow\\; ${dName}(${N(c.x0)}) = ${N(c.ex, 14)}` })
+  out.push({ text: 'Error exacto y relativo:', tex: `|${N(c.ex, 14)} - ${P(c.D, 14)}| = ${texNum(Math.abs(c.D - c.ex), 4)}${c.ex !== 0 ? `\\;\\;(${texNum((100 * Math.abs(c.D - c.ex)) / Math.abs(c.ex), 4)}\\,\\%)` : ''}` })
   if (c.high && Number.isFinite(may.M)) {
     const [lo, hi] = A.stencilInterval(s.scheme, c.x0, c.h)
     out.push({

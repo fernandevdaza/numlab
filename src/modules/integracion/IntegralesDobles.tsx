@@ -265,7 +265,7 @@ function stepsGauss(s: S, c: Calc) {
   })
   if (Number.isFinite(c.ref.value)) {
     const e = Math.abs(c.ref.value - res.value)
-    out.push({ text: 'Error exacto y relativo:', tex: `|${N(c.ref.value, 12)} - ${P(res.value, 12)}| = ${texNum(e, 4)}${c.ref.value !== 0 ? `\;\;(${texNum((100 * e) / Math.abs(c.ref.value), 3)}\\,\\%)` : ''}` })
+    out.push({ text: 'Error exacto y relativo:', tex: `|${N(c.ref.value, 12)} - ${P(res.value, 12)}| = ${texNum(e, 4)}${c.ref.value !== 0 ? `\\;\\;(${texNum((100 * e) / Math.abs(c.ref.value), 3)}\\,\\%)` : ''}` })
   }
   return out
 }

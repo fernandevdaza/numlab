@@ -173,7 +173,7 @@ function Results({ s, c }: { s: State; c: Required<Calc> }) {
       {extrap && <Alert kind="warn">x̄ = {fmt(xbar)} está fuera de [{fmt(xs[0])}, {fmt(xs[n])}]: se extrapola con el tramo extremo.</Alert>}
       {s.bc === 'sujeto' && c.fpAuto && (
         <Alert kind="info">
-          Derivadas en los extremos calculadas a partir de f: <Tex>{`y'_0 = f'(x_0) = ${N(c.fpa)},\; y'_n = f'(x_n) = ${N(c.fpb)}`}</Tex>
+          Derivadas en los extremos calculadas a partir de f: <Tex>{`y'_0 = f'(x_0) = ${N(c.fpa)},\\; y'_n = f'(x_n) = ${N(c.fpb)}`}</Tex>
         </Alert>
       )}
       <Card title={isM ? 'Splines Sᵢ(x) = aᵢ + bᵢx + cᵢx² + dᵢx³ (desarrolladas)' : 'Spline cúbica S(x) (forma de Burden)'}>
@@ -267,29 +267,29 @@ export function stepsM(s: State, c: Required<Calc>) {
   const h = spM.h
   const out: { text?: ReactNode; tex?: string }[] = []
   const sl = (i: number) => `\\frac{${N(ys[i + 1])} - ${Pn(ys[i])}}{${N(h[i])}}`
-  out.push({ text: `${n + 1} nodos ⇒ ${n} splines. Tamaño de los subintervalos, (4.38):`, tex: h.slice(0, 10).map((hi, i) => `h_{${i}} = ${N(hi)}`).join(',\\quad ') + (n > 10 ? ',\;\\dots' : '') })
+  out.push({ text: `${n + 1} nodos ⇒ ${n} splines. Tamaño de los subintervalos, (4.38):`, tex: h.slice(0, 10).map((hi, i) => `h_{${i}} = ${N(hi)}`).join(',\\quad ') + (n > 10 ? ',\\;\\dots' : '') })
   if (s.bc === 'natural') out.push({ text: 'Condición sobre la segunda derivada (spline natural), (4.42):', tex: `M_0 = M_{${n}} = 0` })
   else
     out.push({
       text: "Condición sobre la primera derivada (spline forzada), primera ecuación de (4.41):",
-      tex: `\\frac{h_0}{3}M_0 + \\frac{h_0}{6}M_1 = \\frac{y_1-y_0}{h_0} - y'_0 \;\\Rightarrow\; ${N(h[0] / 3)}M_0 + ${N(h[0] / 6)}M_1 = ${sl(0)} - ${Pn(c.fpa)} = ${N(spM.r[0])}`,
+      tex: `\\frac{h_0}{3}M_0 + \\frac{h_0}{6}M_1 = \\frac{y_1-y_0}{h_0} - y'_0 \\;\\Rightarrow\\; ${N(h[0] / 3)}M_0 + ${N(h[0] / 6)}M_1 = ${sl(0)} - ${Pn(c.fpa)} = ${N(spM.r[0])}`,
     })
   const row = (i: number) => spM.idx.indexOf(i)
   for (let i = 1; i < Math.min(n, 6); i++) {
     out.push({
       text: i === 1 ? 'Continuidad de S′ en los nodos interiores, i = 1, …, n − 1:' : undefined,
-      tex: `i=${i}:\; ${N(h[i - 1] / 6)}M_{${i - 1}} + ${N((h[i - 1] + h[i]) / 3)}M_{${i}} + ${N(h[i] / 6)}M_{${i + 1}} = ${sl(i)} - ${sl(i - 1)} = ${N(spM.r[row(i)])}`,
+      tex: `i=${i}:\\; ${N(h[i - 1] / 6)}M_{${i - 1}} + ${N((h[i - 1] + h[i]) / 3)}M_{${i}} + ${N(h[i] / 6)}M_{${i + 1}} = ${sl(i)} - ${sl(i - 1)} = ${N(spM.r[row(i)])}`,
     })
   }
   if (n > 6) out.push({ text: '… (análogas para el resto de i; ver «Sistema tridiagonal»).' })
   if (s.bc === 'sujeto')
     out.push({
       text: 'Última ecuación de (4.41):',
-      tex: `\\frac{h_{${n - 1}}}{6}M_{${n - 1}} + \\frac{h_{${n - 1}}}{3}M_{${n}} = y'_{${n}} - \\frac{y_{${n}}-y_{${n - 1}}}{h_{${n - 1}}} \;\\Rightarrow\; ${N(h[n - 1] / 6)}M_{${n - 1}} + ${N(h[n - 1] / 3)}M_{${n}} = ${N(c.fpb)} - ${sl(n - 1)} = ${N(spM.r[row(n)])}`,
+      tex: `\\frac{h_{${n - 1}}}{6}M_{${n - 1}} + \\frac{h_{${n - 1}}}{3}M_{${n}} = y'_{${n}} - \\frac{y_{${n}}-y_{${n - 1}}}{h_{${n - 1}}} \\;\\Rightarrow\\; ${N(h[n - 1] / 6)}M_{${n - 1}} + ${N(h[n - 1] / 3)}M_{${n}} = ${N(c.fpb)} - ${sl(n - 1)} = ${N(spM.r[row(n)])}`,
     })
   out.push({
     text: `Resolviendo el sistema tridiagonal (${spM.A.length} ecuaciones) con el método de Thomas:`,
-    tex: spM.M.slice(0, 10).map((v, i) => `M_{${i}} = ${N(v)}`).join(',\\quad ') + (n > 9 ? ',\;\\dots' : ''),
+    tex: spM.M.slice(0, 10).map((v, i) => `M_{${i}} = ${N(v)}`).join(',\\quad ') + (n > 9 ? ',\\;\\dots' : ''),
   })
   if (Number.isFinite(xbar)) {
     const i = c.iv

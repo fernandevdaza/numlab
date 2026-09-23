@@ -126,7 +126,7 @@ function LUResults({ s, sys, res, inv, exact, digits }: { s: S; sys: { A: A.Mat;
                       { key: 'x', tex: 'x_i', get: (r: any) => fmt(r.x, dd) },
                       ...(exact
                         ? [
-                            { key: 'ex', tex: 'x_i\;\\text{(doble precisión)}' },
+                            { key: 'ex', tex: 'x_i\\;\\text{(doble precisión)}' },
                             { key: 'er', tex: '\\text{E.R. (\\%)}', get: (r: any) => (Number.isFinite(r.er) ? fmt(100 * r.er, 3) : '—') },
                           ]
                         : [{ key: 'r', tex: '(b-Ax)_i', fmt: 'err' as const }]),
@@ -194,7 +194,7 @@ function luSteps(res: A.LUResult, n: number, kind: A.LUKind, d?: number): { text
           tex:
             '\\begin{aligned}' +
             st.mult.map(({ i, m }) => `l_{${ij(n, i, k)}} = m_{${ij(n, i, k)}} &= ${N(m, d)} &&\\Rightarrow F_{${i + 1}} \\leftarrow F_{${i + 1}} - ${P(m, d)}F_{${k + 1}}`).join(' \\\\ ') +
-            '\\end{aligned}\\qquad\\longrightarrow\; ' +
+            '\\end{aligned}\\qquad\\longrightarrow\\; ' +
             texM(st.U, d),
         })
     }

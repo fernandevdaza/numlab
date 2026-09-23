@@ -1,86 +1,162 @@
-# NumLab · Laboratorio de Métodos Numéricos
+<p align="center">
+  <img src="docs/banner.png" alt="NumLab — Métodos numéricos, paso a paso" width="100%">
+</p>
 
-Aplicación web interactiva para estudiar **Métodos Numéricos**: cada método del curso con su tabla de iteraciones,
-gráficas, análisis de error y convergencia, **desarrollo paso a paso con los números sustituidos** (como se escribe
-en un examen) y el **código Scilab** equivalente listo para descargar.
+<p align="center">
+  <b>Escribes la función, eliges el método y NumLab te muestra cada iteración, la gráfica, el error<br>
+  y el desarrollo paso a paso con los números sustituidos, tal como lo escribirías en el examen.</b>
+</p>
 
-Nació para el curso MA1007 de la Universidad Privada Boliviana (UPB) y sigue la notación y los ejemplos del texto
-de la materia, pero sirve para cualquier curso introductorio de análisis numérico.
+<p align="center">
+  <img src="https://img.shields.io/badge/versión-0.1.0-2dd4bf?style=flat-square" alt="versión 0.1.0">
+  <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
+  <img src="https://img.shields.io/badge/pruebas-828-22c55e?style=flat-square" alt="828 pruebas">
+  <img src="https://img.shields.io/badge/métodos-57-8b5cf6?style=flat-square" alt="57 métodos">
+  <img src="https://img.shields.io/badge/Scilab-.sce-c2410c?style=flat-square" alt="exporta a Scilab">
+  <br>
+  <img src="https://img.shields.io/badge/React-19-58c4dc?style=flat-square&logo=react&logoColor=white" alt="React 19">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Electron-escritorio-47848f?style=flat-square&logo=electron&logoColor=white" alt="Electron">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-MIT-94a3b8?style=flat-square" alt="Licencia MIT"></a>
+</p>
 
-## Características
+<p align="center">
+  <a href="https://fernandevdaza.github.io/numlab/"><b>🌐 Probar en el navegador</b></a> ·
+  <a href="https://github.com/fernandevdaza/numlab/releases"><b>⬇️ Descargar para escritorio</b></a> ·
+  <a href="#-desarrollo"><b>🛠️ Desarrollar</b></a>
+</p>
 
-- **57 páginas** que cubren todo el programa: representación de números y errores, ecuaciones no lineales,
-  sistemas lineales, interpolación, derivación e integración numérica y ecuaciones diferenciales ordinarias.
-- **Paso a paso** con fórmulas en KaTeX y los valores sustituidos en las primeras iteraciones.
-- **Ejemplos del texto** en un clic ("Ej. 2.8", "Ej. 4.12", …) que reproducen sus tablas.
-- **Código Scilab** generado con los datos que ingresaste (`.sce`) y exportación de tablas a CSV.
-- **Gráficas fieles**: muestreo adaptativo que no pierde picos ni oscilaciones y que corta las asíntotas y los
-  saltos en lugar de dibujar líneas falsas.
-- **Calculadora simbólica (CAS)** y **graficador** con raíces, extremos e intersecciones.
-- **Teclado de símbolos** para escribir funciones, **ayuda** integrada (`?`) y búsqueda (`⌘K` / `Ctrl+K`).
-- Tema claro y oscuro, diseño adaptable a celulares, todo en español.
+<div align="center">
 
-## Contenido
+| **57 páginas** | **6 temas** | **828 pruebas** | **3 plataformas** | **1 clic** |
+|:---:|:---:|:---:|:---:|:---:|
+| todo el programa del curso | del sílabo, en orden | contra los ejemplos del libro | macOS · Windows · Linux | a Scilab (`.sce`) y CSV |
+
+</div>
+
+> **Funciona sin conexión.** Todo el cálculo ocurre en tu navegador o en la app de escritorio: no hay servidor,
+> cuentas ni rastreo.
+
+---
+
+## ✨ Qué hace
+
+- **Paso a paso de examen.** Cada método muestra las fórmulas en KaTeX con los valores sustituidos en las primeras
+  iteraciones: multiplicadores de Gauss, bits de la mantisa, diferencias divididas, etapas de Runge-Kutta…
+- **Fiel al curso.** Notación, criterios de parada y variantes siguen el texto de la materia. Sus ejemplos
+  resueltos están a un clic ("Ej. 2.8", "Ej. 4.12"…) y reproducen sus tablas cifra por cifra, incluida la
+  calculadora de 4 cifras cuando el ejemplo la usa.
+- **Gráficas que no mienten.** El muestreo es adaptativo: no pierde picos ni oscilaciones, y corta las asíntotas y
+  los saltos en lugar de dibujar líneas falsas.
+- **Análisis de error y convergencia.** Orden estimado, cotas teóricas contra error real, cifras significativas y
+  número de condición.
+- **Código Scilab** generado con tus datos, listo para ejecutar, y tablas exportables a CSV.
+- **Calculadora simbólica y graficador** con raíces, extremos, raíces dobles e intersecciones.
+- **Cómodo:** teclado de símbolos, ayuda integrada (`?`), búsqueda instantánea (`⌘K` / `Ctrl+K`), tema claro y
+  oscuro, y diseño adaptado a celulares.
+
+## 📸 Capturas
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/capturas/inicio.png" alt="Inicio"><p align="center"><sub><b>Inicio</b> · temas del sílabo y cuenta regresiva de exámenes</sub></p></td>
+    <td width="50%"><img src="docs/capturas/newton.png" alt="Newton-Raphson"><p align="center"><sub><b>Newton-Raphson</b> · iteraciones, tangentes y orden de convergencia</sub></p></td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/gauss.png" alt="Eliminación de Gauss"><p align="center"><sub><b>Eliminación de Gauss</b> · pivoteo y matriz aumentada paso a paso</sub></p></td>
+    <td><img src="docs/capturas/maquina-16.png" alt="Máquina binaria de 16 bits"><p align="center"><sub><b>Máquina binaria de 16 bits</b> · signo, exponente y mantisa</sub></p></td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/simpson.png" alt="Regla de Simpson"><p align="center"><sub><b>Regla de Simpson</b> · valor exacto simbólico y cota del error</sub></p></td>
+    <td><img src="docs/capturas/splines.png" alt="Splines cúbicas"><p align="center"><sub><b>Splines cúbicas</b> · natural y forzada con las incógnitas Mᵢ</sub></p></td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/runge-kutta.png" alt="Runge-Kutta"><p align="center"><sub><b>Runge-Kutta</b> · etapas, solución exacta y error global</sub></p></td>
+    <td><img src="docs/capturas/graficador.png" alt="Graficador"><p align="center"><sub><b>Graficador</b> · raíces, extremos e intersecciones</sub></p></td>
+  </tr>
+</table>
+
+## 📚 Contenido
 
 | Tema | Métodos |
 |---|---|
-| 1 · Representación de números y errores | Conversión entre bases · Máquina binaria de 16 bits · Estándar IEEE 754 · Sistema flotante F(β, t, L, U) · Épsilon de máquina · Error absoluto y relativo · Computadora decimal de 7 dits · Propagación de errores · Cancelación catastrófica · Número de condición · Estabilidad numérica · Series de Taylor |
-| 2 · Ecuaciones no lineales | Bisección · Punto fijo · Aitken (Δ²) · Steffensen · Newton-Raphson · Secante · Posición falsa · Newton modificado (raíces múltiples) · Comparación |
-| 3 · Sistemas de ecuaciones lineales | Eliminación de Gauss · Thomas · Factorización LU · Gauss-Jacobi · Gauss-Seidel y SOR · Número de condición · Newton para sistemas · Punto fijo para sistemas · Método de la potencia |
-| 4 · Interpolación | Lagrange · Diferencias divididas · Diferencias finitas · Estimación del error · Fenómeno de Runge · Splines cúbicas |
-| 5 · Derivación e integración numérica | Diferencias finitas · Trapecio · Simpson · Newton-Cotes · Romberg-Richardson · Gauss-Legendre · Integrales dobles · Comparación |
-| 6 · Ecuaciones diferenciales ordinarias | Euler · Punto medio · Trapecio / Euler modificado · Trapecio implícito · Adams-Moulton · Taylor · Runge-Kutta · Sistemas de primer orden · Orden superior · Comparación · Misil de persecución en R³ |
-| Herramientas | Calculadora simbólica (CAS) · Graficador de funciones |
+| **1 · Representación de números y errores** | Conversión entre bases · Máquina binaria de 16 bits · Estándar IEEE 754 · Sistema flotante F(β, t, L, U) · Épsilon de máquina · Error absoluto y relativo · Computadora decimal de 7 dits · Propagación de errores · Cancelación catastrófica · Número de condición · Estabilidad numérica · Series de Taylor |
+| **2 · Ecuaciones no lineales** | Bisección · Punto fijo · Aitken (Δ²) · Steffensen · Newton-Raphson · Secante · Posición falsa · Newton modificado (raíces múltiples) · Comparación |
+| **3 · Sistemas de ecuaciones lineales** | Eliminación de Gauss · Thomas · Factorización LU · Gauss-Jacobi · Gauss-Seidel y SOR · Número de condición · Newton para sistemas · Punto fijo para sistemas · Método de la potencia |
+| **4 · Interpolación** | Lagrange · Diferencias divididas · Diferencias finitas · Estimación del error · Fenómeno de Runge · Splines cúbicas |
+| **5 · Derivación e integración numérica** | Diferencias finitas · Trapecio · Simpson · Newton-Cotes · Romberg-Richardson · Gauss-Legendre · Integrales dobles · Comparación |
+| **6 · Ecuaciones diferenciales ordinarias** | Euler · Punto medio · Trapecio / Euler modificado · Trapecio implícito · Adams-Moulton · Taylor · Runge-Kutta · Sistemas de primer orden · Orden superior · Comparación · Misil de persecución en R³ |
+| **Herramientas** | Calculadora simbólica (CAS) · Graficador de funciones |
 
-## Uso
+## ⬇️ Descargar
+
+Descarga el instalador para tu sistema desde **[Releases](https://github.com/fernandevdaza/numlab/releases)**:
+
+| Sistema | Archivo |
+|---|---|
+| macOS (Apple Silicon e Intel) | `NumLab-x.y.z-mac-arm64.dmg` · `NumLab-x.y.z-mac-x64.dmg` |
+| Windows | `NumLab-x.y.z-win-x64.exe` |
+| Linux | `NumLab-x.y.z-linux-*.AppImage` · `NumLab-x.y.z-linux-*.deb` |
+
+> [!NOTE]
+> Las apps aún no están firmadas digitalmente.
+> **macOS:** la primera vez abre la app con clic derecho → *Abrir* (o ejecuta `xattr -cr /Applications/NumLab.app`).
+> **Windows:** si aparece SmartScreen, pulsa *Más información* → *Ejecutar de todas formas*.
+
+¿Prefieres no instalar nada? Usa la **[versión web](https://fernandevdaza.github.io/numlab/)**: es la misma app.
+
+## ✅ Verificación
+
+La fidelidad es la prioridad del proyecto:
+
+```bash
+pnpm test
+```
+
+| Prueba | Qué comprueba |
+|---|---|
+| `test:metodos` | 828 comprobaciones que reproducen los ejemplos resueltos de los 6 capítulos del texto de la materia, tablas de Burden & Faires y formas cerradas. Si un libro trae un error aritmético, se usa el valor correcto y la prueba lo documenta. |
+| `test:graficas` | Que la curva dibujada no se aleje de la función real: picos estrechos, oscilaciones, asíntotas y saltos. |
+| `test:tex` | Que ninguna fórmula pierda barras invertidas dentro del código (`\;`, `\frac`…). |
+
+## 🛠️ Desarrollo
 
 Requisitos: [Node.js](https://nodejs.org) 22 o superior y [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
+pnpm dev            # versión web en http://localhost:5173
+pnpm desktop        # compila y abre la app de escritorio (Electron)
+pnpm dist           # genera el instalador para tu sistema en release/
+pnpm capturas       # regenera el ícono, el banner y las capturas de docs/
 ```
-
-Otros comandos:
-
-```bash
-pnpm build          # comprueba tipos y genera la versión de producción en dist/
-pnpm test           # todas las pruebas
-pnpm test:metodos   # verificación numérica de los métodos contra resultados conocidos
-pnpm test:graficas  # fidelidad del muestreo de gráficas
-```
-
-## Verificación
-
-La fidelidad es la prioridad. `pnpm test:metodos` ejecuta más de 800 comprobaciones que reproducen los ejemplos
-resueltos del texto de la materia, tablas de Burden & Faires y formas cerradas. Cuando un libro trae un error
-aritmético, la aplicación usa el valor correcto y la prueba correspondiente lo documenta.
-
-## Adaptarlo a tu curso
-
-Los datos del curso (nombre, código, universidad, fechas de exámenes, enlace al repositorio) están en
-[`src/config.ts`](src/config.ts). Si no configuras fechas de exámenes, la cuenta regresiva no se muestra.
-
-## Estructura
 
 ```
 src/
   modules/<tema>/     un módulo por tema: algoritmos puros, páginas, teoría e index.ts (registro)
   components/         interfaz compartida (MethodPage, DataTable, ScilabCode, Plot, ayuda, teclado…)
   lib/                expresiones (mathjs), formato de números, muestreo de gráficas
-  config.ts           datos del curso
-scripts/              pruebas numéricas que se ejecutan con Node
+  config.ts           datos del curso (nombre, fechas de exámenes, repositorio)
+electron/             proceso principal de la app de escritorio
+scripts/              pruebas y generación de imágenes
+.github/workflows/    CI, demo web (GitHub Pages) e instaladores de escritorio
 ```
 
-## Contribuir
+**¿Lo quieres para tu curso?** Cambia los datos en [`src/config.ts`](src/config.ts). Si dejas vacías las fechas de
+exámenes, la cuenta regresiva no se muestra.
 
-¡Las contribuciones son bienvenidas! Lee [CONTRIBUTING.md](CONTRIBUTING.md).
+**Publicar una versión:** sube una etiqueta `vX.Y.Z` (igual a `version` en `package.json`). GitHub Actions compila
+los instaladores para las tres plataformas y los adjunta a un borrador de release.
 
-## Tecnologías
+## 🤝 Contribuir
 
-React · TypeScript · Vite · [mathjs](https://mathjs.org) · [nerdamer](https://nerdamer.com) ·
-[KaTeX](https://katex.org) · [Plotly](https://plotly.com/javascript/)
+¡Las contribuciones son bienvenidas! Reportes de errores numéricos, nuevos métodos, mejoras de interfaz o
+traducciones. Lee [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Licencia
+## 📄 Licencia
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 Fernando Daza y colaboradores.
+
+Hecho con [React](https://react.dev), [TypeScript](https://www.typescriptlang.org), [Vite](https://vite.dev),
+[mathjs](https://mathjs.org), [nerdamer](https://nerdamer.com), [KaTeX](https://katex.org),
+[Plotly](https://plotly.com/javascript/) y [Electron](https://www.electronjs.org).

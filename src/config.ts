@@ -56,8 +56,7 @@ export const CONFIG: CourseConfig = {
     { label: 'Examen final', date: '2026-11-04', topics: 'Temas 5 y 6' },
   ],
   locale: 'es-BO',
-  // TODO: reemplazar por la URL real del repositorio al publicarlo.
-  repoUrl: 'https://github.com/USUARIO/numlab',
+  repoUrl: 'https://github.com/fernandevdaza/numlab',
   license: 'MIT',
-  licenseUrl: 'https://github.com/USUARIO/numlab/blob/main/LICENSE',
+  licenseUrl: 'https://github.com/fernandevdaza/numlab/blob/main/LICENSE',
 }
