@@ -2,6 +2,7 @@
 import * as F from '../../src/modules/errores/float.ts'
 import * as Q from '../../src/modules/errores/palabra.ts'
 import * as T from '../../src/modules/errores/decimal.ts'
+import * as I from '../../src/modules/errores/incognitas.ts'
 import { cerca, seccion, verdad } from './check.ts'
 
 const R = (s: string) => F.parseRational(s)!
@@ -127,4 +128,39 @@ seccion('Sistema F(β, t, L, U)')
   cerca('ε = β^(1−t) = 0.25', info.eps, 0.25)
   cerca('UFL = β^(L−1) = 0.25', info.minPos, 0.25)
   cerca('OFL = (1 − β^−t)β^U = 3.5', info.max, 3.5)
+}
+
+seccion('Bits desconocidos con condiciones (1·7·8, IEEE)')
+{
+  const M: Q.Machine = { w: 7, m: 8, expMode: 'ieee', round: 'par' }
+  const run = (pattern: string, conds: string) => {
+    const p = I.parsePattern(pattern, 16)
+    if (!p.ok) throw new Error(p.error)
+    const c = I.parseConds(conds)
+    if (c.errors.length) throw new Error(c.errors.join(' '))
+    return { vars: p.vars, rows: I.solve(p.chars, p.vars, c.conds, M) }
+  }
+  // x = 64·(1.001a0b11)₂ = 72.75 + 4a + b
+  const r1 = run('0 1000101 001a0b11', '74 < x < 77')
+  verdad(`0 1000101 001a0b11: valores 72.75, 73.75, 76.75, 77.75 → ${r1.rows.map((r) => num(r.d.value)).join(', ')}`, r1.rows.map((r) => num(r.d.value)).join() === '72.75,73.75,76.75,77.75')
+  const s1 = r1.rows.filter((r) => r.ok)
+  verdad(`74 < x < 77 ⇒ única solución a = 1, b = 0 (x = 76.75) → ${s1.map((r) => r.values.join('')).join(' | ')}`, s1.length === 1 && s1[0].values.join('') === '10' && num(s1[0].d.value) === 76.75)
+  const f1 = I.forced(r1.rows, r1.vars)
+  verdad(`bits determinados: a = 1, b = 0 → ${f1.join(', ')}`, f1.join() === '1,0')
+  // bit desconocido en el exponente: E = 69 (x = 77.75) o E = 71 (x = 311)
+  const r2 = run('0 10001a1 00110111', 'x < 100')
+  verdad(`0 10001a1 00110111, x < 100 ⇒ a = 0 (x = 77.75) → ${r2.rows.filter((r) => r.ok).map((r) => r.values[0] + ': ' + num(r.d.value)).join(' | ')}`, r2.rows.filter((r) => r.ok).length === 1 && r2.rows[0].ok && num(r2.rows[1].d.value) === 311)
+  // Ej. 1.9: de los dos vecinos de w = −6.2945·10⁻³, el ≥ w es −0.00628662109375
+  const r3 = run('1 0110111 1001110a', 'x >= -6.2945e-3')
+  verdad(`Ej. 1.9: vecino ≥ w ⇒ a = 0 (x = −0.00628662109375) → ${r3.rows.filter((r) => r.ok).map((r) => num(r.d.value)).join()}`, r3.rows.filter((r) => r.ok).length === 1 && num(r3.rows[0].d.value) === -0.00628662109375)
+  // la misma letra en dos posiciones es el mismo bit
+  const r4 = run('0 1000101 a01a0111', 'x > 0')
+  verdad(`a repetida: 2 combinaciones, no 4 → ${r4.rows.length}`, r4.rows.length === 2 && r4.rows[1].bits.endsWith('10110111'))
+  // |x| y potencias exactas; exponente todo en unos (IEEE) ⇒ ∞, que no es < 2^-8 pero sí ≥
+  const c5 = I.parseConds('|x| ≥ 2^-8; x != 0')
+  verdad(`|x| ≥ 2^-8; x ≠ 0 se leen como 2 condiciones exactas → ${c5.conds.length}`, c5.conds.length === 2 && c5.conds[0].abs && c5.conds[0].value.den === 256n)
+  const r6 = run('0 111111a 00000000', 'x >= 1000')
+  verdad(`0 111111a 00000000: a = 1 es +∞ y cumple x ≥ 1000 → ${r6.rows.map((r) => r.d.kind + (r.ok ? '✓' : '✗')).join(' ')}`, r6.rows[1].d.kind === 'infinito' && r6.rows[1].ok && r6.rows[0].ok)
+  verdad('«y < 3» es un error de sintaxis', I.parseConds('y < 3').errors.length === 1)
+  verdad('la letra x no se admite en la plantilla', !I.parsePattern('0 1000101 0010x011', 16).ok)
 }

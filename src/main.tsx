@@ -10,6 +10,10 @@ import '@fontsource-variable/newsreader/wght-italic.css'
 import './styles.css'
 import { L, LANG } from './i18n'
 import { CONFIG } from './config'
+import { installClipboard } from './lib/pegar'
+
+// Copiar fórmulas en sintaxis de entrada y limpiar lo que se pega en los campos matemáticos.
+installClipboard()
 
 // Metadatos del documento acordes al idioma elegido (index.html trae la versión en español).
 document.documentElement.lang = LANG

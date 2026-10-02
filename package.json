@@ -1,7 +1,7 @@
 {
   "name": "numlab",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Numerical methods lab + CAS: step-by-step iterations, exact symbolic math, faithful plots, error analysis and Scilab export. Web & desktop, English/Spanish.",
   "license": "MIT",
   "author": "Fernando Daza (https://github.com/fernandevdaza)",

@@ -4,7 +4,7 @@ import { fmt } from '../../lib/format'
 import { useDebounced, useLocalState } from '../../lib/useLocalState'
 import { Plot, sample, sampleRange, SERIES, type Trace } from '../../components/Plot'
 import { Tex } from '../../components/Tex'
-import { Alert, Card, CheckField, DataTable, FieldRow, MethodPage, NumField, ScilabCode } from '../../components/ui'
+import { Alert, Card, CheckField, DataTable, FieldRow, MethodPage, NumberInput, NumField, ScilabCode } from '../../components/ui'
 import { numericRoots } from './numerico'
 import './cas.css'
 import { L } from '../../i18n'
@@ -227,9 +227,9 @@ export function Graficador() {
                   <span className="param-val">{fmt(p.value, 4)}</span>
                 </div>
                 <div className="param-lims">
-                  <input className="input mono" type="number" value={p.min} title={L('mínimo', 'minimum')} onChange={(e) => Number.isFinite(Number(e.target.value)) && setParam(n, { min: Number(e.target.value) })} />
-                  <input className="input mono" type="number" value={p.value} title={L('valor', 'value')} onChange={(e) => Number.isFinite(Number(e.target.value)) && setParam(n, { value: Number(e.target.value) })} />
-                  <input className="input mono" type="number" value={p.max} title={L('máximo', 'maximum')} onChange={(e) => Number.isFinite(Number(e.target.value)) && setParam(n, { max: Number(e.target.value) })} />
+                  <NumberInput value={p.min} title={L('mínimo', 'minimum')} onChange={(v) => setParam(n, { min: v })} />
+                  <NumberInput value={p.value} title={L('valor', 'value')} onChange={(v) => setParam(n, { value: v })} />
+                  <NumberInput value={p.max} title={L('máximo', 'maximum')} onChange={(v) => setParam(n, { max: v })} />
                 </div>
               </div>
             )

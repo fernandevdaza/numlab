@@ -18,7 +18,9 @@
 .cell-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.12s; }
 .cell:hover .cell-actions { opacity: 1; }
 .cell-actions button { background: none; border: 0; color: var(--faint); font-size: 13px; padding: 0 5px; border-radius: 5px; }
-.cell-actions button:hover { color: var(--danger); background: var(--panel-2); }
+.cell-actions button:hover { color: var(--accent); background: var(--panel-2); }
+.cell-actions button:last-child:hover { color: var(--danger); }
+@media (hover: none) { .cell-actions { opacity: 1; } }
 .cell-out { grid-column: 2 / 4; min-width: 0; }
 .cell-out .tex-block { font-size: 1.04em; padding: 6px 0 2px; }
 .cell-note { font-size: 12px; color: var(--faint); margin-top: 2px; }

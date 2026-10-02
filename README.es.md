@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-0.1.0-2dd4bf?style=flat-square" alt="versión 0.1.0">
+  <img src="https://img.shields.io/badge/versión-0.1.1-2dd4bf?style=flat-square" alt="versión 0.1.1">
   <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
-  <img src="https://img.shields.io/badge/pruebas-828-22c55e?style=flat-square" alt="828 pruebas">
+  <img src="https://img.shields.io/badge/pruebas-857-22c55e?style=flat-square" alt="857 pruebas">
   <img src="https://img.shields.io/badge/métodos-57-8b5cf6?style=flat-square" alt="57 métodos">
   <img src="https://img.shields.io/badge/CAS-simbólico-f59e0b?style=flat-square" alt="CAS simbólico">
   <img src="https://img.shields.io/badge/idiomas-ES%20·%20EN-60a5fa?style=flat-square" alt="Español e inglés">
@@ -33,7 +33,7 @@
 
 <div align="center">
 
-| **57 páginas** | **CAS simbólico** | **828 pruebas** | **3 plataformas** | **2 idiomas** |
+| **57 páginas** | **CAS simbólico** | **857 pruebas** | **3 plataformas** | **2 idiomas** |
 |:---:|:---:|:---:|:---:|:---:|
 | todo un curso de métodos numéricos | derivadas · integrales · límites · ecuaciones | contra los ejemplos del libro | macOS · Windows · Linux | español · inglés |
 
@@ -141,7 +141,7 @@ pnpm test
 
 | Prueba | Qué comprueba |
 |---|---|
-| `test:metodos` | 828 comprobaciones que reproducen los ejemplos resueltos de los 6 capítulos del texto de la materia, tablas de Burden & Faires y formas cerradas. Si un libro trae un error aritmético, se usa el valor correcto y la prueba lo documenta. |
+| `test:metodos` | 857 comprobaciones que reproducen los ejemplos resueltos de los 6 capítulos del texto de la materia, tablas de Burden & Faires y formas cerradas. Si un libro trae un error aritmético, se usa el valor correcto y la prueba lo documenta. |
 | `test:graficas` | Que la curva dibujada no se aleje de la función real: picos estrechos, oscilaciones, asíntotas y saltos. |
 | `test:tex` | Que ninguna fórmula pierda barras invertidas dentro del código (`\;`, `\frac`…). |
 

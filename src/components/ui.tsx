@@ -285,21 +285,70 @@ export function NumField({ label, value, onChange, hint, placeholder }: { label:
   )
 }
 
+/** Lee un número escrito a mano (acepta coma decimal); NaN si todavía está incompleto ("", "-", "1e"). */
+function parseTyped(src: string, integer: boolean): number {
+  const t = src.trim().replace(',', '.')
+  if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(t)) return NaN
+  const n = Number(t)
+  return integer && !Number.isInteger(n) ? NaN : n
+}
+
+/**
+ * <input> numérico con borrador propio: se puede borrar todo y escribir con libertad. El valor se
+ * confirma en cuanto lo escrito es un número válido dentro de [min, max]; al salir del campo, lo que
+ * quede incompleto o fuera de rango se corrige.
+ */
+export function NumberInput({ value, onChange, integer = false, min = -Infinity, max = Infinity, className = 'input mono', title }: { value: number; onChange: (v: number) => void; integer?: boolean; min?: number; max?: number; className?: string; title?: string }) {
+  const [draft, setDraft] = useState(String(value))
+  const last = useRef(value)
+  // cambios que vienen de fuera (ejemplos, reinicio): reemplazan el borrador
+  useEffect(() => {
+    if (value !== last.current) {
+      last.current = value
+      setDraft(String(value))
+    }
+  }, [value])
+  const commit = (n: number) => {
+    last.current = n
+    onChange(n)
+  }
+  const clamp = (n: number) => Math.max(min, Math.min(max, integer ? Math.round(n) : n))
+  return (
+    <input
+      className={className}
+      type="text"
+      inputMode={integer ? 'numeric' : 'decimal'}
+      value={draft}
+      title={title}
+      spellCheck={false}
+      autoComplete="off"
+      onChange={(e) => {
+        setDraft(e.target.value)
+        const n = parseTyped(e.target.value, integer)
+        if (Number.isFinite(n) && n >= min && n <= max) commit(n)
+      }}
+      onBlur={() => {
+        const n = parseTyped(draft, integer)
+        const c = Number.isFinite(n) ? clamp(n) : value
+        setDraft(String(c))
+        if (c !== value) commit(c)
+      }}
+      onKeyDown={(e) => {
+        if (!integer || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+        e.preventDefault()
+        const c = clamp(value + (e.key === 'ArrowUp' ? 1 : -1))
+        setDraft(String(c))
+        commit(c)
+      }}
+    />
+  )
+}
+
 export function IntField({ label, value, onChange, min = 0, max = 10000, hint }: { label: ReactNode; value: number; onChange: (v: number) => void; min?: number; max?: number; hint?: ReactNode }) {
   return (
     <label className="field">
       <span className="field-label">{label}</span>
-      <input
-        className="input mono"
-        type="number"
-        value={value}
-        min={min}
-        max={max}
-        onChange={(e) => {
-          const n = Math.round(Number(e.target.value))
-          if (Number.isFinite(n)) onChange(Math.max(min, Math.min(max, n)))
-        }}
-      />
+      <NumberInput value={value} onChange={onChange} integer min={min} max={max} />
       {hint && <span className="field-hint">{hint}</span>}
     </label>
   )
@@ -354,6 +403,8 @@ export function Examples<T>({ items, onPick }: { items: { label: string; value: 
 
 /** Parsea texto "1 2 3; 4 5 6" o filas por línea. Admite expresiones (pi, sqrt(2)). */
 export function parseMatrix(src: string): number[][] | null {
+  // formato con corchetes anidados (mathjs, Python): [[1, 2], [3, 4]]
+  if (/^\s*\[\s*\[/.test(src)) src = [...src.matchAll(/\[([^[\]]*)\]/g)].map((m) => m[1]).join('\n')
   const rows = src
     .trim()
     .split(/\s*[;\n]\s*/)

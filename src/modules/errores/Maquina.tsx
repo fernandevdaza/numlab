@@ -2,14 +2,15 @@ import { TOPIC } from './theory'
 import { L } from '../../i18n'
 import { useMemo } from 'react'
 import { Tex } from '../../components/Tex'
-import { Alert, Card, Examples, FieldRow, IntField, MethodPage, ScilabCode, SelectField, Stats, Steps, Tabs } from '../../components/ui'
+import { Alert, Card, DataTable, Examples, FieldRow, IntField, MethodPage, ScilabCode, SelectField, Stats, Steps, Tabs, type Column } from '../../components/ui'
 import { useDebounced, useLocalState } from '../../lib/useLocalState'
 import { KV, TextField, kindLabel } from './components'
 import './errores.css'
 import * as F from './float'
 import * as Q from './palabra'
+import * as I from './incognitas'
 
-type Mode = 'almacenar' | 'leer' | 'operar'
+type Mode = 'almacenar' | 'leer' | 'operar' | 'incognitas'
 type Layout = '1-7-8' | '1-5-10' | 'custom'
 type Op = '+' | '-' | '*' | '/'
 
@@ -25,9 +26,13 @@ interface S {
   u: string
   v: string
   op: Op
+  /** plantilla con incógnitas: 0, 1 o letras */
+  pattern: string
+  /** condiciones sobre el valor, separadas por ; */
+  conds: string
 }
 
-const DEFAULT: S = { mode: 'almacenar', layout: '1-7-8', w: 7, m: 8, expMode: 'ieee', round: 'par', x: '-6.2945e-3', bits: '0000111111010101', u: '77.74', v: '69.91', op: '-' }
+const DEFAULT: S = { mode: 'almacenar', layout: '1-7-8', w: 7, m: 8, expMode: 'ieee', round: 'par', x: '-6.2945e-3', bits: '0000111111010101', u: '77.74', v: '69.91', op: '-', pattern: '0 1000101 001a0b11', conds: '74 < x < 77' }
 
 const EXAMPLES: { label: string; value: Partial<S> }[] = [
   { label: L('Ej. 1.9: −6.2945·10⁻³', 'Ex. 1.9: −6.2945·10⁻³'), value: { mode: 'almacenar', layout: '1-7-8', expMode: 'ieee', round: 'par', x: '-6.2945e-3' } },
@@ -38,6 +43,9 @@ const EXAMPLES: { label: string; value: Partial<S> }[] = [
   { label: L('Ej. 1.10: 77.74 − 69.91', 'Ex. 1.10: 77.74 − 69.91'), value: { mode: 'operar', layout: '1-7-8', expMode: 'ieee', round: 'par', u: '77.74', v: '69.91', op: '-' } },
   { label: 'Subnormal: 10⁻²⁰', value: { mode: 'almacenar', layout: '1-7-8', expMode: 'ieee', round: 'par', x: '1e-20' } },
   { label: 'Overflow: 10²⁰', value: { mode: 'almacenar', layout: '1-7-8', expMode: 'ieee', round: 'par', x: '1e20' } },
+  { label: L('Incógnitas: 74 < x < 77', 'Unknowns: 74 < x < 77'), value: { mode: 'incognitas', layout: '1-7-8', expMode: 'ieee', pattern: '0 1000101 001a0b11', conds: '74 < x < 77' } },
+  { label: L('Incógnita en el exponente: x < 100', 'Unknown exponent bit: x < 100'), value: { mode: 'incognitas', layout: '1-7-8', expMode: 'ieee', pattern: '0 10001a1 00110111', conds: 'x < 100' } },
+  { label: L('Ej. 1.9: ¿qué vecino es ≥ w?', 'Ex. 1.9: which neighbor is ≥ w?'), value: { mode: 'incognitas', layout: '1-7-8', expMode: 'ieee', pattern: '1 0110111 1001110a', conds: 'x >= -6.2945e-3' } },
   { label: 'binary16: −6.2945·10⁻³', value: { mode: 'almacenar', layout: '1-5-10', expMode: 'ieee', round: 'par', x: '-6.2945e-3' } },
 ]
 
@@ -79,8 +87,10 @@ const absR = (r: F.Rational): F.Rational => ({ num: r.num < 0n ? -r.num : r.num,
 /* ─────────────── página ─────────────── */
 
 export function Maquina() {
-  const [s, setS] = useLocalState<S>('errores:maquina', DEFAULT)
-  const set = (p: Partial<S>) => setS((v) => ({ ...v, ...p }))
+  const [stored, setS] = useLocalState<S>('errores:maquina', DEFAULT)
+  // estados guardados por versiones anteriores pueden no tener los campos nuevos
+  const s: S = { ...DEFAULT, ...stored }
+  const set = (p: Partial<S>) => setS((v) => ({ ...DEFAULT, ...v, ...p }))
   const d = useDebounced(s, 200)
   const M = machineOf(d)
   const total = Q.totalBits(M)
@@ -95,10 +105,31 @@ export function Maquina() {
           { value: 'almacenar', label: L('Almacenar un número decimal', 'Store a decimal number') },
           { value: 'leer', label: L('Leer una palabra de bits', 'Read a bit word') },
           { value: 'operar', label: L('Operar u ∘ v en la máquina', 'Compute u ∘ v on the machine') },
+          { value: 'incognitas', label: L('Bits desconocidos con condiciones', 'Unknown bits with conditions') },
         ]}
       />
       {s.mode === 'almacenar' && <TextField label={L('Número x', 'Number x')} value={s.x} onChange={(x) => set({ x })} hint={L('Decimal exacto: −6.2945e-3, 74.89, 1/3', 'Exact decimal: −6.2945e-3, 74.89, 1/3')} invalid={!F.parseRational(s.x)} />}
       {s.mode === 'leer' && <TextField palette="off" label={L(`Palabra de ${total} bits`, `${total}-bit word`)} value={s.bits} onChange={(bits) => set({ bits })} hint={L('Ceros y unos (se ignoran espacios)', 'Zeros and ones (spaces are ignored)')} invalid={s.bits.replace(/\s+/g, '').length !== total || /[^01\s]/.test(s.bits)} />}
+      {s.mode === 'incognitas' && (
+        <>
+          <TextField
+            palette="off"
+            label={L(`Palabra de ${total} bits con incógnitas`, `${total}-bit word with unknowns`)}
+            value={s.pattern}
+            onChange={(pattern) => set({ pattern })}
+            hint={L('0, 1 o letras (a, b, …) en los bits desconocidos; la misma letra es el mismo bit. Se ignoran espacios.', '0, 1 or letters (a, b, …) for the unknown bits; the same letter is the same bit. Spaces are ignored.')}
+            invalid={!I.parsePattern(s.pattern, total).ok}
+          />
+          <TextField
+            palette="off"
+            label={L('Condiciones sobre el valor x', 'Conditions on the value x')}
+            value={s.conds}
+            onChange={(conds) => set({ conds })}
+            hint={L('Separadas por «;». Ej.: 74 < x < 77 · x ≥ -6.2945e-3 · |x| < 2^-8 · x != 0', 'Separated by “;”. E.g.: 74 < x < 77 · x ≥ -6.2945e-3 · |x| < 2^-8 · x != 0')}
+            invalid={I.parseConds(s.conds).errors.length > 0}
+          />
+        </>
+      )}
       {s.mode === 'operar' && (
         <>
           <FieldRow>
@@ -135,8 +166,8 @@ export function Maquina() {
       title={L('Máquina binaria de 16 bits', '16-bit binary machine')}
       topic={TOPIC}
       description={L(
-        'La palabra de 16 bits del texto de la materia (1 bit de signo, 7 de exponente, 8 de mantisa) con las reglas de IEEE 754, o con las convenciones alternativas del Cap. 1. Paso a paso de almacenamiento, lectura, vecinos y operaciones.',
-        'The 16-bit word from the course textbook (1 sign bit, 7 exponent bits, 8 mantissa bits) with the IEEE 754 rules, or with the alternative conventions of Ch. 1. Step by step storing, reading, neighbors and arithmetic.',
+        'La palabra de 16 bits del texto de la materia (1 bit de signo, 7 de exponente, 8 de mantisa) con las reglas de IEEE 754, o con las convenciones alternativas del Cap. 1. Paso a paso de almacenamiento, lectura, vecinos, operaciones y bits desconocidos que deben cumplir una condición.',
+        'The 16-bit word from the course textbook (1 sign bit, 7 exponent bits, 8 mantissa bits) with the IEEE 754 rules, or with the alternative conventions of Ch. 1. Step by step storing, reading, neighbors, arithmetic, and unknown bits that must satisfy a condition.',
       )}
       theory={THEORY}
       inputs={inputs}
@@ -144,6 +175,7 @@ export function Maquina() {
       {d.mode === 'almacenar' && <Almacenar s={d} M={M} />}
       {d.mode === 'leer' && <Leer s={d} M={M} />}
       {d.mode === 'operar' && <Operar s={d} M={M} />}
+      {d.mode === 'incognitas' && <Incognitas s={d} M={M} />}
       <Propiedades M={M} />
       <ScilabCode code={scilab(d, M)} filename="maquina_16bits" />
     </MethodPage>
@@ -159,7 +191,7 @@ function Word({ bits, M }: { bits: string; M: Q.Machine }) {
       {[...bits].map((b, i) => (
         <div key={i} className={'word-cell ' + cls(i)}>
           <span className="word-idx">{i + 1}</span>
-          <span className={'bit ' + cls(i) + (b === '1' ? ' on' : '')}>{b}</span>
+          <span className={'bit ' + cls(i) + (b === '1' ? ' on' : '') + (b !== '0' && b !== '1' ? ' unknown' : '')}>{b}</span>
         </div>
       ))}
       <div className="word-legend">
@@ -372,6 +404,172 @@ function Operar({ s, M }: { s: S; M: Q.Machine }) {
   )
 }
 
+/* ─────────────── bits desconocidos ─────────────── */
+
+const REL_TEX: Record<I.Rel, string> = { '<': '<', '<=': '\\le', '>': '>', '>=': '\\ge', '=': '=', '!=': '\\ne' }
+/** Decimal exacto si es corto (los valores de una palabra son fracciones binarias); si no, notación científica. */
+const decOrSci = (r: F.Rational, tex = false) => {
+  const d = F.ratToDecimal(r, 24)
+  if (!d.includes('…') && d.replace(/^-?0\.0*/, '').replace('-', '').length <= 18) return tex ? d : d.replace('-', '−')
+  return tex ? texSci(r, 10) : sci(r, 12)
+}
+const condTex = (c: I.Cond) => `${c.abs ? '|x|' : 'x'} ${REL_TEX[c.rel]} ${decOrSci(c.value, true)}`
+/** palabra con espacios entre campos: σ E M */
+const spaced = (b: string, M: Q.Machine) => `${b[0]} ${b.slice(1, 1 + M.w)} ${b.slice(1 + M.w)}`
+const valueText = (d: Q.Decoded) => (d.kind === 'infinito' ? (d.sign ? '−∞' : '+∞') : d.kind === 'NaN' ? 'NaN' : decOrSci(d.value) + (d.kind === 'subnormal' ? ' (subnormal)' : ''))
+
+/** Suma TeX de bits fijos + variables con su peso: «51 + 8a + 2b». */
+function sumTex(fixed: string, terms: string[]): string {
+  return [fixed, ...terms].filter((t, i) => i > 0 || t !== '0' || !terms.length).join(' + ') || '0'
+}
+
+const MAX_ROWS = 256
+
+function Incognitas({ s, M }: { s: S; M: Q.Machine }) {
+  const total = Q.totalBits(M)
+  const p = I.parsePattern(s.pattern, total)
+  if (!p.ok) return <Alert kind="error">{p.error}</Alert>
+  const { conds, errors } = I.parseConds(s.conds)
+  if (errors.length) return <Alert kind="error">{errors.join(' ')}</Alert>
+  if (!p.vars.length) return <Alert kind="info">{L('La palabra no tiene incógnitas: escribe letras (a, b, …) en los bits desconocidos.', 'The word has no unknowns: type letters (a, b, …) for the unknown bits.')}</Alert>
+  if (!conds.length) return <Alert kind="info">{L('Escribe al menos una condición sobre x, por ejemplo «x < 77» o «74 < x < 77».', 'Type at least one condition on x, e.g. “x < 77” or “74 < x < 77”.')}</Alert>
+
+  const { chars, vars } = p
+  const rows = I.solve(chars, vars, conds, M)
+  const sols = rows.filter((r) => r.ok)
+  const forced = I.forced(rows, vars)
+  const finite = sols.filter((r) => r.d.kind !== 'infinito' && r.d.kind !== 'NaN')
+  const byValue = [...finite].sort((a, b) => Q.ratToNum(a.d.value) - Q.ratToNum(b.d.value))
+  const assign = (r: I.Row) => vars.map((v, i) => `${v} = ${r.values[i]}`).join(', ')
+  const pinned = vars.map((v, i) => (forced[i] === 'libre' ? null : `${v} = ${forced[i]}`)).filter(Boolean)
+
+  // expresiones de cada campo en función de las incógnitas
+  const b = Q.bias(M)
+  const signC = chars[0]
+  const expF = I.fieldWeights(chars, 1, 1 + M.w, vars)
+  const manF = I.fieldWeights(chars, 1 + M.w, total, vars)
+  const expStr = chars.slice(1, 1 + M.w).join('')
+  const manStr = chars.slice(1 + M.w).join('')
+  const steps: { text?: string; tex?: string }[] = [
+    { text: L('Separar los campos de la plantilla:', 'Split the template into fields:'), tex: `\\underbrace{${signC}}_{\\sigma}\\ \\underbrace{${expStr}}_{\\text{${L('exponente', 'exponent')}}}\\ \\underbrace{${grp(manStr)}}_{\\text{${L('mantisa', 'mantissa')}}}` },
+  ]
+  if (b !== null) {
+    const terms = expF.weights.map((w) => `${2 ** w.pow}${w.v}`)
+    steps.push(
+      terms.length
+        ? { text: L('Exponente en función de las incógnitas:', 'Exponent in terms of the unknowns:'), tex: `E = (${expStr})_2 = ${sumTex(String(expF.fixed), terms)} \\;\\Rightarrow\\; e = E - ${b}` }
+        : { text: L('Exponente (no tiene incógnitas):', 'Exponent (no unknowns):'), tex: `E = (${expStr})_2 = ${expF.fixed} \\;\\Rightarrow\\; e = ${expF.fixed} - ${b} = ${Number(expF.fixed) - b}` },
+    )
+  } else {
+    const mag = I.fieldWeights(chars, 2, 1 + M.w, vars)
+    const terms = mag.weights.map((w) => `${2 ** w.pow}${w.v}`)
+    const sg = chars[1] === '0' ? '+' : chars[1] === '1' ? '-' : `(-1)^{${chars[1]}}`
+    steps.push({ text: L('Exponente con signo:', 'Signed exponent:'), tex: `e = ${sg}\\,(${expStr.slice(1)})_2 = ${sg}\\left(${sumTex(String(mag.fixed), terms)}\\right)` })
+  }
+  {
+    const fixedMan: F.Rational = { num: (1n << BigInt(M.m)) + manF.fixed, den: 1n << BigInt(M.m) }
+    const terms = manF.weights.map((w) => `2^{-${M.m - w.pow}}${w.v}`)
+    steps.push({ text: L('Mantisa (con el 1 implícito):', 'Mantissa (with the implicit 1):'), tex: `m = (1.${grp(manStr)})_2 = ${sumTex(F.ratToDecimal(fixedMan, 40), terms)}` })
+  }
+  const sgnTex = signC === '0' ? '' : signC === '1' ? '-' : `(-1)^{${signC}}\\,`
+  steps.push({ text: L('Valor representado:', 'Represented value:'), tex: `x = ${sgnTex}m \\times 2^{e}` })
+  // signo y exponente fijos (y normales): x es lineal en las incógnitas de la mantisa
+  const special = M.expMode === 'ieee' && (/^0+$/.test(expStr) || /^1+$/.test(expStr))
+  if (/^[01]$/.test(signC) && /^[01]+$/.test(expStr) && !special && manF.weights.length) {
+    const e = Q.decodeExp(expStr, M)
+    const pw = (k: number): F.Rational => (k >= 0 ? { num: 1n << BigInt(k), den: 1n } : { num: 1n, den: 1n << BigInt(-k) })
+    const C = Q.mul({ num: (1n << BigInt(M.m)) + manF.fixed, den: 1n << BigInt(M.m) }, pw(e))
+    const coef = new Map<string, F.Rational>()
+    for (const w of manF.weights) coef.set(w.v, Q.add(coef.get(w.v) ?? { num: 0n, den: 1n }, pw(e - (M.m - w.pow))))
+    const lin = [decOrSci(C, true), ...[...coef].map(([v, c]) => `${c.num === c.den ? '' : decOrSci(c, true)}\\,${v}`)].join(' + ')
+    steps.push({ text: L(`Con e = ${String(e).replace('-', '−')} fijo, x queda lineal en las incógnitas:`, `With e = ${String(e).replace('-', '−')} fixed, x is linear in the unknowns:`), tex: `x = ${signC === '1' ? `-\\left(${lin}\\right)` : lin}` })
+  }
+  if (M.expMode === 'ieee' && expF.weights.length) steps.push({ text: L('(IEEE 754: si el exponente queda todo en ceros es subnormal o cero; todo en unos es ∞ o NaN. La tabla ya lo tiene en cuenta.)', '(IEEE 754: an all-zeros exponent means subnormal or zero; all ones means ∞ or NaN. The table already accounts for it.)') })
+  steps.push({ text: L(`Condiciones (deben cumplirse todas):`, 'Conditions (all must hold):'), tex: conds.map(condTex).join(',\\qquad ') })
+  steps.push({ text: L(`Probar las 2^${vars.length} = ${rows.length} combinaciones de ${vars.join(', ')} (tabla de abajo).`, `Try all 2^${vars.length} = ${rows.length} combinations of ${vars.join(', ')} (table below).`) })
+  steps.push({
+    text: !sols.length
+      ? L('Ninguna combinación cumple las condiciones.', 'No combination satisfies the conditions.')
+      : sols.length === 1
+        ? L(`Única solución: ${assign(sols[0])} → x = ${valueText(sols[0].d)}.`, `Unique solution: ${assign(sols[0])} → x = ${valueText(sols[0].d)}.`)
+        : L(`${sols.length} soluciones.${pinned.length ? ` En todas: ${pinned.join(', ')}.` : ''}`, `${sols.length} solutions.${pinned.length ? ` In all of them: ${pinned.join(', ')}.` : ''}`),
+  })
+
+  type R = I.Row & { i: number }
+  const shown: R[] = (rows.length <= MAX_ROWS ? rows : sols.slice(0, MAX_ROWS)).map((r, i) => ({ ...r, i }))
+  const columns: Column<R>[] = [
+    ...vars.map((v, k): Column<R> => ({ key: 'v' + k, tex: v, fmt: 'raw', align: 'center', get: (r) => r.values[k] })),
+    { key: 'bits', label: L('Palabra', 'Word'), fmt: 'raw', get: (r) => <span className="mono">{spaced(r.bits, M)}</span> },
+    { key: 'x', tex: 'x', fmt: 'raw', align: 'right', get: (r) => valueText(r.d) },
+    ...(conds.length > 1 ? conds.map((c, k): Column<R> => ({ key: 'c' + k, tex: condTex(c), fmt: 'raw', align: 'center', get: (r) => (r.checks[k] ? '✓' : '✗') })) : []),
+    { key: 'ok', label: L('Cumple', 'Holds'), fmt: 'raw', align: 'center', get: (r) => (r.ok ? '✓' : '✗') },
+  ]
+
+  return (
+    <>
+      <Stats
+        items={[
+          { label: L('Soluciones', 'Solutions'), value: `${sols.length} / ${rows.length}`, accent: true, hint: L(`${vars.length} incógnita${vars.length > 1 ? 's' : ''}: ${vars.join(', ')}`, `${vars.length} unknown${vars.length > 1 ? 's' : ''}: ${vars.join(', ')}`) },
+          { label: L('Bits determinados', 'Determined bits'), value: sols.length ? (pinned.length ? pinned.join(', ') : L('ninguno', 'none')) : '—', hint: sols.length ? L('valen lo mismo en todas las soluciones', 'same value in every solution') : undefined },
+          { label: L('Menor x que cumple', 'Smallest valid x'), value: byValue.length ? decOrSci(byValue[0].d.value) : '—', hint: byValue.length ? assign(byValue[0]) : undefined },
+          { label: L('Mayor x que cumple', 'Largest valid x'), value: byValue.length ? decOrSci(byValue[byValue.length - 1].d.value) : '—', hint: byValue.length ? assign(byValue[byValue.length - 1]) : undefined },
+        ]}
+      />
+      {!sols.length && <Alert kind="warn">{L('Ninguna combinación cumple todas las condiciones. Revisa los signos de las desigualdades o la plantilla.', 'No combination satisfies all the conditions. Check the inequality signs or the template.')}</Alert>}
+      <Card title={L(`Plantilla de ${total} bits`, `${total}-bit template`)}>
+        <Word bits={chars.join('')} M={M} />
+      </Card>
+      <Card title={L('Paso a paso', 'Step by step')}>
+        <Steps steps={steps} />
+      </Card>
+      <Card title={rows.length <= MAX_ROWS ? L('Todas las combinaciones', 'All combinations') : L(`Soluciones (primeras ${Math.min(MAX_ROWS, sols.length)} de ${sols.length})`, `Solutions (first ${Math.min(MAX_ROWS, sols.length)} of ${sols.length})`)}>
+        <DataTable columns={columns} rows={shown} highlight={(r) => r.ok} filename="bits_desconocidos" />
+      </Card>
+    </>
+  )
+}
+
+function scilabIncognitas(s: S, M: Q.Machine): string {
+  const total = Q.totalBits(M)
+  const p = I.parsePattern(s.pattern, total)
+  const { conds } = I.parseConds(s.conds)
+  if (!p.ok) return `// ${L('Plantilla no válida', 'Invalid template')}`
+  const b = Q.bias(M)
+  const { emin } = Q.expRange(M)
+  const rel: Record<I.Rel, string> = { '<': '<', '<=': '<=', '>': '>', '>=': '>=', '=': '==', '!=': '<>' }
+  const cond = conds.map((c) => `${c.abs ? 'abs(x)' : 'x'} ${rel[c.rel]} ${Q.ratToNum(c.value)}`).join(' & ') || '%t'
+  const expLine =
+    b === null
+      ? `  e = (1 - 2*strtod(part(bits, 2))) * bin2dec(part(bits, 3:${1 + M.w}));`
+      : `  E = bin2dec(part(bits, 2:${1 + M.w})); e = E - ${b};`
+  return `// ${L('Bits desconocidos: prueba todas las combinaciones', 'Unknown bits: try every combination')} (1 | ${M.w} | ${M.m}) — ${L('generado por NumLab', 'generated by NumLab')}
+// ${L('Exponente', 'Exponent')}: ${EXP_LABEL[M.expMode]}
+clear; clc;
+plantilla = "${p.chars.join('')}";
+vars = [${p.vars.map((v) => `"${v}"`).join(' ')}];
+nv = size(vars, "*"); m = ${M.m};
+for k = 0:2^nv-1
+  bits = plantilla; val = [];
+  for i = 1:nv
+    val(i) = modulo(floor(k / 2^(nv - i)), 2);
+    bits = strsubst(bits, vars(i), string(val(i)));
+  end
+  s = strtod(part(bits, 1));
+${expLine}
+  f = bin2dec(part(bits, ${2 + M.w}:${total})) / 2^m;
+${
+  M.expMode === 'ieee'
+    ? `  if E == 0 then x = (-1)^s * f * 2^(${emin});          // ${L('subnormal o cero', 'subnormal or zero')}
+  elseif E == 2^${M.w} - 1 then x = (-1)^s * %inf; if f <> 0 then x = %nan; end
+  else x = (-1)^s * (1 + f) * 2^e; end`
+    : `  x = (-1)^s * (1 + f) * 2^e;`
+}
+  ok = ${cond};
+  mprintf("%s  %s  x = %.12e  %s\\n", strcat(string(val'), " "), bits, x, ${'string(ok)'});
+end
+`
+}
+
 /* ─────────────── propiedades ─────────────── */
 
 function Propiedades({ M }: { M: Q.Machine }) {
@@ -439,6 +637,7 @@ const THEORY = L(THEORY_ES, THEORY_EN)
 /* ─────────────── Scilab ─────────────── */
 
 function scilab(s: S, M: Q.Machine): string {
+  if (s.mode === 'incognitas') return scilabIncognitas(s, M)
   const b = Q.bias(M)
   const x = s.mode === 'operar' ? s.u : s.x
   const { emin, emax } = Q.expRange(M)

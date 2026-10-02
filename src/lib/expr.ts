@@ -1,6 +1,7 @@
 // Expresiones matemáticas: parseo, compilación, derivación simbólica y conversión a TeX / Scilab.
 import { create, all, type MathNode } from 'mathjs'
 import { L } from '../i18n.ts'
+import { cleanPasted } from './pegar.ts'
 
 export const math = create(all, { number: 'number' })
 
@@ -20,7 +21,8 @@ math.import(
 
 /** Normaliza la entrada del usuario antes de parsear. */
 export function normalize(src: string): string {
-  return src
+  // texto copiado de una fórmula o del CAS: TeX, ·, −, ², «f(x) = …»
+  return cleanPasted(src)
     .replace(/\*\*/g, '^')
     .replace(/\bln\s*\(/g, 'log(')
     .replace(/\bsen\s*\(/g, 'sin(')

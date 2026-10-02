@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react'
 import { useLocalState } from '../../lib/useLocalState'
 import { Plot, sample, SERIES, type Trace } from '../../components/Plot'
 import { Tex } from '../../components/Tex'
@@ -89,6 +89,59 @@ export function Consola() {
     inputRef.current?.focus()
   }
 
+  /** Inserta un resultado en el editor, en la posición del cursor. */
+  const insertAtCursor = (text: string) => {
+    const ta = inputRef.current
+    const start = ta?.selectionStart ?? draft.length, end = ta?.selectionEnd ?? draft.length
+    // entre paréntesis si es una suma y se inserta junto a otra expresión
+    const t = draft.trim() && /[+-]/.test(text.slice(1)) && !/^\[.*\]$/.test(text) ? `(${text})` : text
+    const next = draft.slice(0, start) + t + draft.slice(end)
+    setDraft(next)
+    setCursor(null)
+    requestAnimationFrame(() => {
+      ta?.focus()
+      ta?.setSelectionRange(start + t.length, start + t.length)
+    })
+  }
+
+  const [copied, setCopied] = useState<number | null>(null)
+  const copyResult = (i: number, text: string) => {
+    navigator.clipboard?.writeText(text).then(
+      () => {
+        setCopied(i)
+        setTimeout(() => setCopied((c) => (c === i ? null : c)), 1200)
+      },
+      () => {},
+    )
+  }
+
+  /** Copiar con el ratón: dentro de un resultado se copia su versión en texto; varias celdas, sus entradas. */
+  const onCopy = (e: ClipboardEvent<HTMLDivElement>) => {
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed) return
+    const r = sel.getRangeAt(0)
+    // celdas con algo seleccionado (no basta con tocar su borde)
+    const touches = (c: Element) => {
+      const cr = document.createRange()
+      cr.selectNodeContents(c)
+      // START_TO_END compara el final de r con el inicio de cr; END_TO_START, el inicio de r con el final de cr
+      return r.compareBoundaryPoints(Range.START_TO_END, cr) > 0 && r.compareBoundaryPoints(Range.END_TO_START, cr) < 0
+    }
+    const cells = [...e.currentTarget.querySelectorAll<HTMLElement>('.cell')].filter(touches)
+    if (cells.length === 1) {
+      const i = Number(cells[0].dataset.i)
+      const out = cells[0].querySelector('.cell-out')
+      const o = state.outs[i]
+      if (out && o?.kind === 'tex' && o.plain && out.contains(sel.anchorNode) && out.contains(sel.focusNode)) {
+        e.clipboardData.setData('text/plain', o.plain)
+        e.preventDefault()
+      }
+    } else if (cells.length > 1) {
+      e.clipboardData.setData('text/plain', cells.map((c) => history[Number(c.dataset.i)]).join('\n'))
+      e.preventDefault()
+    }
+  }
+
   const preview = useMemo(() => {
     const t = draft.trim()
     if (!t || t.includes('\n')) return null
@@ -152,15 +205,30 @@ export function Consola() {
             </div>
           }
         >
-          <div className="nb">
+          <div className="nb" onCopy={onCopy}>
             {history.length === 0 && <div className="nb-empty">{L('Cuaderno vacío. Prueba un ejemplo del panel de la derecha o escribe “ayuda”.', 'Empty notebook. Try an example from the panel on the right or type “help”.')}</div>}
             {history.map((line, i) => (
-              <div key={i} className="cell">
+              <div key={i} className="cell" data-i={i}>
                 <div className="cell-n">[{i + 1}]</div>
                 <div className="cell-in" title={L('Clic para editar', 'Click to edit')} onClick={() => insert(line)}>
                   {line}
                 </div>
                 <div className="cell-actions">
+                  {(() => {
+                    const o = state.outs[i]
+                    const plain = o?.kind === 'tex' ? o.plain : undefined
+                    if (!plain) return null
+                    return (
+                      <>
+                        <button title={L('Usar el resultado en el editor', 'Use the result in the editor') + ': ' + plain} onClick={() => insertAtCursor(plain)}>
+                          ↵
+                        </button>
+                        <button title={L('Copiar el resultado (para pegarlo en un módulo o aquí)', 'Copy the result (to paste it in a module or here)') + ': ' + plain} onClick={() => copyResult(i, plain)}>
+                          {copied === i ? '✓' : '⧉'}
+                        </button>
+                      </>
+                    )
+                  })()}
                   <button title={L('Eliminar', 'Delete')} onClick={() => remove(i)}>
                     ✕
                   </button>
@@ -176,6 +244,7 @@ export function Consola() {
             <span className="prompt-sign">›</span>
             <textarea
               ref={inputRef}
+              data-paste="cas"
               className="input"
               rows={Math.min(6, draft.split('\n').length)}
               value={draft}

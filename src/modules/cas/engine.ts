@@ -10,6 +10,7 @@ import { fmt, texNum } from '../../lib/format'
 import { eigenvalues, solve as linSolve, type Complex } from '../sistemas/linalg'
 import { integrateNumeric, numericRoots } from './numerico'
 import { L, LANG } from '../../i18n'
+import { cleanPasted, texToPlain, unicodeToPlain } from '../../lib/pegar'
 
 export { integrateNumeric, numericRoots }
 
@@ -37,7 +38,7 @@ export interface PlotFn {
 }
 
 export type Out =
-  | { kind: 'tex'; tex: string; note?: string; extra?: string[] }
+  | { kind: 'tex'; tex: string; note?: string; extra?: string[]; /** resultado en sintaxis de entrada, para copiar */ plain?: string }
   | { kind: 'text'; text: string }
   | { kind: 'error'; text: string }
   | { kind: 'plot'; fns: PlotFn[]; a: number; b: number; tex?: string }
@@ -88,7 +89,9 @@ function asCall(s: string): { name: string; args: string[] } | null {
 
 /** Normalización común: sintaxis Scilab, alias en español, ** → ^. */
 export function prep(src: string): string {
-  let s = src
+  let s = /\\[a-zA-Z]|\^\s*\{/.test(src) ? texToPlain(src) : src
+  s = unicodeToPlain(s)
+  s = s
     .replace(/%pi\b/g, 'pi')
     .replace(/%eps\b/g, '2.220446049250313e-16')
     .replace(/%e\b/g, 'e')
@@ -154,6 +157,19 @@ function nDec(e: nerdamer.Expression): string | null {
 }
 
 /** Número con formato TeX; complejos incluidos. */
+/** Valor en sintaxis de entrada (para copiarlo al editor o a los campos de los módulos). */
+export function valuePlain(v: any): string {
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : Number.isNaN(v) ? 'NaN' : v > 0 ? 'Infinity' : '-Infinity'
+  if (typeof v === 'boolean') return String(v)
+  if (v && v.isComplex) return Math.abs(v.im) < 1e-15 ? valuePlain(v.re) : M.format(v, { precision: 15 })
+  if (v && (M.isMatrix(v) || Array.isArray(v))) {
+    const arr = M.isMatrix(v) ? (v as any).toArray() : v
+    if (Array.isArray(arr[0])) return '[' + (arr as any[][]).map((r) => r.map(valuePlain).join(', ')).join('; ') + ']'
+    return '[' + (arr as any[]).map(valuePlain).join(', ') + ']'
+  }
+  return String(v)
+}
+
 function valueTex(v: any): string {
   if (typeof v === 'number') return texNum(v, 14)
   if (typeof v === 'boolean') return v ? L('\\text{verdadero}', '\\text{true}') : L('\\text{falso}', '\\text{false}')
@@ -425,7 +441,20 @@ export class Session {
     return typeof r === 'number' ? r : Number(r)
   }
 
+  /** Ejecuta una línea; los resultados TeX llevan también su versión en texto plano (plain). */
   run(line: string): Out {
+    const o = this.runRaw(line) as Out & { __value?: any; __sym?: string }
+    if (o.kind === 'tex' && o.plain === undefined) {
+      try {
+        o.plain = o.__value !== undefined ? valuePlain(o.__value) : o.__sym ?? cleanPasted(o.tex)
+      } catch {
+        /* sin versión en texto */
+      }
+    }
+    return o
+  }
+
+  private runRaw(line: string): Out {
     const raw = line.trim()
     try {
       nerdamer.flush()
@@ -446,7 +475,7 @@ export class Session {
         this.fns[name] = { params, body: prep(body) }
         delete this.vars[name]
         delete this.exprs[name]
-        return { kind: 'tex', tex: `${name}(${params.join(', ')}) := ${texOf(prep(body))}`, note: L('función definida', 'function defined') }
+        return { kind: 'tex', tex: `${name}(${params.join(', ')}) := ${texOf(prep(body))}`, note: L('función definida', 'function defined'), plain: prep(body) }
       }
       // asignación: a = ...
       const asg = src.match(/^([A-Za-z_]\w*)\s*=(?!=)\s*(.+)$/)
@@ -459,13 +488,13 @@ export class Session {
         if (val !== undefined) {
           this.vars[name] = val
           delete this.exprs[name]
-          return { kind: 'tex', tex: `${name} = ${valueTex(val)}` }
+          return { kind: 'tex', tex: `${name} = ${valueTex(val)}`, plain: valuePlain(val) }
         }
         const symVal = (res as any).__sym as string | undefined
         if (symVal) {
           this.exprs[name] = symVal
           delete this.vars[name]
-          return { kind: 'tex', tex: `${name} = ${(res as any).__symTex ?? texOf(symVal)}`, note: L('expresión simbólica guardada', 'symbolic expression stored') }
+          return { kind: 'tex', tex: `${name} = ${(res as any).__symTex ?? texOf(symVal)}`, note: L('expresión simbólica guardada', 'symbolic expression stored'), plain: symVal }
         }
         return res
       }
@@ -559,17 +588,21 @@ export class Session {
           const f = this.compileFn(args[0], x)
           const numeric = integrateNumeric(f, a, b)
           let exact: string | null = null
+          let exactPlain: string | undefined
           try {
             const r = nerdamer(`defint(${e}, ${this.sym(args[2])}, ${this.sym(args[3])}, ${x})`)
             const rs = r.toString()
             // nerdamer a veces devuelve una aproximación racional (p. ej. 33038016/46384475): no es "exacta"
-            if (!rs.includes('defint') && !/^-?\d{6,}\/\d{6,}$/.test(rs)) exact = nTex(r)
+            if (!rs.includes('defint') && !/^-?\d{6,}\/\d{6,}$/.test(rs)) {
+              exact = nTex(r)
+              exactPlain = rs
+            }
           } catch {
             /* sin forma cerrada */
           }
           const tex = `\\int_{${texOf(prep(args[2]))}}^{${texOf(prep(args[3]))}} ${inTex}\\,d${x} = ${exact && exact !== texNum(numeric, 14) ? exact + ' \\approx ' : ''}${texNum(numeric, 14)}`
           this.vars.ans = numeric
-          return { kind: 'tex', tex, note: exact ? undefined : L('valor numérico (Simpson adaptativo)', 'numerical value (adaptive Simpson)') }
+          return { kind: 'tex', tex, note: exact ? undefined : L('valor numérico (Simpson adaptativo)', 'numerical value (adaptive Simpson)'), plain: exactPlain ?? String(numeric) }
         }
         const r = nerdamer(`integrate(${e}, ${x})`)
         if (r.toString().includes('integrate(')) return { kind: 'tex', tex: `\\int ${inTex}\\,d${x}`, note: L(`No se encontró una primitiva en forma cerrada. Prueba la integral definida: ${name}(expr, x, a, b).`, `No closed-form antiderivative found. Try the definite integral: ${name}(expr, x, a, b).`) }

@@ -27,3 +27,4 @@ Thumbs.db
 
 # Escritorio (electron-builder)
 release
+.claude/
