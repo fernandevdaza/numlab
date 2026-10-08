@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.1-2dd4bf?style=flat-square" alt="version 0.1.1">
+  <img src="https://img.shields.io/badge/version-0.2.0-2dd4bf?style=flat-square" alt="version 0.2.0">
   <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
-  <img src="https://img.shields.io/badge/tests-857-22c55e?style=flat-square" alt="857 tests">
-  <img src="https://img.shields.io/badge/methods-57-8b5cf6?style=flat-square" alt="57 methods">
+  <img src="https://img.shields.io/badge/tests-876-22c55e?style=flat-square" alt="876 tests">
+  <img src="https://img.shields.io/badge/methods-58-8b5cf6?style=flat-square" alt="58 methods">
   <img src="https://img.shields.io/badge/CAS-symbolic-f59e0b?style=flat-square" alt="symbolic CAS">
   <img src="https://img.shields.io/badge/i18n-EN%20·%20ES-60a5fa?style=flat-square" alt="English and Spanish">
   <br>
@@ -33,7 +33,7 @@
 
 <div align="center">
 
-| **57 pages** | **Symbolic CAS** | **857 tests** | **3 platforms** | **2 languages** |
+| **58 pages** | **Symbolic CAS** | **876 tests** | **3 platforms** | **2 languages** |
 |:---:|:---:|:---:|:---:|:---:|
 | a full numerical methods course | derivatives · integrals · limits · solve | against textbook examples | macOS · Windows · Linux | English · Spanish |
 
@@ -48,6 +48,9 @@
 
 - **Exam-style step by step.** Every method renders its formulas with KaTeX and plugs the actual numbers into the
   first iterations: Gaussian elimination multipliers, mantissa bits, divided differences, Runge–Kutta stages…
+- **A workspace like TI-Nspire or GeoGebra.** Pages with a calculator, graphs (sliders, points, implicit and
+  parametric curves, pan and zoom), a spreadsheet (formulas, named columns as lists, `linreg`, paste from Excel)
+  and notes with TeX — all sharing the same variables. Save and open documents as `.numlab.json`.
 - **A real CAS inside.** Exact derivatives, antiderivatives and definite integrals, limits, Taylor series,
   simplification, factoring, partial fractions, equation and system solving, and matrix algebra — and the same
   symbolic engine powers the methods (exact Newton derivatives, exact Taylor coefficients, exact reference integrals).
@@ -80,6 +83,9 @@ Spanish command names (`derivada`, `integrar`, `resolver`, `graficar`…) work t
 
 <table>
   <tr>
+    <td colspan="2"><img src="docs/capturas/en/espacio.png" alt="Workspace"><p align="center"><sub><b>Workspace</b> · calculator, graphs, spreadsheet and notes sharing variables</sub></p></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/capturas/en/inicio.png" alt="Home"><p align="center"><sub><b>Home</b> · course topics and exam countdown</sub></p></td>
     <td width="50%"><img src="docs/capturas/en/cas.png" alt="CAS"><p align="center"><sub><b>Symbolic calculator (CAS)</b> · exact results in TeX</sub></p></td>
   </tr>
@@ -110,7 +116,7 @@ Spanish command names (`derivada`, `integrar`, `resolver`, `graficar`…) work t
 | **4 · Interpolation** | Lagrange · Divided differences · Finite differences · Error estimate · Runge phenomenon · Cubic splines |
 | **5 · Numerical differentiation and integration** | Finite differences · Trapezoidal rule · Simpson's rule · Newton–Cotes · Romberg–Richardson · Gauss–Legendre · Double integrals · Comparison |
 | **6 · Ordinary differential equations** | Euler · Midpoint · Trapezoidal / modified Euler · Implicit trapezoidal · Adams–Moulton · Taylor · Runge–Kutta · First-order systems · Higher-order equations · Comparison · Pursuit missile in R³ |
-| **Tools** | Symbolic calculator (CAS) · Function plotter |
+| **Tools** | Workspace (calculator, graphs, spreadsheet, notes) · Symbolic calculator (CAS) · Function plotter |
 
 ## ⬇️ Download
 
@@ -139,7 +145,7 @@ pnpm test
 
 | Test | What it checks |
 |---|---|
-| `test:metodos` | 857 assertions reproducing the worked examples of all six chapters of the course textbook, Burden & Faires tables and closed forms. When a book contains an arithmetic slip, the app uses the correct value and the test documents it. |
+| `test:metodos` | 876 assertions reproducing the worked examples of all six chapters of the course textbook, Burden & Faires tables and closed forms. When a book contains an arithmetic slip, the app uses the correct value and the test documents it. |
 | `test:graficas` | That the plotted curve stays close to the true function: narrow peaks, oscillations, asymptotes and jumps. |
 | `test:tex` | That no formula loses its backslashes inside the code (`\;`, `\frac`…). |
 

@@ -302,7 +302,7 @@ function HelpList({ groups, onPick, onRun }: { groups: typeof HELP; onPick: (s: 
   )
 }
 
-function OutView({ out, onPick }: { out: Out | undefined; onPick: (s: string) => void }) {
+export function OutView({ out, onPick }: { out: Out | undefined; onPick: (s: string) => void }) {
   if (!out) return null
   switch (out.kind) {
     case 'none':

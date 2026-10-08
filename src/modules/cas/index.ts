@@ -2,6 +2,7 @@ import type { TopicDef } from '../types'
 import './cas.css'
 import { Consola } from './Consola'
 import { Graficador } from './Graficador'
+import { Espacio } from '../espacio/Espacio'
 import { L } from '../../i18n'
 
 export const topic: TopicDef = {
@@ -10,11 +11,19 @@ export const topic: TopicDef = {
   title: L('Herramientas', 'Tools'),
   shortTitle: L('Herramientas', 'Tools'),
   blurb: L(
-    'Calculadora simbólica tipo cuaderno (derivadas, integrales, límites, Taylor, ecuaciones, matrices) y graficador de funciones con parámetros.',
-    'Notebook-style symbolic calculator (derivatives, integrals, limits, Taylor series, equations, matrices) and a function plotter with parameters.',
+    'Espacio de trabajo con calculadora, gráficas, hoja de cálculo y notas; calculadora simbólica tipo cuaderno y graficador de funciones con parámetros.',
+    'A workspace with a calculator, graphs, a spreadsheet and notes; a notebook-style symbolic calculator and a function plotter with parameters.',
   ),
   glyph: '⌘',
   methods: [
+    {
+      id: 'espacio',
+      title: L('Espacio de trabajo', 'Workspace'),
+      summary: L('Páginas con calculadora, gráficas, hoja de cálculo y notas que comparten variables (estilo TI-Nspire y GeoGebra).', 'Pages with a calculator, graphs, a spreadsheet and notes that share variables (TI-Nspire and GeoGebra style).'),
+      keywords:
+        'espacio trabajo workspace documento document paginas pages nspire ti-nspire geogebra desmos hoja calculo spreadsheet excel tabla table listas lists regresion regression linreg graficas graphs deslizador slider punto point implicita implicit parametrica parametric notas notes',
+      component: Espacio,
+    },
     {
       id: 'calculadora',
       title: L('Calculadora simbólica (CAS)', 'Symbolic calculator (CAS)'),

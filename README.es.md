@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-0.1.1-2dd4bf?style=flat-square" alt="versión 0.1.1">
+  <img src="https://img.shields.io/badge/versión-0.2.0-2dd4bf?style=flat-square" alt="versión 0.2.0">
   <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
-  <img src="https://img.shields.io/badge/pruebas-857-22c55e?style=flat-square" alt="857 pruebas">
-  <img src="https://img.shields.io/badge/métodos-57-8b5cf6?style=flat-square" alt="57 métodos">
+  <img src="https://img.shields.io/badge/pruebas-876-22c55e?style=flat-square" alt="876 pruebas">
+  <img src="https://img.shields.io/badge/métodos-58-8b5cf6?style=flat-square" alt="58 métodos">
   <img src="https://img.shields.io/badge/CAS-simbólico-f59e0b?style=flat-square" alt="CAS simbólico">
   <img src="https://img.shields.io/badge/idiomas-ES%20·%20EN-60a5fa?style=flat-square" alt="Español e inglés">
   <br>
@@ -33,7 +33,7 @@
 
 <div align="center">
 
-| **57 páginas** | **CAS simbólico** | **857 pruebas** | **3 plataformas** | **2 idiomas** |
+| **58 páginas** | **CAS simbólico** | **876 pruebas** | **3 plataformas** | **2 idiomas** |
 |:---:|:---:|:---:|:---:|:---:|
 | todo un curso de métodos numéricos | derivadas · integrales · límites · ecuaciones | contra los ejemplos del libro | macOS · Windows · Linux | español · inglés |
 
@@ -48,6 +48,10 @@
 
 - **Paso a paso de examen.** Cada método muestra las fórmulas en KaTeX con los valores sustituidos en las primeras
   iteraciones: multiplicadores de Gauss, bits de la mantisa, diferencias divididas, etapas de Runge-Kutta…
+- **Un espacio de trabajo como TI-Nspire o GeoGebra.** Páginas con calculadora, gráficas (deslizadores, puntos,
+  curvas implícitas y paramétricas, zoom y desplazamiento), hoja de cálculo (fórmulas, columnas con nombre como
+  listas, `linreg`, pegar desde Excel) y notas con TeX, que comparten las mismas variables. Los documentos se
+  guardan y abren como `.numlab.json`.
 - **Un CAS de verdad.** Derivadas, primitivas e integrales definidas exactas, límites, series de Taylor,
   simplificación, factorización, fracciones parciales, ecuaciones y sistemas, y álgebra matricial. El mismo motor
   simbólico alimenta los métodos (derivadas exactas para Newton, coeficientes de Taylor exactos, integrales de
@@ -82,6 +86,9 @@ Los nombres en inglés (`diff`, `integrate`, `solve`, `plot`…) también funcio
 
 <table>
   <tr>
+    <td colspan="2"><img src="docs/capturas/es/espacio.png" alt="Espacio de trabajo"><p align="center"><sub><b>Espacio de trabajo</b> · calculadora, gráficas, hoja de cálculo y notas con variables compartidas</sub></p></td>
+  </tr>
+  <tr>
     <td width="50%"><img src="docs/capturas/es/inicio.png" alt="Inicio"><p align="center"><sub><b>Inicio</b> · temas del sílabo y cuenta regresiva de exámenes</sub></p></td>
     <td width="50%"><img src="docs/capturas/es/cas.png" alt="CAS"><p align="center"><sub><b>Calculadora simbólica (CAS)</b> · resultados exactos en TeX</sub></p></td>
   </tr>
@@ -112,7 +119,7 @@ Los nombres en inglés (`diff`, `integrate`, `solve`, `plot`…) también funcio
 | **4 · Interpolación** | Lagrange · Diferencias divididas · Diferencias finitas · Estimación del error · Fenómeno de Runge · Splines cúbicas |
 | **5 · Derivación e integración numérica** | Diferencias finitas · Trapecio · Simpson · Newton-Cotes · Romberg-Richardson · Gauss-Legendre · Integrales dobles · Comparación |
 | **6 · Ecuaciones diferenciales ordinarias** | Euler · Punto medio · Trapecio / Euler modificado · Trapecio implícito · Adams-Moulton · Taylor · Runge-Kutta · Sistemas de primer orden · Orden superior · Comparación · Misil de persecución en R³ |
-| **Herramientas** | Calculadora simbólica (CAS) · Graficador de funciones |
+| **Herramientas** | Espacio de trabajo (calculadora, gráficas, hoja de cálculo, notas) · Calculadora simbólica (CAS) · Graficador de funciones |
 
 ## ⬇️ Descargar
 
@@ -141,7 +148,7 @@ pnpm test
 
 | Prueba | Qué comprueba |
 |---|---|
-| `test:metodos` | 857 comprobaciones que reproducen los ejemplos resueltos de los 6 capítulos del texto de la materia, tablas de Burden & Faires y formas cerradas. Si un libro trae un error aritmético, se usa el valor correcto y la prueba lo documenta. |
+| `test:metodos` | 876 comprobaciones que reproducen los ejemplos resueltos de los 6 capítulos del texto de la materia, tablas de Burden & Faires y formas cerradas. Si un libro trae un error aritmético, se usa el valor correcto y la prueba lo documenta. |
 | `test:graficas` | Que la curva dibujada no se aleje de la función real: picos estrechos, oscilaciones, asíntotas y saltos. |
 | `test:tex` | Que ninguna fórmula pierda barras invertidas dentro del código (`\;`, `\frac`…). |
 

@@ -11,12 +11,14 @@ import { eigenvalues, solve as linSolve, type Complex } from '../sistemas/linalg
 import { integrateNumeric, numericRoots } from './numerico'
 import { L, LANG } from '../../i18n'
 import { cleanPasted, texToPlain, unicodeToPlain } from '../../lib/pegar'
+import { installExtras } from '../../lib/extras'
 
 export { integrateNumeric, numericRoots }
 
 /* ───────────────────────── Instancia de mathjs propia ───────────────────────── */
 
 export const M = create(all, { number: 'number' })
+installExtras(M)
 M.import(
   {
     ln: (x: number) => Math.log(x),
@@ -373,7 +375,7 @@ export class Session {
     // funciones del usuario
     for (const [name, fn] of Object.entries(this.fns)) {
       let guard = 0
-      const re = new RegExp(`\\b${name}\\s*\\(`)
+      const re = new RegExp(`(?<![A-Za-z_][A-Za-z0-9_]*)${name}\\s*\\(`)
       let m: RegExpExecArray | null
       while ((m = re.exec(s)) && guard++ < 50) {
         const start = m.index
@@ -392,16 +394,16 @@ export class Session {
         const args = splitArgs(s.slice(start + m[0].length, end))
         let body = fn.body
         fn.params.forEach((p, i) => {
-          body = body.replace(new RegExp(`\\b${p}\\b`, 'g'), `(${args[i] ?? p})`)
+          body = body.replace(new RegExp(`(?<![A-Za-z_][A-Za-z0-9_]*)${p}(?![A-Za-z0-9_])`, 'g'), `(${args[i] ?? p})`)
         })
         s = s.slice(0, start) + '(' + body + ')' + s.slice(end + 1)
       }
     }
     for (const [name, e] of Object.entries(this.exprs)) {
       if (exclude.includes(name)) continue
-      s = s.replace(new RegExp(`\\b${name}\\b(?!\\s*\\()`, 'g'), `(${e})`)
+      s = s.replace(new RegExp(`(?<![A-Za-z_][A-Za-z0-9_]*)${name}(?![A-Za-z0-9_])(?!\\s*\\()`, 'g'), `(${e})`)
     }
-    if (depth < 6 && Object.keys(this.fns).some((n) => new RegExp(`\\b${n}\\s*\\(`).test(s))) return this.expand(s, exclude, depth + 1)
+    if (depth < 6 && Object.keys(this.fns).some((n) => new RegExp(`(?<![A-Za-z_][A-Za-z0-9_]*)${n}\\s*\\(`).test(s))) return this.expand(s, exclude, depth + 1)
     return inlineSymbolic(s)
   }
 
@@ -409,7 +411,7 @@ export class Session {
   numSubs(s: string, exclude: string[] = []): string {
     for (const [name, v] of Object.entries(this.vars)) {
       if (exclude.includes(name) || typeof v !== 'number' || name === 'ans') continue
-      s = s.replace(new RegExp(`\\b${name}\\b(?!\\s*\\()`, 'g'), `(${String(v)})`)
+      s = s.replace(new RegExp(`(?<![A-Za-z_][A-Za-z0-9_]*)${name}(?![A-Za-z0-9_])(?!\\s*\\()`, 'g'), `(${String(v)})`)
     }
     return s
   }

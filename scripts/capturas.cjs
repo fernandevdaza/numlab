@@ -73,6 +73,7 @@ const SHOTS = [
   { name: 'maquina-16', hash: '/errores/maquina-16', theme: 'light' },
   { name: 'graficador', hash: '/cas/graficador', theme: 'dark' },
   { name: 'cas', hash: '/cas/calculadora', theme: 'dark' },
+  { name: 'espacio', hash: '/cas/espacio', theme: 'dark' },
 ]
 
 async function screenshots() {
@@ -88,7 +89,7 @@ async function screenshots() {
           `localStorage.setItem('numlab:dark', ${s.theme === 'dark'});` +
           `localStorage.setItem('numlab:palette', 'false');` +
           // la consola CAS muestra su historial de ejemplo en el idioma elegido
-          `localStorage.removeItem('numlab:cas:historial'); localStorage.removeItem('numlab:cas:borrador'); true`,
+          `localStorage.removeItem('numlab:cas:historial'); localStorage.removeItem('numlab:cas:borrador'); localStorage.removeItem('numlab:espacio:doc'); true`,
       )
       await win.loadFile(index, { hash: s.hash })
       win.webContents.setZoomFactor(scale)
