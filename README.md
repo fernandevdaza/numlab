@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0-2dd4bf?style=flat-square" alt="version 0.2.0">
+  <img src="https://img.shields.io/badge/version-0.3.0-2dd4bf?style=flat-square" alt="version 0.3.0">
   <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
-  <img src="https://img.shields.io/badge/tests-876-22c55e?style=flat-square" alt="876 tests">
+  <img src="https://img.shields.io/badge/tests-906-22c55e?style=flat-square" alt="906 tests">
   <img src="https://img.shields.io/badge/methods-58-8b5cf6?style=flat-square" alt="58 methods">
   <img src="https://img.shields.io/badge/CAS-symbolic-f59e0b?style=flat-square" alt="symbolic CAS">
   <img src="https://img.shields.io/badge/i18n-EN%20·%20ES-60a5fa?style=flat-square" alt="English and Spanish">
@@ -33,7 +33,7 @@
 
 <div align="center">
 
-| **58 pages** | **Symbolic CAS** | **876 tests** | **3 platforms** | **2 languages** |
+| **58 pages** | **Symbolic CAS** | **906 tests** | **3 platforms** | **2 languages** |
 |:---:|:---:|:---:|:---:|:---:|
 | a full numerical methods course | derivatives · integrals · limits · solve | against textbook examples | macOS · Windows · Linux | English · Spanish |
 
@@ -145,7 +145,7 @@ pnpm test
 
 | Test | What it checks |
 |---|---|
-| `test:metodos` | 876 assertions reproducing the worked examples of all six chapters of the course textbook, Burden & Faires tables and closed forms. When a book contains an arithmetic slip, the app uses the correct value and the test documents it. |
+| `test:metodos` | 906 assertions reproducing the worked examples of all six chapters of the course textbook, Burden & Faires tables and closed forms. When a book contains an arithmetic slip, the app uses the correct value and the test documents it. |
 | `test:graficas` | That the plotted curve stays close to the true function: narrow peaks, oscillations, asymptotes and jumps. |
 | `test:tex` | That no formula loses its backslashes inside the code (`\;`, `\frac`…). |
 
