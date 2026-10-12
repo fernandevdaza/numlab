@@ -344,7 +344,7 @@ export function showCell(v: CellValue, fmt?: CellFmt, digits = 10): string {
   if (v === null) return ''
   if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE'
   if (typeof v === 'string') return v
-  const d = fmt?.dec ?? 2
+  const d = Math.max(0, Math.min(20, Math.round(Number(fmt?.dec ?? 2)) || 0))
   switch (fmt?.nf ?? 'general') {
     case 'number':
       return v.toFixed(d)

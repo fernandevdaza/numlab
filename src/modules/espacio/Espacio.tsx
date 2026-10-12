@@ -10,19 +10,18 @@ import { AppCalc } from './AppCalc'
 import { AppGrafica } from './AppGrafica'
 import { AppHoja } from './AppHoja'
 import { AppNotas } from './AppNotas'
-import { APP_ICON, APP_LABEL, MAX_PANES, blankDoc, evaluateDoc, exampleDoc, newPage, newPane, type AppKind, type Doc, type Layout, type Page, type Pane } from './doc'
+import { APP_ICON, APP_LABEL, MAX_PANES, blankDoc, evaluateDoc, exampleDoc, newPage, newPane, isSoundDoc, repairDoc, type AppKind, type Doc, type Layout, type Page, type Pane } from './doc'
+import { Component, type ErrorInfo } from 'react'
 import './espacio.css'
 
 const KINDS: AppKind[] = ['calc', 'graph', 'sheet', 'notes']
 
-/** Documento guardado válido (para abrir archivos y estados de versiones anteriores). */
-function validDoc(d: any): d is Doc {
-  return d && d.version === 1 && Array.isArray(d.pages) && d.pages.length > 0 && d.pages.every((p: any) => Array.isArray(p.panes) && p.panes.length > 0)
-}
+/** Documento usable: el guardado (reparado si hace falta) o el de ejemplo. */
+const usable = (d: unknown): Doc => (isSoundDoc(d) ? d : (repairDoc(d) ?? exampleDoc()))
 
 export function Espacio() {
   const [stored, setDoc] = useLocalState<Doc>('espacio:doc', exampleDoc())
-  const doc = validDoc(stored) ? stored : exampleDoc()
+  const doc = useMemo(() => usable(stored), [stored])
   const active = Math.min(doc.active, doc.pages.length - 1)
   const page = doc.pages[active]
   const evalDoc = useDebounced(doc, 90)
@@ -34,7 +33,7 @@ export function Espacio() {
   const lastField = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  const update = (fn: (d: Doc) => Doc) => setDoc((d) => fn(validDoc(d) ? d : exampleDoc()))
+  const update = (fn: (d: Doc) => Doc) => setDoc((d) => fn(usable(d)))
   const setPage = (id: string, p: Partial<Page>) => update((d) => ({ ...d, pages: d.pages.map((x) => (x.id === id ? { ...x, ...p } : x)) }))
   const setPane = (pageId: string, pane: Pane) => update((d) => ({ ...d, pages: d.pages.map((x) => (x.id === pageId ? { ...x, panes: x.panes.map((q) => (q.id === pane.id ? pane : q)) } : x)) }))
 
@@ -146,8 +145,8 @@ export function Espacio() {
 
   const openFile = async (file: File) => {
     try {
-      const d = JSON.parse(await file.text())
-      if (!validDoc(d)) throw new Error()
+      const d = repairDoc(JSON.parse(await file.text()))
+      if (!d) throw new Error()
       setDoc({ ...d, active: 0 })
     } catch {
       alert(L('El archivo no es un documento de NumLab válido.', 'The file is not a valid NumLab document.'))
@@ -266,7 +265,11 @@ export function Espacio() {
                   </button>
                 )}
               </div>
-              <div className="ws-pane-body">{renderPane(pane)}</div>
+              <div className="ws-pane-body">
+                <PaneBoundary kind={pane.kind} onReset={() => setPane(page.id, { ...newPane(pane.kind), id: pane.id })} onRemove={two ? () => unsplit(pane.id) : undefined}>
+                  {renderPane(pane)}
+                </PaneBoundary>
+              </div>
             </section>
           ))}
         </PageGrid>
@@ -318,6 +321,51 @@ function PageGrid({ layout, sizes, split, splitY, n, onDrag, children }: { layou
       ])}
     </div>
   )
+}
+
+/**
+ * Si una app falla al dibujarse, el error queda dentro de su panel (con el mensaje y opciones para
+ * reintentar, vaciarla o quitarla) en lugar de tumbar todo el espacio de trabajo.
+ */
+class PaneBoundary extends Component<{ kind: AppKind; onReset: () => void; onRemove?: () => void; children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[NumLab] Error en una app del espacio de trabajo:', this.props.kind, error, info.componentStack)
+  }
+  render() {
+    const { error } = this.state
+    if (!error) return this.props.children
+    return (
+      <div className="ws-crash" role="alert">
+        <b>{L(`La app «${APP_LABEL[this.props.kind]}» tuvo un error`, `The “${APP_LABEL[this.props.kind]}” app hit an error`)}</b>
+        <pre>{String(error.message || error)}</pre>
+        <div className="ws-crash-actions">
+          <button className="btn sm primary" onClick={() => this.setState({ error: null })}>
+            {L('Reintentar', 'Retry')}
+          </button>
+          <button
+            className="btn sm"
+            onClick={() => {
+              if (confirm(L('¿Vaciar esta app? Se pierde su contenido.', 'Clear this app? Its content is lost.'))) {
+                this.props.onReset()
+                this.setState({ error: null })
+              }
+            }}
+          >
+            {L('Vaciar esta app', 'Clear this app')}
+          </button>
+          {this.props.onRemove && (
+            <button className="btn sm ghost" onClick={this.props.onRemove}>
+              {L('Quitar de la página', 'Remove from the page')}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 }
 
 function AppMenu({ onPick, onClose }: { onPick: (k: AppKind) => void; onClose: () => void }) {

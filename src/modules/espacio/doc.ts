@@ -146,6 +146,88 @@ export function exampleDoc(): Doc {
   }
 }
 
+/* ─────────────── reparación de documentos ─────────────── */
+
+const KINDS: AppKind[] = ['calc', 'graph', 'sheet', 'notes']
+const num = (v: unknown, def: number, lo = -Infinity, hi = Infinity) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : def)
+
+/** Panel con todos sus campos (completa lo que falte en documentos viejos o dañados). */
+function repairPane(q: any): Pane | null {
+  if (!q || typeof q !== 'object' || !KINDS.includes(q.kind)) return null
+  const base = newPane(q.kind)
+  const id = typeof q.id === 'string' && q.id ? q.id : base.id
+  switch (q.kind as AppKind) {
+    case 'calc':
+      return { id, kind: 'calc', lines: Array.isArray(q.lines) && q.lines.length ? q.lines.map((l: unknown) => String(l ?? '')) : [''] }
+    case 'notes':
+      return { id, kind: 'notes', text: typeof q.text === 'string' ? q.text : '' }
+    case 'graph': {
+      const b = base as Extract<Pane, { kind: 'graph' }>
+      const entries = (Array.isArray(q.entries) ? q.entries : [])
+        .filter((e: any) => e && typeof e === 'object')
+        .map((e: any) => ({ id: typeof e.id === 'string' ? e.id : uid(), src: String(e.src ?? ''), on: e.on !== false, color: num(e.color, 0, 0, 7), ...(e.slider && typeof e.slider === 'object' ? { slider: { min: num(e.slider.min, -5), max: num(e.slider.max, 5), step: num(e.slider.step, 0.1, 1e-9) } } : {}) }))
+      const pair = (v: any, d: [number, number]): [number, number] => (Array.isArray(v) && v.length === 2 && v.every((x) => Number.isFinite(x)) && v[0] < v[1] ? [v[0], v[1]] : d)
+      return { id, kind: 'graph', entries: entries.length ? entries : b.entries, view: { x: pair(q.view?.x, b.view.x), y: pair(q.view?.y, b.view.y) }, equal: q.equal !== false, special: q.special !== false, grid: q.grid !== false }
+    }
+    case 'sheet': {
+      const sh = q.sheet && typeof q.sheet === 'object' ? q.sheet : {}
+      const obj = (o: any) => (o && typeof o === 'object' && !Array.isArray(o) ? o : {})
+      return { id, kind: 'sheet', sheet: { cells: obj(sh.cells), names: obj(sh.names), colFormulas: obj(sh.colFormulas), fmt: obj(sh.fmt), colW: obj(sh.colW), cols: num(sh.cols, 6, 1, 52), rows: num(sh.rows, 40, 5, 5000) } }
+    }
+  }
+}
+
+/** Comprobación rápida: ¿el documento ya tiene la forma correcta? (así no se copia en cada cambio) */
+export function isSoundDoc(d: any): d is Doc {
+  if (!d || d.version !== 1 || !Array.isArray(d.pages) || !d.pages.length) return false
+  if (!Number.isInteger(d.active) || d.active < 0 || d.active >= d.pages.length) return false
+  return d.pages.every(
+    (p: any) =>
+      p &&
+      typeof p.id === 'string' &&
+      Number.isFinite(p.split) &&
+      Array.isArray(p.panes) &&
+      p.panes.length >= 1 &&
+      p.panes.length <= MAX_PANES &&
+      (p.sizes === undefined || (Array.isArray(p.sizes) && p.sizes.length === p.panes.length && p.sizes.every((x: unknown) => typeof x === 'number' && x > 0))) &&
+      p.panes.every(
+        (q: any) =>
+          q &&
+          typeof q.id === 'string' &&
+          ((q.kind === 'calc' && Array.isArray(q.lines) && q.lines.length > 0) ||
+            (q.kind === 'notes' && typeof q.text === 'string') ||
+            (q.kind === 'graph' && Array.isArray(q.entries) && q.view && Array.isArray(q.view.x) && Array.isArray(q.view.y)) ||
+            (q.kind === 'sheet' && q.sheet && q.sheet.cells && q.sheet.names && q.sheet.colFormulas && Number.isFinite(q.sheet.rows) && Number.isFinite(q.sheet.cols))),
+      ),
+  )
+}
+
+/**
+ * Documento válido a partir de lo guardado (localStorage o un archivo): descarta lo dañado y completa
+ * lo que falte, para que un estado raro no deje el espacio de trabajo roto. null si no se puede usar.
+ */
+export function repairDoc(d: any): Doc | null {
+  if (!d || typeof d !== 'object' || !Array.isArray(d.pages)) return null
+  const pages: Page[] = []
+  for (const p of d.pages) {
+    if (!p || typeof p !== 'object') continue
+    const panes = (Array.isArray(p.panes) ? p.panes : []).map(repairPane).filter(Boolean).slice(0, MAX_PANES) as Pane[]
+    if (!panes.length) continue
+    const sizes = Array.isArray(p.sizes) && p.sizes.length === panes.length && p.sizes.every((x: unknown) => typeof x === 'number' && x > 0) ? p.sizes : undefined
+    pages.push({
+      id: typeof p.id === 'string' && p.id ? p.id : uid(),
+      title: typeof p.title === 'string' && p.title.trim() ? p.title : APP_LABEL[panes[0].kind],
+      panes,
+      split: num(p.split, 0.5, 0.2, 0.8),
+      ...(['cols', 'rows', 'grid'].includes(p.layout) ? { layout: p.layout as Layout } : {}),
+      ...(sizes ? { sizes } : {}),
+      ...(p.splitY !== undefined ? { splitY: num(p.splitY, 0.5, 0.2, 0.8) } : {}),
+    })
+  }
+  if (!pages.length) return null
+  return { version: 1, name: typeof d.name === 'string' ? d.name : '', pages, active: Math.round(num(d.active, 0, 0, pages.length - 1)) }
+}
+
 export function blankDoc(): Doc {
   return { version: 1, name: L('Documento nuevo', 'New document'), active: 0, pages: [newPage('calc')] }
 }
@@ -180,16 +262,21 @@ function runAll(doc: Doc, seed: Session | null, seedLists: Record<string, number
   const lists: Record<string, number[]> = { ...seedLists }
   for (const page of doc.pages) {
     for (const pane of page.panes) {
-      if (pane.kind === 'calc') calc[pane.id] = pane.lines.map((l) => session.run(l))
-      else if (pane.kind === 'graph') {
-        for (const e of pane.entries) if (e.src.trim() && graphDefinition(e.src)) session.run(e.src)
-      } else if (pane.kind === 'sheet') {
-        const res = evaluateSheet(pane.sheet, session.scope())
-        sheets[pane.id] = res
-        for (const [k, v] of Object.entries(res.lists)) {
-          lists[k] = v
-          session.vars[k] = v
+      // un panel con problemas no debe impedir que se evalúen los demás
+      try {
+        if (pane.kind === 'calc') calc[pane.id] = pane.lines.map((l) => session.run(l))
+        else if (pane.kind === 'graph') {
+          for (const e of pane.entries) if (e.src.trim() && graphDefinition(e.src)) session.run(e.src)
+        } else if (pane.kind === 'sheet') {
+          const res = evaluateSheet(pane.sheet, session.scope())
+          sheets[pane.id] = res
+          for (const [k, v] of Object.entries(res.lists)) {
+            lists[k] = v
+            session.vars[k] = v
+          }
         }
+      } catch (e) {
+        console.error('[NumLab] Error al evaluar un panel del espacio de trabajo', pane.kind, e)
       }
     }
   }
@@ -202,6 +289,11 @@ function runAll(doc: Doc, seed: Session | null, seedLists: Record<string, number
  * la hoja de la página 2).
  */
 export function evaluateDoc(doc: Doc): DocEval {
-  const first = runAll(doc, null, {})
-  return runAll(doc, first.session, first.lists)
+  try {
+    const first = runAll(doc, null, {})
+    return runAll(doc, first.session, first.lists)
+  } catch (e) {
+    console.error('[NumLab] Error al evaluar el documento', e)
+    return { session: new Session(), calc: {}, sheets: {}, lists: {} }
+  }
 }

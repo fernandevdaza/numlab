@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versión-0.3.1-2dd4bf?style=flat-square" alt="versión 0.3.1">
+  <img src="https://img.shields.io/badge/versión-0.3.2-2dd4bf?style=flat-square" alt="versión 0.3.2">
   <a href="https://github.com/fernandevdaza/numlab/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/fernandevdaza/numlab/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
   <img src="https://img.shields.io/badge/pruebas-906-22c55e?style=flat-square" alt="906 pruebas">
   <img src="https://img.shields.io/badge/métodos-58-8b5cf6?style=flat-square" alt="58 métodos">

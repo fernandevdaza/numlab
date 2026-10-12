@@ -35,7 +35,9 @@ export class ErrorBoundary extends Component<Props, State> {
     const p = this.props.storagePrefix
     if (p) {
       try {
-        for (const k of Object.keys(localStorage)) if (k.startsWith('numlab:' + p)) localStorage.removeItem(k)
+        // el espacio de trabajo (tema «cas») guarda su documento con su propia clave
+        const prefixes = ['numlab:' + p, ...(p === 'cas' ? ['numlab:espacio:'] : [])]
+        for (const k of Object.keys(localStorage)) if (prefixes.some((x) => k.startsWith(x))) localStorage.removeItem(k)
       } catch {
         /* sin almacenamiento */
       }

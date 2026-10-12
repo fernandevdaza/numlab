@@ -228,3 +228,8 @@
 .nx-view h4 { font: 600 19px var(--display); margin: 14px 0 6px; }
 .nx-view code { background: var(--panel-2); border: 1px solid var(--border); border-radius: 5px; padding: 0 4px; font-size: 0.88em; }
 .nx-view p { margin: 0 0 12px; }
+
+/* error dentro de una app */
+.ws-crash { margin: 14px; padding: 14px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--danger) 6%, transparent); display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.ws-crash pre { margin: 0; font: 12px var(--mono); color: var(--danger); white-space: pre-wrap; word-break: break-word; }
+.ws-crash-actions { display: flex; gap: 6px; flex-wrap: wrap; }

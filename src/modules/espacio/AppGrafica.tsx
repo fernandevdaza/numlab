@@ -246,10 +246,18 @@ function Canvas({ pane, items, onView }: { pane: GraphPane; items: Item[]; onVie
       xaxis: { ...axis, range: [...pane.view.x] },
       yaxis: { ...axis, range: [...pane.view.y], ...(pane.equal ? { scaleanchor: 'x', scaleratio: 1 } : {}) },
     }
-    Plotly.react(el, data, layout, { responsive: true, displaylogo: false, scrollZoom: true, locale: LANG, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toImage'] } as any).then((gd: any) => {
-      // tras purgar (o en el primer dibujo) Plotly crea un emisor nuevo: registrar el evento una vez
-      if (!gd._ev?.listenerCount?.('plotly_relayout')) gd.on('plotly_relayout', onRelayout.current)
-    })
+    // si el panel ya se cerró (o Plotly falla con estos datos), no hay que tumbar la app
+    if (!el.isConnected) return
+    try {
+      Plotly.react(el, data, layout, { responsive: true, displaylogo: false, scrollZoom: true, locale: LANG, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toImage'] } as any)
+        .then((gd: any) => {
+          // tras purgar (o en el primer dibujo) Plotly crea un emisor nuevo: registrar el evento una vez
+          if (gd?.isConnected && typeof gd.on === 'function' && !gd._ev?.listenerCount?.('plotly_relayout')) gd.on('plotly_relayout', onRelayout.current)
+        })
+        .catch((e: unknown) => console.error('[NumLab] Plotly', e))
+    } catch (e) {
+      console.error('[NumLab] Plotly', e)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dark, pane.equal, pane.grid, pane.id])
 
