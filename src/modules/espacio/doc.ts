@@ -32,7 +32,16 @@ export interface Page {
   panes: Pane[]
   /** dos apps lado a lado: proporción del primer panel (0.3–0.7) */
   split: number
+  /** disposición con varias apps (hasta 4): columnas, filas o cuadrícula 2×2 */
+  layout?: Layout
+  /** proporciones de cada app en columnas o filas (suman 1) */
+  sizes?: number[]
+  /** cuadrícula: proporción de la primera fila */
+  splitY?: number
 }
+
+export type Layout = 'cols' | 'rows' | 'grid'
+export const MAX_PANES = 4
 
 export interface Doc {
   version: 1

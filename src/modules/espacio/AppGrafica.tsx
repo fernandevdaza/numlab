@@ -162,7 +162,9 @@ function Canvas({ pane, items, onView }: { pane: GraphPane; items: Item[]; onVie
   const onViewRef = useRef(onView)
   onViewRef.current = onView
   // la vista sigue al usuario (arrastrar, rueda, zoom): se vuelve a muestrear con el nuevo rango
-  const onRelayout = useRef(() => {
+  const onRelayout = useRef((ev?: Record<string, unknown>) => {
+    // sólo cambios hechos por el usuario (arrastrar, rueda, zoom); no los ajustes por cambio de tamaño
+    if (!ev || !Object.keys(ev).some((k) => /^[xy]axis\.(range|autorange)/.test(k))) return
     const fl = (ref.current as any)?._fullLayout
     if (!fl?.xaxis?.range || !fl?.yaxis?.range) return
     const v: View = { x: [fl.xaxis.range[0], fl.xaxis.range[1]], y: [fl.yaxis.range[0], fl.yaxis.range[1]] }

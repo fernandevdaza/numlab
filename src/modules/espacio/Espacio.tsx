@@ -1,6 +1,6 @@
 // Espacio de trabajo: un documento con páginas; cada página tiene una o dos apps (calculadora,
 // gráficas, hoja de cálculo, notas) que comparten variables. Inspirado en TI-Nspire y GeoGebra.
-import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
 import { useDebounced, useLocalState } from '../../lib/useLocalState'
 import { download } from '../../components/ui'
 import { Tex } from '../../components/Tex'
@@ -10,7 +10,7 @@ import { AppCalc } from './AppCalc'
 import { AppGrafica } from './AppGrafica'
 import { AppHoja } from './AppHoja'
 import { AppNotas } from './AppNotas'
-import { APP_ICON, APP_LABEL, blankDoc, evaluateDoc, exampleDoc, newPage, newPane, type AppKind, type Doc, type Page, type Pane } from './doc'
+import { APP_ICON, APP_LABEL, MAX_PANES, blankDoc, evaluateDoc, exampleDoc, newPage, newPane, type AppKind, type Doc, type Layout, type Page, type Pane } from './doc'
 import './espacio.css'
 
 const KINDS: AppKind[] = ['calc', 'graph', 'sheet', 'notes']
@@ -51,11 +51,48 @@ export function Espacio() {
       return { ...d, pages, active: Math.min(d.active, pages.length - 1) }
     })
   }
+  // varias apps por página (hasta 4): al agregar o quitar, las proporciones se reparten por igual
   const split = (kind: AppKind) => {
-    setPage(page.id, { panes: [page.panes[0], newPane(kind)] })
+    if (page.panes.length >= MAX_PANES) return
+    const panes = [...page.panes, newPane(kind)]
+    setPage(page.id, { panes, sizes: undefined, layout: page.layout ?? (panes.length >= 3 ? 'grid' : 'cols') })
     setMenu(null)
   }
-  const unsplit = (paneId: string) => setPage(page.id, { panes: page.panes.filter((p) => p.id !== paneId) })
+  const unsplit = (paneId: string) => setPage(page.id, { panes: page.panes.filter((p) => p.id !== paneId), sizes: undefined })
+
+  /* ─────────── pantalla completa ─────────── */
+  const [full, setFull] = useState(false)
+  const enterFull = async () => {
+    setFull(true)
+    // además, la pantalla completa del navegador o de la app de escritorio (si se puede)
+    try {
+      if (rootRef.current && !document.fullscreenElement) await rootRef.current.requestFullscreen({ navigationUI: 'hide' })
+    } catch {
+      /* sin API de pantalla completa: queda el modo dentro de la página */
+    }
+  }
+  const exitFull = () => {
+    setFull(false)
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+  }
+  useEffect(() => {
+    const onChange = () => !document.fullscreenElement && setFull(false)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = (e.target as HTMLElement)?.closest?.('input, textarea, select, [contenteditable]')
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        if (full) exitFull()
+        else enterFull()
+      } else if (full && e.key === 'Escape' && !typing) exitFull()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [full])
 
   // recordar el último campo usado para insertar variables desde el panel
   useEffect(() => {
@@ -75,13 +112,29 @@ export function Espacio() {
     document.execCommand('insertText', false, name)
   }
 
-  // arrastrar el divisor entre dos apps
-  const dragSplit = (e: RPointerEvent<HTMLDivElement>) => {
+  // disposición y proporciones de la página activa
+  const n = page.panes.length
+  const layout: Layout = n < 2 ? 'cols' : (page.layout ?? (n >= 3 ? 'grid' : 'cols'))
+  const sizes = page.sizes?.length === n ? page.sizes : n === 2 ? [page.split, 1 - page.split] : Array(n).fill(1 / n)
+
+  /** Arrastrar un divisor: en columnas o filas mueve el borde entre dos apps; en la cuadrícula, la columna o la fila. */
+  const dragDivider = (e: RPointerEvent<HTMLDivElement>, axis: 'x' | 'y', k: number) => {
+    e.preventDefault()
     const box = (e.currentTarget.parentElement as HTMLElement).getBoundingClientRect()
-    const vertical = window.matchMedia('(max-width: 900px)').matches
     const move = (ev: PointerEvent) => {
-      const r = vertical ? (ev.clientY - box.top) / box.height : (ev.clientX - box.left) / box.width
-      setPage(page.id, { split: Math.max(0.25, Math.min(0.75, r)) })
+      const f = axis === 'x' ? (ev.clientX - box.left) / box.width : (ev.clientY - box.top) / box.height
+      if (layout === 'grid') {
+        const v = Math.max(0.2, Math.min(0.8, f))
+        setPage(page.id, axis === 'x' ? { split: v } : { splitY: v })
+        return
+      }
+      const before = sizes.slice(0, k).reduce((a, b) => a + b, 0)
+      const pair = sizes[k] + sizes[k + 1]
+      const a = Math.max(0.1, Math.min(pair - 0.1, f - before))
+      const next = [...sizes]
+      next[k] = a
+      next[k + 1] = pair - a
+      setPage(page.id, { sizes: next, ...(n === 2 ? { split: next[0] } : {}) })
     }
     const up = () => {
       window.removeEventListener('pointermove', move)
@@ -116,13 +169,16 @@ export function Espacio() {
 
   const two = page.panes.length > 1
   return (
-    <div className="method ws" ref={rootRef}>
+    <div className={'method ws' + (full ? ' ws-full' : '')} ref={rootRef}>
       <header className="ws-head">
         <div>
           <div className="eyebrow">{L('Herramientas', 'Tools')}</div>
           <input className="ws-name" value={doc.name} onChange={(e) => update((d) => ({ ...d, name: e.target.value }))} aria-label={L('Nombre del documento', 'Document name')} />
         </div>
         <div className="ws-actions">
+          <button className={'btn ghost sm' + (full ? ' active' : '')} onClick={() => (full ? exitFull() : enterFull())} title={full ? L('Salir de pantalla completa (Esc)', 'Exit full screen (Esc)') : L('Pantalla completa (Ctrl+Mayús+F)', 'Full screen (Ctrl+Shift+F)')}>
+            {full ? `⤡ ${L('Salir', 'Exit')}` : `⤢ ${L('Pantalla completa', 'Full screen')}`}
+          </button>
           <button className={'btn ghost sm' + (showVars ? ' active' : '')} onClick={() => setShowVars((v) => !v)}>
             𝑥 {L('Variables', 'Variables')}
           </button>
@@ -171,20 +227,34 @@ export function Espacio() {
           </button>
           {menu === 'page' && <AppMenu onPick={addPage} onClose={() => setMenu(null)} />}
         </div>
-        {!two && (
+        {n < MAX_PANES && (
           <div className="ws-menu-wrap">
-            <button className="btn ghost sm" onClick={() => setMenu(menu === 'split' ? null : 'split')} title={L('Poner una segunda app al lado', 'Put a second app beside it')}>
-              ◫ {L('Dividir', 'Split')}
+            <button className="btn ghost sm" onClick={() => setMenu(menu === 'split' ? null : 'split')} title={L(`Agregar otra app a esta página (hasta ${MAX_PANES})`, `Add another app to this page (up to ${MAX_PANES})`)}>
+              ◫ {n < 2 ? L('Dividir', 'Split') : L('Otra app', 'Another app')}
             </button>
             {menu === 'split' && <AppMenu onPick={split} onClose={() => setMenu(null)} />}
+          </div>
+        )}
+        {n >= 2 && (
+          <div className="ws-layouts" role="group" aria-label={L('Disposición', 'Layout')}>
+            {(
+              [
+                ['cols', '▥', L('En columnas', 'Columns')],
+                ['rows', '☰', L('En filas', 'Rows')],
+                ['grid', '⊞', L('Cuadrícula', 'Grid')],
+              ] as const
+            ).map(([k, icon, label]) => (
+              <button key={k} className={'btn ghost sm' + (layout === k ? ' active' : '')} title={label} aria-pressed={layout === k} onClick={() => setPage(page.id, { layout: k, sizes: undefined })}>
+                {icon}
+              </button>
+            ))}
           </div>
         )}
       </nav>
 
       <div className={'ws-body' + (showVars ? ' with-vars' : '')}>
-        <div className={'ws-page' + (two ? ' two' : '')} style={two ? ({ '--split': `${page.split * 100}%` } as any) : undefined}>
-          {page.panes.map((pane, k) => [
-            k === 1 && <div key="div" className="ws-divider" onPointerDown={dragSplit} title={L('Arrastra para cambiar el tamaño', 'Drag to resize')} />,
+        <PageGrid layout={layout} sizes={sizes} split={page.split} splitY={page.splitY ?? 0.5} n={n} onDrag={dragDivider}>
+          {page.panes.map((pane) => (
             <section key={pane.id} className={'ws-pane ws-' + pane.kind}>
               <div className="ws-pane-head">
                 <span>
@@ -197,11 +267,55 @@ export function Espacio() {
                 )}
               </div>
               <div className="ws-pane-body">{renderPane(pane)}</div>
-            </section>,
-          ])}
-        </div>
+            </section>
+          ))}
+        </PageGrid>
         {showVars && <VarsPanel ev={ev} onInsert={insertVar} />}
       </div>
+    </div>
+  )
+}
+
+/**
+ * Coloca las apps de una página: en columnas o filas (con divisores entre cada par) o en una
+ * cuadrícula 2×2 (con 3 apps, la tercera ocupa toda la fila de abajo).
+ */
+function PageGrid({ layout, sizes, split, splitY, n, onDrag, children }: { layout: Layout; sizes: number[]; split: number; splitY: number; n: number; onDrag: (e: RPointerEvent<HTMLDivElement>, axis: 'x' | 'y', k: number) => void; children: ReactNode[] }) {
+  const kids = children
+  if (n < 2) return <div className="ws-page">{kids}</div>
+  const fr = (v: number) => `minmax(0, ${v.toFixed(4)}fr)`
+  const title = L('Arrastra para cambiar el tamaño', 'Drag to resize')
+  if (layout === 'grid' && n > 2) {
+    const style = { gridTemplateColumns: `${fr(split)} 8px ${fr(1 - split)}`, gridTemplateRows: `${fr(splitY)} 8px ${fr(1 - splitY)}` }
+    const place = [
+      { gridColumn: '1', gridRow: '1' },
+      { gridColumn: '3', gridRow: '1' },
+      n === 3 ? { gridColumn: '1 / 4', gridRow: '3' } : { gridColumn: '1', gridRow: '3' },
+      { gridColumn: '3', gridRow: '3' },
+    ]
+    return (
+      <div className="ws-page multi" style={style}>
+        {kids.map((k, i) => (
+          <div key={i} className="ws-cell" style={place[i]}>
+            {k}
+          </div>
+        ))}
+        <div className="ws-divider x" style={{ gridColumn: '2', gridRow: n === 4 ? '1 / 4' : '1' }} onPointerDown={(e) => onDrag(e, 'x', 0)} title={title} />
+        <div className="ws-divider y" style={{ gridColumn: '1 / 4', gridRow: '2' }} onPointerDown={(e) => onDrag(e, 'y', 0)} title={title} />
+      </div>
+    )
+  }
+  const cols = layout !== 'rows'
+  const tpl = sizes.map(fr).join(' 8px ')
+  const style = cols ? { gridTemplateColumns: tpl, gridTemplateRows: '100%' } : { gridTemplateRows: tpl, gridTemplateColumns: '100%' }
+  return (
+    <div className={'ws-page multi ' + (cols ? 'cols' : 'rows')} style={style}>
+      {kids.flatMap((k, i) => [
+        ...(i > 0 ? [<div key={'d' + i} className={'ws-divider ' + (cols ? 'x' : 'y')} onPointerDown={(e) => onDrag(e, cols ? 'x' : 'y', i - 1)} title={title} />] : []),
+        <div key={i} className="ws-cell">
+          {k}
+        </div>,
+      ])}
     </div>
   )
 }

@@ -224,8 +224,9 @@ export function AppHoja({ pane, result, onChange }: { pane: SheetPane; result: S
     if (!el) return
     const on = () => {
       setView({ top: Math.max(0, el.scrollTop - HEAD_H * 3), height: el.clientHeight })
-      // crecer al llegar abajo
-      if (el.scrollTop + el.clientHeight > el.scrollHeight - 4 * ROW_H && shRef.current.rows < 5000) quiet({ ...shRef.current, rows: shRef.current.rows + 50 })
+      // crecer al llegar abajo (sólo si la hoja se desplaza de verdad: con alto libre no hay «abajo»)
+      const scrollable = el.scrollHeight > el.clientHeight + ROW_H && el.scrollTop > 0
+      if (scrollable && el.scrollTop + el.clientHeight > el.scrollHeight - 4 * ROW_H && shRef.current.rows < 5000) quiet({ ...shRef.current, rows: shRef.current.rows + 50 })
     }
     on()
     el.addEventListener('scroll', on, { passive: true })
